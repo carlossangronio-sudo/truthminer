@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Loader from '@/components/Loader';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
+import Navbar from '@/components/Navbar';
 
 // Utilitaires pour le nettoyage et la mise en forme du contenu
 function cleanDefectText(text: string): string {
@@ -172,23 +173,24 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f9f9fb]">
-      <div className="container mx-auto px-4 md:px-6 py-10 md:py-16 flex flex-col items-center">
+    <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
+      <Navbar />
+      <div className="container mx-auto px-4 md:px-6 py-8 md:py-14 flex flex-col items-center">
         <div className="w-full max-w-4xl">
           <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-gray-50 mb-4 tracking-tight">
               TruthMiner
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-1">
+            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-1">
               Comparaisons de produits ultra-honnêtes
             </p>
-            <p className="text-sm md:text-base text-gray-500">
+            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
               L&apos;IA qui n&apos;a pas sa langue dans sa poche.
             </p>
           </div>
 
           <div className="w-full max-w-2xl mx-auto mb-12">
-            <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-[0_18px_60px_rgba(15,23,42,0.04)] border border-gray-200/70 px-5 py-4">
+            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-sm rounded-3xl shadow-[0_18px_60px_rgba(15,23,42,0.08)] border border-gray-200/70 dark:border-slate-700 px-5 py-4">
               <form onSubmit={handleSubmit} className="space-y-3">
                 <label
                   htmlFor="keyword"
@@ -197,7 +199,7 @@ export default function Home() {
                   Analyse un produit via Reddit
                 </label>
                 <div className="relative flex items-center">
-                  <span className="pointer-events-none absolute left-4 text-gray-400">
+                  <span className="pointer-events-none absolute left-4 text-gray-400 dark:text-gray-500">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -218,13 +220,13 @@ export default function Home() {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="Ex: Meilleure souris gaming, Casque audio sans fil..."
-                    className="w-full pl-12 pr-4 py-3.5 text-base md:text-lg font-medium text-black bg-transparent border border-transparent rounded-2xl focus:ring-0 focus:border-gray-300 outline-none placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full pl-12 pr-4 py-3.5 text-base md:text-lg font-medium text-black dark:text-white bg-transparent border border-transparent rounded-2xl focus:ring-0 focus:border-gray-300 dark:focus:border-slate-500 outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:bg-gray-50 disabled:text-gray-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
                     disabled={isLoading}
                   />
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
                     {error}
                   </div>
                 )}
@@ -232,7 +234,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isLoading || !keyword.trim()}
-                  className="w-full inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 text-sm md:text-base shadow-[0_14px_40px_rgba(37,99,235,0.35)] transition-all duration-200"
+                  className="w-full inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 text-sm md:text-base shadow-[0_14px_40px_rgba(37,99,235,0.35)] transition-all duration-200 dark:disabled:from-slate-700 dark:disabled:to-slate-800"
                 >
                   {isLoading ? 'Analyse en cours...' : 'Générer un rapport honnête'}
                 </button>
@@ -250,15 +252,15 @@ export default function Home() {
           <div className="w-full max-w-4xl mx-auto mb-8 md:mb-10">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm md:text-base font-semibold text-gray-900 tracking-tight">
+                <h2 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
                   Analyses récentes
                 </h2>
-                <p className="text-xs md:text-sm text-gray-500">
+                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
                   Les derniers produits passés au détecteur de bullshit.
                 </p>
               </div>
               {recentError && (
-                <span className="text-xs text-red-500">
+                <span className="text-xs text-red-500 dark:text-red-300">
                   {recentError}
                 </span>
               )}
@@ -269,7 +271,7 @@ export default function Home() {
                 ? Array.from({ length: 4 }).map((_, idx) => (
                     <div
                       key={idx}
-                      className="h-28 rounded-3xl bg-white/60 border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] animate-pulse"
+                      className="h-28 rounded-3xl bg-white/60 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-800 shadow-[0_12px_30px_rgba(15,23,42,0.04)] animate-pulse"
                     />
                   ))
                 : recent.map((item) => (
@@ -277,17 +279,17 @@ export default function Home() {
                       key={item.id}
                       type="button"
                       onClick={() => handleSelectRecent(item)}
-                      className="group text-left rounded-3xl bg-white border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-200 p-4 md:p-5 flex flex-col justify-between cursor-pointer"
+                      className="group text-left rounded-3xl bg-white border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-200 p-4 md:p-5 flex flex-col justify-between cursor-pointer dark:bg-slate-900/90 dark:border-slate-800"
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2">
+                        <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-50 line-clamp-2">
                           {item.title}
                         </h3>
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-gray-900 text-gray-50">
                           Truth Score&nbsp;{item.score}%
                         </span>
                       </div>
-                      <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
+                      <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                         {item.choice || 'Analyse basée sur les discussions Reddit.'}
                       </p>
                     </button>
@@ -298,7 +300,7 @@ export default function Home() {
           {report ? (
             <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
               {/* Score de confiance TruthMiner */}
-              <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1">
+              <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1 dark:bg-slate-900/80 dark:border-slate-800">
                 <div className="flex items-center gap-4">
                   {(() => {
                     const score = report.confidenceScore ?? 50;
@@ -319,10 +321,10 @@ export default function Home() {
                           {score}%
                         </div>
                         <div className="flex-1">
-                          <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 mb-0.5">
+                          <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 mb-0.5">
                             Score de confiance TruthMiner
                           </p>
-                          <p className="text-sm text-gray-800 leading-snug">
+                          <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug">
                             <span className="font-semibold">{label}</span>{' '}
                             — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
                           </p>
@@ -333,8 +335,8 @@ export default function Home() {
                 </div>
               </section>
 
-              <div className="border-b border-gray-200 pb-4">
-                <p className="text-sm text-gray-500">
+              <div className="border-b border-gray-200 dark:border-slate-800 pb-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {report.createdAt
                     ? `Rapport généré le ${new Date(report.createdAt).toLocaleDateString('fr-FR', {
                         year: 'numeric',
@@ -344,15 +346,17 @@ export default function Home() {
                     : `Rapport généré à partir des discussions Reddit`}
                 </p>
                 {report.keyword && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Mot-clé analysé :{' '}
-                    <span className="font-medium text-gray-700">{report.keyword}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      {report.keyword}
+                    </span>
                   </p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1">
+                <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1 dark:bg-slate-900/90 dark:border-emerald-900/60">
                   <div className="flex items-center mb-4">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
                       <svg
@@ -369,7 +373,7 @@ export default function Home() {
                       </svg>
                     </div>
                     <div>
-                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
                         Points forts (Choix de la communauté)
                       </h2>
                       <p className="text-xs text-emerald-700 mt-0.5">
@@ -377,13 +381,13 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
                     {report.choice}
                   </p>
                 </section>
 
                 {report.defects && report.defects.length > 0 && (
-                  <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2">
+                  <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2 dark:bg-slate-900/90 dark:border-red-900/70">
                     <div className="flex items-center mb-4">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
                         <svg
@@ -402,7 +406,7 @@ export default function Home() {
                         </svg>
                       </div>
                       <div>
-                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
                           Points faibles (Défauts rédhibitoires)
                         </h2>
                         <p className="text-xs text-red-700 mt-0.5">
@@ -413,8 +417,8 @@ export default function Home() {
                     <ul className="space-y-2.5">
                       {report.defects.map((defect, index) => (
                         <li key={index} className="flex items-start">
-                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3" />
-                          <span className="text-sm md:text-base text-gray-800 leading-relaxed">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3 dark:bg-red-300" />
+                          <span className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
                             {defect}
                           </span>
                         </li>
@@ -424,8 +428,8 @@ export default function Home() {
                 )}
               </div>
 
-              <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3 dark:bg-slate-900/90 dark:border-slate-800">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
                   Analyse détaillée
                 </h2>
                 <div className="prose prose-lg max-w-none markdown-content">
@@ -434,8 +438,8 @@ export default function Home() {
               </section>
 
               {report.userProfiles && report.userProfiles.trim().length > 0 && (
-                <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white border border-green-100 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white dark:from-emerald-950 dark:to-slate-950 border border-green-100 dark:border-emerald-900 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
                     ✅ Est-ce fait pour vous ?
                   </h2>
                   <div className="prose prose-lg max-w-none markdown-content">
@@ -445,8 +449,8 @@ export default function Home() {
               )}
 
               {report.products && report.products.length > 0 && (
-                <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                     Vérifier les prix
                   </h2>
                   <div className="space-y-3">
@@ -459,18 +463,18 @@ export default function Home() {
                 </section>
               )}
 
-              <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6">
+              <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6 dark:bg-slate-900/80 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-3 gap-3">
                   <div className="inline-flex items-center gap-2">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
                       Verdict TruthMiner
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     Synthèse basée sur les discussions Reddit
                   </span>
                 </div>
-                <p className="text-sm md:text-base text-gray-800 leading-relaxed font-semibold">
+                <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed font-semibold">
                   Le consensus Reddit est sans appel :{' '}
                   <span className="font-extrabold">
                     {report.choice}
@@ -479,11 +483,11 @@ export default function Home() {
               </section>
             </div>
           ) : (
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="bg-gray-50 rounded-xl p-6 dark:bg-slate-900/80">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                 Comment ça fonctionne ?
               </h2>
-              <ul className="space-y-2 text-gray-600">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
                 <li className="flex items-start">
                   <span className="text-blue-600 mr-2">✓</span>
                   <span>Recherche automatique des discussions Reddit pertinentes</span>

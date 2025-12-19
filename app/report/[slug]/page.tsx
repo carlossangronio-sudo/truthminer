@@ -4,6 +4,7 @@ import { ReportsStorage } from '@/lib/storage/reports';
 import AffiliateLink from '@/components/AffiliateLink';
 import ShareButtons from '@/components/ShareButtons';
 import ReactMarkdown from 'react-markdown';
+import Navbar from '@/components/Navbar';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -63,20 +64,21 @@ export default async function ReportPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f9f9fb]">
-      <div className="container mx-auto px-4 md:px-6 py-10 md:py-12 max-w-4xl">
+    <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
+      <Navbar />
+      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12 max-w-4xl">
         {/* Header */}
-        <div className="mb-10 pb-6 border-b border-gray-200">
+        <div className="mb-10 pb-6 border-b border-gray-200 dark:border-slate-800">
           <a
             href="/"
             className="text-blue-600 hover:text-blue-800 mb-4 inline-block font-medium"
           >
             ← Retour à l'accueil
           </a>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mt-4 mb-3">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-3">
             {report.title}
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Généré le {new Date(report.createdAt).toLocaleDateString('fr-FR', {
               year: 'numeric',
               month: 'long',
@@ -87,7 +89,7 @@ export default async function ReportPage({ params }: PageProps) {
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
-          <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4">
+          <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 dark:bg-slate-900/80 dark:border-slate-800">
             <div className="flex items-center gap-4">
               {(() => {
                 const score = report.confidenceScore ?? 50;
@@ -115,10 +117,10 @@ export default async function ReportPage({ params }: PageProps) {
                       {score}%
                     </div>
                     <div className="flex-1">
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 mb-0.5">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 mb-0.5">
                         Score de confiance TruthMiner
                       </p>
-                      <p className="text-sm text-gray-800 leading-snug">
+                      <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug">
                         <span className="font-semibold">{label}</span>{' '}
                         — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
                       </p>
@@ -132,7 +134,7 @@ export default async function ReportPage({ params }: PageProps) {
           {/* Points forts / Points faibles en grille (Bento) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Points forts (Choix de la communauté) */}
-            <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1">
+            <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1 dark:bg-slate-900/90 dark:border-emerald-900/60">
               <div className="flex items-center mb-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
                   <svg
@@ -149,7 +151,7 @@ export default async function ReportPage({ params }: PageProps) {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
                     Points forts (Choix de la communauté)
                   </h2>
                   <p className="text-xs text-emerald-700 mt-0.5">
@@ -157,14 +159,14 @@ export default async function ReportPage({ params }: PageProps) {
                   </p>
                 </div>
               </div>
-              <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+              <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
                 {report.choice}
               </p>
             </section>
 
             {/* Points faibles / Défauts rédhibitoires */}
             {report.defects && report.defects.length > 0 && (
-              <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2">
+              <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2 dark:bg-slate-900/90 dark:border-red-900/70">
                 <div className="flex items-center mb-4">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
                     <svg
@@ -183,7 +185,7 @@ export default async function ReportPage({ params }: PageProps) {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
                       Points faibles (Défauts rédhibitoires)
                     </h2>
                     <p className="text-xs text-red-700 mt-0.5">
@@ -191,23 +193,23 @@ export default async function ReportPage({ params }: PageProps) {
                     </p>
                   </div>
                 </div>
-                <ul className="space-y-2.5">
-                  {report.defects.map((defect, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3" />
-                      <span className="text-sm md:text-base text-gray-800 leading-relaxed">
-                        {defect}
-                      </span>
-                    </li>
-                  ))}
+                  <ul className="space-y-2.5">
+                    {report.defects.map((defect, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3 dark:bg-red-300" />
+                        <span className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
+                          {defect}
+                        </span>
+                      </li>
+                    ))}
                 </ul>
               </section>
             )}
           </div>
 
           {/* Article complet */}
-          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3 dark:bg-slate-900/90 dark:border-slate-800">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
               Analyse détaillée
             </h2>
             <div className="prose prose-lg max-w-none markdown-content">
@@ -217,8 +219,8 @@ export default async function ReportPage({ params }: PageProps) {
 
           {/* Est-ce fait pour vous ? */}
           {report.userProfiles && report.userProfiles.trim().length > 0 && (
-            <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white border border-green-100 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white dark:from-emerald-950 dark:to-slate-950 border border-green-100 dark:border-emerald-900 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
                 ✅ Est-ce fait pour vous ?
               </h2>
               <div className="prose prose-lg max-w-none markdown-content">
@@ -229,8 +231,8 @@ export default async function ReportPage({ params }: PageProps) {
 
           {/* Liens d'affiliation */}
           {report.products && report.products.length > 0 && (
-            <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                 Vérifier les prix
               </h2>
               <div className="space-y-3">
@@ -244,7 +246,7 @@ export default async function ReportPage({ params }: PageProps) {
           )}
 
           {/* Verdict TruthMiner */}
-          <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6">
+          <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6 dark:bg-slate-900/80 dark:border-slate-800">
             <div className="flex items-center justify-between mb-3 gap-3">
               <div className="inline-flex items-center gap-2">
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
@@ -255,7 +257,7 @@ export default async function ReportPage({ params }: PageProps) {
                 Synthèse basée sur les discussions Reddit
               </span>
             </div>
-            <p className="text-sm md:text-base text-gray-800 leading-relaxed font-semibold">
+            <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed font-semibold">
               Le consensus Reddit est sans appel :{' '}
               <span className="font-extrabold">
                 {report.choice}
@@ -267,7 +269,7 @@ export default async function ReportPage({ params }: PageProps) {
           <ShareButtons title={report.title} slug={report.slug} />
 
           {/* Footer */}
-          <div className="mt-8 text-center text-gray-500 text-sm">
+          <div className="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             <p>
               Article généré par TruthMiner • Basé sur l'analyse des discussions Reddit
             </p>
