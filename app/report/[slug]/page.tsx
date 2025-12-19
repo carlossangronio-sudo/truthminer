@@ -63,8 +63,8 @@ export default async function ReportPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12 max-w-4xl">
+    <main className="min-h-screen bg-[#f9f9fb]">
+      <div className="container mx-auto px-4 md:px-6 py-10 md:py-12 max-w-4xl">
         {/* Header */}
         <div className="mb-10 pb-6 border-b border-gray-200">
           <a
@@ -86,52 +86,81 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
-          {/* Points forts (Choix de la communauté) */}
-          <section className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-1">
-            <div className="flex items-center mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mr-3">
-                <span className="text-xl">✅</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Points forts (Choix de la communauté)
-                </h2>
-                <p className="text-sm text-emerald-700 mt-0.5">
-                  Ce que la communauté Reddit apprécie vraiment
-                </p>
-              </div>
-            </div>
-            <p className="text-lg text-gray-800 leading-relaxed">
-              {report.choice}
-            </p>
-          </section>
-
-          {/* Points faibles / Défauts rédhibitoires */}
-          {report.defects && report.defects.length > 0 && (
-            <section className="rounded-2xl bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-2">
+          {/* Points forts / Points faibles en grille (Bento) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Points forts (Choix de la communauté) */}
+            <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1">
               <div className="flex items-center mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700 mr-3">
-                  <span className="text-xl">⚠️</span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.7}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Points faibles (Défauts rédhibitoires)
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                    Points forts (Choix de la communauté)
                   </h2>
-                  <p className="text-sm text-red-700 mt-0.5">
-                    Ce que le marketing ne vous dit pas
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Ce que la communauté Reddit apprécie vraiment
                   </p>
                 </div>
               </div>
-              <ul className="space-y-3">
-                {report.defects.map((defect, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-red-600 mr-3 mt-1">•</span>
-                    <span className="text-gray-800 leading-relaxed">{defect}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+                {report.choice}
+              </p>
             </section>
-          )}
+
+            {/* Points faibles / Défauts rédhibitoires */}
+            {report.defects && report.defects.length > 0 && (
+              <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2">
+                <div className="flex items-center mb-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.7}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                      <path d="M10.29 3.86L2.82 18a1 1 0 00.9 1.47h16.56a1 1 0 00.9-1.47L13.71 3.86a1 1 0 00-1.82 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                      Points faibles (Défauts rédhibitoires)
+                    </h2>
+                    <p className="text-xs text-red-700 mt-0.5">
+                      Ce que le marketing ne vous dit pas
+                    </p>
+                  </div>
+                </div>
+                <ul className="space-y-2.5">
+                  {report.defects.map((defect, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3" />
+                      <span className="text-sm md:text-base text-gray-800 leading-relaxed">
+                        {defect}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
 
           {/* Article complet */}
           <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3">
@@ -171,26 +200,24 @@ export default async function ReportPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Verdict de la communauté */}
-          <section className="rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white p-6 md:p-8 shadow-2xl animate-fade-in-delay-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white">
-                    ✓ Confiance Reddit
-                  </span>
-                  <h2 className="text-2xl md:text-3xl font-bold">
-                    Verdict de la communauté
-                  </h2>
-                </div>
-                <p className="text-lg md:text-xl font-semibold leading-relaxed">
-                  Le consensus Reddit est sans appel :{' '}
-                  <span className="font-extrabold text-emerald-300">
-                    {report.choice}
-                  </span>
-                </p>
+          {/* Verdict TruthMiner */}
+          <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6">
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <div className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
+                  Verdict TruthMiner
+                </span>
               </div>
+              <span className="text-xs text-gray-500">
+                Synthèse basée sur les discussions Reddit
+              </span>
             </div>
+            <p className="text-sm md:text-base text-gray-800 leading-relaxed font-semibold">
+              Le consensus Reddit est sans appel :{' '}
+              <span className="font-extrabold">
+                {report.choice}
+              </span>
+            </p>
           </section>
 
           {/* Partage social */}

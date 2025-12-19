@@ -128,42 +128,58 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 md:px-6 py-8 md:py-16">
-        <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-[#f9f9fb]">
+      <div className="container mx-auto px-4 md:px-6 py-10 md:py-16 flex flex-col items-center">
+        <div className="w-full max-w-4xl">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
               TruthMiner
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-2">
+            <p className="text-lg md:text-xl text-gray-600 mb-1">
               Comparaisons de produits ultra-honnêtes
             </p>
-            <p className="text-gray-500">
-              Basées sur l'analyse des discussions Reddit
+            <p className="text-sm md:text-base text-gray-500">
+              Basées sur l'analyse des discussions Reddit, pas sur le marketing.
             </p>
           </div>
 
           {/* Search Bar */}
-          <div className="bg-white rounded-2xl shadow-2xl shadow-blue-100 p-8 mb-10 border border-blue-50">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+          <div className="w-full max-w-2xl mx-auto mb-12">
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-[0_18px_60px_rgba(15,23,42,0.04)] border border-gray-200/70 px-5 py-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
                 <label
                   htmlFor="keyword"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-xs font-medium uppercase tracking-[0.18em] text-gray-500"
                 >
-                  Rechercher un produit
+                  Analyse un produit via Reddit
                 </label>
-                <input
-                  id="keyword"
-                  type="text"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="Ex: Meilleure souris gaming, Casque audio sans fil..."
-                  className="w-full px-6 py-4 text-xl md:text-2xl font-medium text-black bg-white border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 shadow-inner"
-                  disabled={isLoading}
-                />
-              </div>
+                <div className="relative flex items-center">
+                  <span className="pointer-events-none absolute left-4 text-gray-400">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.7}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="7" />
+                      <line x1="16.65" y1="16.65" x2="21" y2="21" />
+                    </svg>
+                  </span>
+                  <input
+                    id="keyword"
+                    type="text"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    placeholder="Ex: Meilleure souris gaming, Casque audio sans fil..."
+                    className="w-full pl-12 pr-4 py-3.5 text-base md:text-lg font-medium text-black bg-transparent border border-transparent rounded-2xl focus:ring-0 focus:border-gray-300 outline-none placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500"
+                    disabled={isLoading}
+                  />
+                </div>
 
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -174,9 +190,9 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={isLoading || !keyword.trim()}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 text-lg shadow-md hover:shadow-lg"
+                className="w-full inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 text-sm md:text-base shadow-[0_14px_40px_rgba(37,99,235,0.35)] transition-all duration-200"
               >
-                {isLoading ? 'Génération en cours...' : 'Générer avec l\'IA'}
+                {isLoading ? 'Analyse en cours...' : 'Générer un rapport honnête'}
               </button>
             </form>
 
@@ -189,7 +205,7 @@ export default function Home() {
 
           {/* Résultats / Info Section */}
           {report ? (
-            <div className="mt-10 space-y-8 md:space-y-10 animate-fade-in">
+            <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
               {/* Meta */}
               <div className="border-b border-gray-200 pb-4">
                 <p className="text-sm text-gray-500">
@@ -208,52 +224,81 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Points forts (Choix de la communauté) */}
-              <section className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-1">
-                <div className="flex items-center mb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mr-3">
-                    <span className="text-xl">✅</span>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Points forts (Choix de la communauté)
-                    </h2>
-                    <p className="text-sm text-emerald-700 mt-0.5">
-                      Ce que la communauté Reddit apprécie vraiment
-                    </p>
-                  </div>
-                </div>
-                <p className="text-lg text-gray-800 leading-relaxed">
-                  {report.choice}
-                </p>
-              </section>
-
-              {/* Points faibles / Défauts rédhibitoires */}
-              {report.defects && report.defects.length > 0 && (
-                <section className="rounded-2xl bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-2">
+              {/* Points forts / Points faibles en grille (Bento) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Points forts (Choix de la communauté) */}
+                <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1">
                   <div className="flex items-center mb-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700 mr-3">
-                      <span className="text-xl">⚠️</span>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.7}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        Points faibles (Défauts rédhibitoires)
+                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                        Points forts (Choix de la communauté)
                       </h2>
-                      <p className="text-sm text-red-700 mt-0.5">
-                        Ce que le marketing ne vous dit pas
+                      <p className="text-xs text-emerald-700 mt-0.5">
+                        Ce que la communauté Reddit apprécie vraiment
                       </p>
                     </div>
                   </div>
-                  <ul className="space-y-3">
-                    {report.defects.map((defect, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-red-600 mr-3 mt-1">•</span>
-                        <span className="text-gray-800 leading-relaxed">{defect}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+                    {report.choice}
+                  </p>
                 </section>
-              )}
+
+                {/* Points faibles / Défauts rédhibitoires */}
+                {report.defects && report.defects.length > 0 && (
+                  <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2">
+                    <div className="flex items-center mb-4">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.7}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M12 9v4" />
+                          <path d="M12 17h.01" />
+                          <path d="M10.29 3.86L2.82 18a1 1 0 00.9 1.47h16.56a1 1 0 00.9-1.47L13.71 3.86a1 1 0 00-1.82 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight">
+                          Points faibles (Défauts rédhibitoires)
+                        </h2>
+                        <p className="text-xs text-red-700 mt-0.5">
+                          Ce que le marketing ne vous dit pas
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="space-y-2.5">
+                      {report.defects.map((defect, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3" />
+                          <span className="text-sm md:text-base text-gray-800 leading-relaxed">
+                            {defect}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </div>
 
               {/* Article complet */}
               <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3">
@@ -293,26 +338,24 @@ export default function Home() {
                 </section>
               )}
 
-              {/* Verdict de la communauté */}
-              <section className="rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white p-6 md:p-8 shadow-2xl animate-fade-in-delay-6">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white">
-                        ✓ Confiance Reddit
-                      </span>
-                      <h2 className="text-2xl md:text-3xl font-bold">
-                        Verdict de la communauté
-                      </h2>
-                    </div>
-                    <p className="text-lg md:text-xl font-semibold leading-relaxed">
-                      Le consensus Reddit est sans appel :{' '}
-                      <span className="font-extrabold text-emerald-300">
-                        {report.choice}
-                      </span>
-                    </p>
+              {/* Verdict TruthMiner */}
+              <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6">
+                <div className="flex items-center justify-between mb-3 gap-3">
+                  <div className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
+                      Verdict TruthMiner
+                    </span>
                   </div>
+                  <span className="text-xs text-gray-500">
+                    Synthèse basée sur les discussions Reddit
+                  </span>
                 </div>
+                <p className="text-sm md:text-base text-gray-800 leading-relaxed font-semibold">
+                  Le consensus Reddit est sans appel :{' '}
+                  <span className="font-extrabold">
+                    {report.choice}
+                  </span>
+                </p>
               </section>
             </div>
           ) : (
