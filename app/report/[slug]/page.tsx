@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { ReportsStorage } from '@/lib/storage/reports';
+import { getReportBySlug } from '@/lib/supabase/client';
 import AffiliateLink from '@/components/AffiliateLink';
 import ShareButtons from '@/components/ShareButtons';
 import ReactMarkdown from 'react-markdown';
@@ -14,14 +14,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const storage = new ReportsStorage();
-  const report = await storage.getReportBySlug(slug);
+  const supabaseReport = await getReportBySlug(slug);
 
-  if (!report) {
+  if (!supabaseReport) {
     return {
       title: 'Rapport introuvable',
     };
   }
+
+  const content = typeof supabaseReport.content === 'object'
+    ? supabaseReport.content
+    : JSON.parse(supabaseReport.content || '{}');
+
+  const report = {
+    title: content.title || supabaseReport.product_name,
+    choice: content.choice || 'Non spécifié',
+    slug: content.slug || slug,
+  };
 
   const url = `${siteUrl}/report/${slug}`;
 
@@ -56,12 +65,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ReportPage({ params }: PageProps) {
   const { slug } = await params;
-  const storage = new ReportsStorage();
-  const report = await storage.getReportBySlug(slug);
+  const supabaseReport = await getReportBySlug(slug);
 
-  if (!report) {
+  if (!supabaseReport) {
     notFound();
   }
+
+  // Extraire le contenu du rapport depuis Supabase
+  const content = typeof supabaseReport.content === 'object'
+    ? supabaseReport.content
+    : JSON.parse(supabaseReport.content || '{}');
+
+  // Formater le rapport dans le format attendu par le composant
+  const report = {
+    title: content.title || supabaseReport.product_name,
+    slug: content.slug || slug,
+    choice: content.choice || 'Non identifié',
+    defects: Array.isArray(content.defects) ? content.defects : [],
+    article: content.article || '',
+    products: Array.isArray(content.products) ? content.products.filter((p: any): p is string => typeof p === 'string') : [],
+    userProfiles: content.userProfiles || '',
+    confidenceScore: supabaseReport.score,
+    createdAt: supabaseReport.created_at,
+  };
 
   return (
     <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
@@ -194,7 +220,7 @@ export default async function ReportPage({ params }: PageProps) {
                   </div>
                 </div>
                   <ul className="space-y-2.5">
-                    {report.defects.map((defect, index) => (
+                    {report.defects.map((defect: string, index: number) => (
                       <li key={index} className="flex items-start">
                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3 dark:bg-red-300" />
                         <span className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
@@ -236,7 +262,7 @@ export default async function ReportPage({ params }: PageProps) {
                 Vérifier les prix
               </h2>
               <div className="space-y-3">
-                {Array.from(new Set(report.products)).map((product, index) => (
+                {(Array.from(new Set(report.products)) as string[]).map((product: string, index: number) => (
                   <div key={index}>
                     <AffiliateLink productName={product} />
                   </div>

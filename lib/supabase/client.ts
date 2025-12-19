@@ -197,4 +197,41 @@ export async function getAllReports(
   return data;
 }
 
+/**
+ * Récupère un rapport par son slug depuis Supabase
+ * Avec fallback : cherche d'abord par slug dans le contenu, puis par product_name si pas trouvé
+ */
+export async function getReportBySlug(slug: string): Promise<SupabaseReportRow | null> {
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+
+  console.log('[Supabase] getReportBySlug →', { supabaseUrl, slug });
+
+  // 1. Récupérer tous les rapports (on ne peut pas filtrer par slug dans le JSON directement avec Supabase REST)
+  const allReports = await getAllReports();
+  
+  // 2. Chercher par slug dans le contenu
+  for (const report of allReports) {
+    const content = typeof report.content === 'object'
+      ? report.content
+      : JSON.parse(report.content || '{}');
+    
+    if (content.slug === slug) {
+      console.log('[Supabase] Rapport trouvé par slug:', slug);
+      return report;
+    }
+  }
+
+  // 3. Fallback : si le slug correspond au product_name formaté, chercher par product_name
+  const normalizedSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  for (const report of allReports) {
+    const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (normalizedProductName === normalizedSlug) {
+      console.log('[Supabase] Rapport trouvé par product_name (fallback):', report.product_name);
+      return report;
+    }
+  }
+
+  console.warn('[Supabase] Aucun rapport trouvé pour le slug:', slug);
+  return null;
+}
 
