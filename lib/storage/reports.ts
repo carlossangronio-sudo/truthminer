@@ -157,8 +157,9 @@ class FileStorage {
 }
 
 // Détecter si on est sur Vercel (production) ou en local
+// En local, on utilise toujours les fichiers pour la persistance
 const isVercel = process.env.VERCEL === '1';
-const isProduction = process.env.NODE_ENV === 'production';
+// Ne pas utiliser isProduction car Next.js peut avoir NODE_ENV=production en build local
 
 // Utiliser le stockage fichier en local, mémoire en production/Vercel
 const memoryStorage = new InMemoryStorage();
@@ -172,13 +173,15 @@ export class ReportsStorage {
    * Charge tous les rapports
    */
   async loadReports(): Promise<StoredReport[]> {
-    if (isVercel || isProduction) {
+    // Utiliser la mémoire uniquement sur Vercel
+    if (isVercel) {
       return memoryStorage.loadReports();
     }
+    // En local, toujours utiliser les fichiers
     try {
       return await fileStorage.loadReports();
     } catch (error) {
-      // En cas d'erreur, utiliser la mémoire
+      // En cas d'erreur, utiliser la mémoire comme fallback
       return memoryStorage.loadReports();
     }
   }
@@ -190,13 +193,15 @@ export class ReportsStorage {
     keyword: string,
     report: GeneratedReport
   ): Promise<StoredReport> {
-    if (isVercel || isProduction) {
+    // Utiliser la mémoire uniquement sur Vercel
+    if (isVercel) {
       return memoryStorage.saveReport(keyword, report);
     }
+    // En local, toujours utiliser les fichiers
     try {
       return await fileStorage.saveReport(keyword, report);
     } catch (error) {
-      // En cas d'erreur (ex: EROFS), utiliser la mémoire
+      // En cas d'erreur (ex: EROFS), utiliser la mémoire comme fallback
       console.warn('Erreur lors de la sauvegarde fichier, utilisation de la mémoire:', error);
       return memoryStorage.saveReport(keyword, report);
     }
@@ -206,9 +211,11 @@ export class ReportsStorage {
    * Récupère un rapport par son slug
    */
   async getReportBySlug(slug: string): Promise<StoredReport | null> {
-    if (isVercel || isProduction) {
+    // Utiliser la mémoire uniquement sur Vercel
+    if (isVercel) {
       return memoryStorage.getReportBySlug(slug);
     }
+    // En local, toujours utiliser les fichiers
     try {
       return await fileStorage.getReportBySlug(slug);
     } catch (error) {
@@ -220,9 +227,11 @@ export class ReportsStorage {
    * Récupère un rapport par son mot-clé (pour éviter les doublons)
    */
   async getReportByKeyword(keyword: string): Promise<StoredReport | null> {
-    if (isVercel || isProduction) {
+    // Utiliser la mémoire uniquement sur Vercel
+    if (isVercel) {
       return memoryStorage.getReportByKeyword(keyword);
     }
+    // En local, toujours utiliser les fichiers
     try {
       return await fileStorage.getReportByKeyword(keyword);
     } catch (error) {
