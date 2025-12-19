@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Loader from '@/components/Loader';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
@@ -22,6 +22,24 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ClientReport | null>(null);
+
+  // Charger le dernier rapport depuis le localStorage au chargement
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = window.localStorage.getItem('truthminer:lastReport');
+      if (stored) {
+        const parsed = JSON.parse(stored) as ClientReport;
+        setReport(parsed);
+        if (parsed.keyword) {
+          setKeyword(parsed.keyword);
+        }
+      }
+    } catch (e) {
+      console.warn('Impossible de charger le rapport depuis localStorage', e);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +68,20 @@ export default function Home() {
         throw new Error(data.error || 'Erreur lors de la génération du rapport');
       }
 
-      setReport(data.report as ClientReport);
+      const nextReport = data.report as ClientReport;
+      setReport(nextReport);
+
+      // Sauvegarder le rapport dans le localStorage pour le garder après rafraîchissement
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(
+            'truthminer:lastReport',
+            JSON.stringify(nextReport)
+          );
+        } catch (e) {
+          console.warn('Impossible de sauvegarder le rapport dans localStorage', e);
+        }
+      }
       setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
