@@ -39,6 +39,7 @@ type ClientReport = {
   confidenceScore?: number;
   amazonSearchQuery?: string;
   amazonRecommendationReason?: string;
+  imageUrl?: string;
 };
 
 function getConfidenceLabel(score: number): string {
@@ -232,7 +233,10 @@ export default function Home() {
         userProfiles: rawReport.userProfiles
           ? highlightKeyword(rawReport.userProfiles, baseKeyword)
           : undefined,
+        imageUrl: rawReport.imageUrl, // S'assurer que imageUrl est inclus
       };
+      
+      console.log('[Frontend] Rapport reçu avec imageUrl:', cleanedReport.imageUrl);
       // Marquer le rapport comme prêt (la progression passera à 100%)
       setReport(cleanedReport);
       if (typeof window !== 'undefined') {
@@ -427,6 +431,23 @@ export default function Home() {
                   })()}
                 </div>
               </section>
+
+              {/* Image principale du produit - AFFICHÉE IMMÉDIATEMENT APRÈS GÉNÉRATION */}
+              {report.imageUrl && (
+                <div className="mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800">
+                  <img
+                    src={report.imageUrl}
+                    alt={report.title}
+                    className="w-full h-auto max-h-[500px] object-cover"
+                    loading="eager"
+                    onError={(e) => {
+                      console.warn('Erreur de chargement d\'image:', report.imageUrl);
+                      // Masquer l'image si elle ne charge pas
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
 
               <div className="border-b border-gray-200 dark:border-slate-800 pb-4">
                 <p className="text-sm text-gray-500 dark:text-gray-400">

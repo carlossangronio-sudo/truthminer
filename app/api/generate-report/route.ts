@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
         ...reportWithImage,
         keyword: trimmedKeyword,
         createdAt: now,
+        imageUrl: reportWithImage.imageUrl, // S'assurer que imageUrl est inclus
       },
       cached: false,
     });

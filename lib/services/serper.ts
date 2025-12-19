@@ -104,31 +104,58 @@ export class SerperService {
         }
       );
 
-      console.log('[Serper] Réponse reçue:', JSON.stringify(response.data, null, 2).substring(0, 500));
+      // Logger la structure complète de la réponse pour déboguer
+      console.log('[Serper] Structure de la réponse:', {
+        hasImages: !!response.data?.images,
+        hasImageResults: !!response.data?.imageResults,
+        isArray: Array.isArray(response.data),
+        keys: Object.keys(response.data || {}),
+        sample: response.data?.images?.[0] || response.data?.imageResults?.[0] || response.data?.[0],
+      });
 
       // Gérer différentes structures de réponse possibles
       let images: any[] = [];
       
       if (response.data?.images && Array.isArray(response.data.images)) {
         images = response.data.images;
+        console.log('[Serper] Images trouvées dans response.data.images:', images.length);
       } else if (response.data?.imageResults && Array.isArray(response.data.imageResults)) {
         images = response.data.imageResults;
+        console.log('[Serper] Images trouvées dans response.data.imageResults:', images.length);
       } else if (Array.isArray(response.data)) {
         images = response.data;
+        console.log('[Serper] Images trouvées dans response.data (array):', images.length);
+      } else {
+        console.warn('[Serper] Structure de réponse inattendue:', Object.keys(response.data || {}));
       }
 
       // Parcourir les images pour trouver la première valide
       for (const image of images) {
         // Essayer différents champs possibles pour l'URL
-        const imageUrl = image.imageUrl || image.url || image.link || image.src || image.originalUrl;
+        let imageUrl = image.imageUrl || image.url || image.link || image.src || image.originalUrl || image.image;
+        
+        // Si c'est un objet, essayer d'extraire l'URL
+        if (typeof imageUrl === 'object' && imageUrl !== null) {
+          imageUrl = (imageUrl as any).url || (imageUrl as any).src || (imageUrl as any).link;
+        }
         
         if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
           // Vérifier que ce n'est pas une URL de redirection ou invalide
-          if (!imageUrl.includes('googleusercontent.com/imgres') && 
-              !imageUrl.includes('gstatic.com') &&
-              !imageUrl.includes('google.com/search')) {
+          const invalidPatterns = [
+            'googleusercontent.com/imgres',
+            'gstatic.com',
+            'google.com/search',
+            'google.com/imgres',
+            'tbn:',
+          ];
+          
+          const isValid = !invalidPatterns.some(pattern => imageUrl.includes(pattern));
+          
+          if (isValid) {
             console.log('[Serper] Image valide trouvée:', imageUrl);
             return imageUrl;
+          } else {
+            console.log('[Serper] Image invalide (redirection Google):', imageUrl);
           }
         }
       }
