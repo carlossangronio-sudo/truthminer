@@ -34,7 +34,15 @@ type ClientReport = {
   userProfiles?: string;
   keyword?: string;
   createdAt?: string;
+  confidenceScore?: number;
 };
+
+function getConfidenceLabel(score: number): string {
+  if (score >= 80) return 'Confiance très forte';
+  if (score >= 60) return 'Confiance élevée';
+  if (score >= 40) return 'Confiance mitigée';
+  return 'Confiance faible';
+}
 
 export default function Home() {
   const [keyword, setKeyword] = useState('');
@@ -183,6 +191,42 @@ export default function Home() {
 
           {report ? (
             <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
+              {/* Score de confiance TruthMiner */}
+              <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1">
+                <div className="flex items-center gap-4">
+                  {(() => {
+                    const score = report.confidenceScore ?? 50;
+                    const label = getConfidenceLabel(score);
+                    const colorClasses =
+                      score >= 80
+                        ? 'border-emerald-400 text-emerald-700 bg-emerald-50'
+                        : score >= 60
+                        ? 'border-amber-400 text-amber-700 bg-amber-50'
+                        : score >= 40
+                        ? 'border-amber-400 text-amber-700 bg-amber-50'
+                        : 'border-red-400 text-red-700 bg-red-50';
+                    return (
+                      <>
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-sm font-bold ${colorClasses}`}
+                        >
+                          {score}%
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 mb-0.5">
+                            Score de confiance TruthMiner
+                          </p>
+                          <p className="text-sm text-gray-800 leading-snug">
+                            <span className="font-semibold">{label}</span>{' '}
+                            — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </section>
+
               <div className="border-b border-gray-200 pb-4">
                 <p className="text-sm text-gray-500">
                   {report.createdAt

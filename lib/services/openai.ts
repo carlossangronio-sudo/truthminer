@@ -9,6 +9,7 @@ export interface GeneratedReport {
   article: string; // Article en Markdown
   products: string[]; // Liste des produits mentionnés
   userProfiles?: string; // Section "Est-ce fait pour vous ?"
+  confidenceScore?: number; // Score de confiance TruthMiner (0-100)
 }
 
 /**
@@ -45,7 +46,8 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format sui
   "defects": ["Défaut 1 avec citation Reddit", "Défaut 2 avec citation Reddit"],
   "article": "Article complet en Markdown avec introduction, sections, conclusion/verdict final",
   "products": ["Nom du produit 1", "Nom du produit 2"],
-  "userProfiles": "Section 'Est-ce fait pour vous ?' avec profils d'utilisateurs"
+  "userProfiles": "Section 'Est-ce fait pour vous ?' avec profils d'utilisateurs",
+  "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit)
 }
 
 RÈGLES STRICTES DE VÉRIFICATION TECHNIQUE :
@@ -84,19 +86,27 @@ CITATIONS REDDIT OBLIGATOIRES :
 Instructions détaillées :
 1. "title" : Un titre accrocheur, percutant et descriptif
 2. "choice" : Identifie le "Choix de la communauté" avec un ton de journaliste d'investigation : explique pourquoi ce choix est crédible (ou ses limites)
-3. "defects" : Chaque défaut DOIT inclure une citation Reddit anonymisée. Format : "Description du défaut : '[citation exacte]' - Un utilisateur Reddit"
-4. "article" : Article complet en Markdown avec TOUTES les sections listées ci-dessus. Le ton doit rester celui d'un journaliste tech d'investigation, expert et impartial.
+3. "defects" : Chaque défaut DOIT inclure une citation Reddit anonymisée. Format : "Description du défaut : '[citation exacte]' - Un utilisateur Reddit". Utilise des listes à puces Markdown (-) et mets les termes importants en **gras**.
+4. "article" : Article complet en Markdown avec TOUTES les sections listées ci-dessus. Utilise des titres clairs, des listes à puces pour les arguments, et mets en **gras** les concepts et caractéristiques clés. Si une information n'est pas mentionnée dans les discussions, écris "Non précisé sur Reddit" au lieu d'inventer.
 5. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
 6. "userProfiles" : Section "Est-ce fait pour vous ?" avec au moins 3-4 profils d'utilisateurs. Format : "Pour [profil] : OUI/NON - [explication]"
+7. "confidenceScore" : Un entier entre 0 et 100 qui reflète le niveau de confiance global de la communauté Reddit vis-à-vis du produit :
+   - 80-100 : avis très positifs et cohérents
+   - 60-79 : plutôt positif mais avec des réserves
+   - 40-59 : mitigé
+   - 0-39 : majoritairement négatif
+   Ce score doit être basé UNIQUEMENT sur le ton et la proportion des commentaires positifs / neutres / négatifs dans les discussions fournies, sans rien inventer.
 
-Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes.`;
+Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes. Ne crée aucune information technique ou avis qui ne soit pas présent dans les extraits fournis.`;
 
     const userPrompt = `Analyse ces discussions Reddit sur "${keyword}" et génère un article de comparaison ultra-honnête au format JSON.
 
 RAPPEL CRITIQUE :
+- Tu ne dois RIEN inventer : si une information n'apparaît pas dans les extraits, tu indiques clairement qu'elle est "Non précisée sur Reddit"
 - Vérifie les spécifications techniques (Smart vs AR, écran vs pas d'écran, etc.)
 - Utilise un ton tranché et sans compromis
 - Extrais des citations Reddit réelles pour chaque défaut
+- Utilise des listes à puces Markdown (-) pour les arguments clés et mets les éléments importants en **gras**
 - Inclus la section "Est-ce fait pour vous ?" avec des profils d'utilisateurs
 
 Discussions Reddit à analyser :
@@ -112,7 +122,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -132,9 +142,21 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
 
       // Parse la réponse JSON
       const parsed = JSON.parse(content);
-      
+
       // Générer un slug à partir du titre
       const slug = this.generateSlug(parsed.title || keyword);
+
+      const rawConfidence =
+        typeof parsed.confidenceScore === 'number'
+          ? parsed.confidenceScore
+          : typeof parsed.confidence_score === 'number'
+          ? parsed.confidence_score
+          : undefined;
+
+      const confidenceScore =
+        typeof rawConfidence === 'number'
+          ? Math.min(100, Math.max(0, Math.round(rawConfidence)))
+          : 50;
 
       return {
         title: parsed.title || keyword,
@@ -144,6 +166,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         article: parsed.article || '',
         products: Array.isArray(parsed.products) ? parsed.products : [],
         userProfiles: parsed.userProfiles || '',
+        confidenceScore,
       };
     } catch (error) {
       console.error('Erreur lors de la génération OpenAI:', error);

@@ -86,6 +86,49 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
+          {/* Score de confiance TruthMiner */}
+          <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-4">
+              {(() => {
+                const score = report.confidenceScore ?? 50;
+                const label =
+                  score >= 80
+                    ? 'Confiance très forte'
+                    : score >= 60
+                    ? 'Confiance élevée'
+                    : score >= 40
+                    ? 'Confiance mitigée'
+                    : 'Confiance faible';
+                const colorClasses =
+                  score >= 80
+                    ? 'border-emerald-400 text-emerald-700 bg-emerald-50'
+                    : score >= 60
+                    ? 'border-amber-400 text-amber-700 bg-amber-50'
+                    : score >= 40
+                    ? 'border-amber-400 text-amber-700 bg-amber-50'
+                    : 'border-red-400 text-red-700 bg-red-50';
+                return (
+                  <>
+                    <div
+                      className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-sm font-bold ${colorClasses}`}
+                    >
+                      {score}%
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 mb-0.5">
+                        Score de confiance TruthMiner
+                      </p>
+                      <p className="text-sm text-gray-800 leading-snug">
+                        <span className="font-semibold">{label}</span>{' '}
+                        — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </section>
+
           {/* Points forts / Points faibles en grille (Bento) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Points forts (Choix de la communauté) */}
