@@ -20,6 +20,11 @@ export async function getCachedReport(
 ): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
+  console.log('[Supabase] getCachedReport →', {
+    supabaseUrl,
+    normalizedProductName,
+  });
+
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('product_name', `eq.${normalizedProductName}`);
@@ -50,6 +55,13 @@ export async function insertReport(row: {
 }): Promise<void> {
   if (!supabaseUrl || !supabaseAnonKey) return;
 
+  console.log('[Supabase] insertReport →', {
+    supabaseUrl,
+    product_name: row.normalizedProductName,
+    score: row.score,
+    created_at: row.createdAt,
+  });
+
   const url = new URL('/rest/v1/reports', supabaseUrl);
 
   const res = await fetch(url.toString(), {
@@ -77,6 +89,8 @@ export async function getRecentReports(
   limit = 6
 ): Promise<SupabaseReportRow[]> {
   if (!supabaseUrl || !supabaseAnonKey) return [];
+
+  console.log('[Supabase] getRecentReports →', { supabaseUrl, limit });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
