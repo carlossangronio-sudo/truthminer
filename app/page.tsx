@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Loader from '@/components/Loader';
+import ReactMarkdown from 'react-markdown';
+import AffiliateLink from '@/components/AffiliateLink';
 
 // Utilitaires pour le nettoyage et la mise en forme du contenu
 function cleanDefectText(text: string): string {
@@ -23,9 +26,6 @@ function highlightKeyword(text: string, keyword?: string): string {
   const regex = new RegExp(`(${escaped})`, 'gi');
   return text.replace(regex, '**$1**');
 }
-import Loader from '@/components/Loader';
-import ReactMarkdown from 'react-markdown';
-import AffiliateLink from '@/components/AffiliateLink';
 
 type ClientReport = {
   title: string;
