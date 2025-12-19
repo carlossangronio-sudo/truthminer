@@ -5,6 +5,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
     'Supabase non configuré : NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY manquant.'
   );
+} else {
+  try {
+    const host = new URL(supabaseUrl).host;
+    console.log(`Connexion Supabase OK : Projet ${host}`);
+  } catch {
+    console.log('Connexion Supabase OK : URL Supabase chargée');
+  }
 }
 
 type SupabaseReportRow = {
