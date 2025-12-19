@@ -77,7 +77,7 @@ export default function Home() {
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Ex: Meilleure souris gaming, Casque audio sans fil..."
-                  className="w-full px-6 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-6 py-4 text-xl font-normal text-black bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500"
                   disabled={isLoading}
                 />
               </div>
