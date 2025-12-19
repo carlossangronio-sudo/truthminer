@@ -221,7 +221,7 @@ export default async function ReportPage({ params }: PageProps) {
           {report.userProfiles && report.userProfiles.trim().length > 0 && (
             <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white dark:from-emerald-950 dark:to-slate-950 border border-green-100 dark:border-emerald-900 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-                ✅ Est-ce fait pour vous ?
+                Est-ce fait pour vous ?
               </h2>
               <div className="prose prose-lg max-w-none markdown-content">
                 <ReactMarkdown>{report.userProfiles}</ReactMarkdown>

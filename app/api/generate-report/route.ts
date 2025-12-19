@@ -83,11 +83,28 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erreur lors de la génération du rapport:', error);
     
-    const errorMessage =
-      error instanceof Error ? error.message : 'Erreur inconnue';
+    let errorMessage = 'Erreur inconnue';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      // Logs détaillés pour le debug
+      console.error('Stack trace:', error.stack);
+    }
+    
+    // Vérifier les erreurs spécifiques
+    if (errorMessage.includes('SERPER_API_KEY')) {
+      errorMessage = 'Clé API Serper manquante ou invalide';
+    } else if (errorMessage.includes('OPENAI_API_KEY')) {
+      errorMessage = 'Clé API OpenAI manquante ou invalide';
+    } else if (errorMessage.includes('Supabase')) {
+      errorMessage = 'Erreur de connexion à la base de données';
+    }
     
     return NextResponse.json(
-      { error: `Erreur lors de la génération du rapport: ${errorMessage}` },
+      { 
+        error: `Erreur lors de la génération du rapport: ${errorMessage}`,
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+      },
       { status: 500 }
     );
   }

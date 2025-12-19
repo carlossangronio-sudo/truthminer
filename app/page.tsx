@@ -190,9 +190,17 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keyword: keyword.trim() }),
       });
-      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la génération du rapport');
+        const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+        const errorMsg = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
+        console.error('Erreur API:', errorMsg, errorData.details);
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      if (!data.success || !data.report) {
+        throw new Error(data.error || 'Aucun rapport généré');
       }
       const rawReport = data.report as ClientReport;
       const baseKeyword = rawReport.keyword || keyword.trim();
@@ -225,8 +233,15 @@ export default function Home() {
         }
       }, 100);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      const errorMsg = err instanceof Error ? err.message : 'Une erreur est survenue';
+      console.error('Erreur lors de la génération:', err);
+      setError(errorMsg);
       setIsLoading(false);
+      
+      // Afficher les détails en mode développement
+      if (process.env.NODE_ENV === 'development' && err instanceof Error) {
+        console.error('Stack trace:', err.stack);
+      }
     }
   };
 
@@ -482,7 +497,7 @@ export default function Home() {
               {report.userProfiles && report.userProfiles.trim().length > 0 && (
                 <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white dark:from-emerald-950 dark:to-slate-950 border border-green-100 dark:border-emerald-900 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-                    ✅ Est-ce fait pour vous ?
+                    Est-ce fait pour vous ?
                   </h2>
                   <div className="prose prose-lg max-w-none markdown-content">
                     <ReactMarkdown>{report.userProfiles}</ReactMarkdown>
