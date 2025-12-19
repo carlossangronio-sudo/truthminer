@@ -64,7 +64,7 @@ export default async function ReportPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12 max-w-4xl">
         {/* Header */}
         <div className="mb-10 pb-6 border-b border-gray-200">
           <a
@@ -85,9 +85,9 @@ export default async function ReportPage({ params }: PageProps) {
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Points forts (Choix de la communauté) */}
-          <section className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-lg p-6">
+          <section className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-1">
             <div className="flex items-center mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mr-3">
                 <span className="text-xl">✅</span>
@@ -108,7 +108,7 @@ export default async function ReportPage({ params }: PageProps) {
 
           {/* Points faibles / Défauts rédhibitoires */}
           {report.defects && report.defects.length > 0 && (
-            <section className="rounded-2xl bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg p-6">
+            <section className="rounded-2xl bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg p-6 md:p-8 animate-fade-in-delay-2">
               <div className="flex items-center mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700 mr-3">
                   <span className="text-xl">⚠️</span>
@@ -134,7 +134,7 @@ export default async function ReportPage({ params }: PageProps) {
           )}
 
           {/* Article complet */}
-          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Analyse détaillée
             </h2>
@@ -145,7 +145,7 @@ export default async function ReportPage({ params }: PageProps) {
 
           {/* Est-ce fait pour vous ? */}
           {report.userProfiles && report.userProfiles.trim().length > 0 && (
-            <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white border border-green-100 shadow-md p-6">
+            <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white border border-green-100 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 ✅ Est-ce fait pour vous ?
               </h2>
@@ -157,7 +157,7 @@ export default async function ReportPage({ params }: PageProps) {
 
           {/* Liens d'affiliation */}
           {report.products && report.products.length > 0 && (
-            <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6">
+            <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Vérifier les prix
               </h2>
@@ -172,16 +172,25 @@ export default async function ReportPage({ params }: PageProps) {
           )}
 
           {/* Verdict de la communauté */}
-          <section className="rounded-2xl bg-black text-white p-6 shadow-xl">
-            <h2 className="text-2xl font-bold mb-3">
-              Verdict de la communauté
-            </h2>
-            <p className="text-lg font-semibold leading-relaxed">
-              Le consensus Reddit est sans appel :{' '}
-              <span className="font-extrabold">
-                {report.choice}
-              </span>
-            </p>
+          <section className="rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white p-6 md:p-8 shadow-2xl animate-fade-in-delay-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white">
+                    ✓ Confiance Reddit
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-bold">
+                    Verdict de la communauté
+                  </h2>
+                </div>
+                <p className="text-lg md:text-xl font-semibold leading-relaxed">
+                  Le consensus Reddit est sans appel :{' '}
+                  <span className="font-extrabold text-emerald-300">
+                    {report.choice}
+                  </span>
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* Partage social */}
