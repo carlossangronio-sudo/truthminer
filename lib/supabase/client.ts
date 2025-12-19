@@ -253,22 +253,27 @@ export async function getReportBySlug(slug: string): Promise<SupabaseReportRow |
   
   // 1. Chercher par slug dans le contenu (dans les rapports récents)
   for (const report of recentReports) {
-    const content = typeof report.content === 'object'
-      ? report.content
-      : JSON.parse(report.content || '{}');
-    
-    if (content.slug === slug) {
-      console.log('[Supabase] Rapport trouvé par slug (rapide):', slug);
-      return report;
-    }
-  }
-
-  // 2. Fallback : si le slug correspond au product_name formaté
-  for (const report of recentReports) {
-    const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    if (normalizedProductName === normalizedSlug) {
-      console.log('[Supabase] Rapport trouvé par product_name (rapide):', report.product_name);
-      return report;
+    try {
+      const content = typeof report.content === 'object'
+        ? report.content
+        : JSON.parse(report.content || '{}');
+      
+      // Vérifier le slug dans le contenu
+      const contentSlug = content.slug;
+      if (contentSlug === slug) {
+        console.log('[Supabase] Rapport trouvé par slug (rapide):', slug);
+        return report;
+      }
+      
+      // Vérifier aussi si le slug correspond au product_name formaté
+      const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      if (normalizedProductName === normalizedSlug) {
+        console.log('[Supabase] Rapport trouvé par product_name (rapide):', report.product_name);
+        return report;
+      }
+    } catch (e) {
+      console.warn('[Supabase] Erreur lors du parsing du contenu pour le rapport:', report.id, e);
+      continue;
     }
   }
 
@@ -277,22 +282,26 @@ export async function getReportBySlug(slug: string): Promise<SupabaseReportRow |
   const allReports = await getAllReports();
   
   for (const report of allReports) {
-    const content = typeof report.content === 'object'
-      ? report.content
-      : JSON.parse(report.content || '{}');
-    
-    if (content.slug === slug) {
-      console.log('[Supabase] Rapport trouvé par slug (complet):', slug);
-      return report;
-    }
-  }
-
-  // 4. Dernier fallback : chercher par product_name dans tous les rapports
-  for (const report of allReports) {
-    const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    if (normalizedProductName === normalizedSlug) {
-      console.log('[Supabase] Rapport trouvé par product_name (complet):', report.product_name);
-      return report;
+    try {
+      const content = typeof report.content === 'object'
+        ? report.content
+        : JSON.parse(report.content || '{}');
+      
+      // Vérifier le slug dans le contenu
+      if (content.slug === slug) {
+        console.log('[Supabase] Rapport trouvé par slug (complet):', slug);
+        return report;
+      }
+      
+      // Vérifier aussi si le slug correspond au product_name formaté
+      const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      if (normalizedProductName === normalizedSlug) {
+        console.log('[Supabase] Rapport trouvé par product_name (complet):', report.product_name);
+        return report;
+      }
+    } catch (e) {
+      console.warn('[Supabase] Erreur lors du parsing du contenu pour le rapport:', report.id, e);
+      continue;
     }
   }
 

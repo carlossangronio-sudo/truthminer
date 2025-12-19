@@ -63,25 +63,40 @@ export async function POST(request: NextRequest) {
     const openaiService = new OpenAIService();
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
-    // 3. Rechercher une image pour le produit
+    // 3. Rechercher une image pour le produit AVANT de sauvegarder
     let imageUrl: string | null = null;
     try {
       // Utiliser le titre du rapport ou le mot-clé pour rechercher une image
-      const imageSearchQuery = report.title || trimmedKeyword;
-      console.log('[API] Recherche d\'image pour:', imageSearchQuery);
-      imageUrl = await serperService.searchImage(imageSearchQuery);
-      console.log('[API] Image trouvée:', imageUrl);
-      
-      // Si aucune image trouvée, utiliser une image par défaut générique
+      // Essayer d'abord avec le titre complet, puis avec le mot-clé
+      const imageSearchQueries = [
+        report.title,
+        trimmedKeyword,
+        report.products?.[0] || trimmedKeyword, // Essayer avec le premier produit mentionné
+      ].filter(Boolean) as string[];
+
+      console.log('[API] Recherche d\'image pour:', imageSearchQueries);
+
+      // Essayer chaque requête jusqu'à trouver une image
+      for (const searchQuery of imageSearchQueries) {
+        if (!searchQuery) continue;
+        
+        imageUrl = await serperService.searchImage(searchQuery);
+        if (imageUrl) {
+          console.log('[API] Image trouvée avec la requête:', searchQuery, '→', imageUrl);
+          break;
+        }
+      }
+
+      // Si aucune image trouvée après tous les essais, utiliser une image par défaut
       if (!imageUrl) {
-        // Image par défaut : placeholder générique pour produits
-        imageUrl = `https://via.placeholder.com/800x600/4F46E5/FFFFFF?text=${encodeURIComponent(imageSearchQuery)}`;
-        console.log('[API] Utilisation d\'une image placeholder:', imageUrl);
+        console.log('[API] Aucune image trouvée, utilisation d\'une image placeholder');
+        // Ne pas utiliser de placeholder, laisser null pour afficher l'icône
+        imageUrl = null;
       }
     } catch (error) {
-      console.warn('Erreur lors de la recherche d\'image, utilisation d\'une image par défaut:', error);
-      // Image par défaut en cas d'erreur
-      imageUrl = `https://via.placeholder.com/800x600/4F46E5/FFFFFF?text=${encodeURIComponent(report.title || trimmedKeyword)}`;
+      console.error('[API] Erreur lors de la recherche d\'image:', error);
+      // En cas d'erreur, laisser null pour afficher l'icône
+      imageUrl = null;
     }
 
     // Mettre à jour le rapport avec l'image trouvée

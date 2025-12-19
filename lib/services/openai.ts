@@ -224,9 +224,9 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         ? parsed.category 
         : OpenAIService.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
 
-      return {
+      const report = {
         title: parsed.title || keyword,
-        slug,
+        slug, // IMPORTANT : Le slug doit être inclus dans le rapport
         choice: parsed.choice || 'Non identifié',
         defects: Array.isArray(parsed.defects) ? parsed.defects : [],
         article: parsed.article || '',
@@ -238,6 +238,9 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         amazonRecommendationReason: parsed.amazonRecommendationReason || parsed.amazon_recommendation_reason || 'Produit recommandé par la communauté Reddit',
         imageUrl: parsed.imageUrl || parsed.image_url || null,
       };
+
+      console.log('[OpenAI] Rapport généré avec slug:', report.slug);
+      return report;
     } catch (error) {
       console.error('Erreur lors de la génération OpenAI:', error);
       if (error instanceof OpenAI.APIError) {

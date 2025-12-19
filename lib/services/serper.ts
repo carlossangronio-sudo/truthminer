@@ -86,37 +86,65 @@ export class SerperService {
     const query = productName;
     
     try {
+      console.log('[Serper] Recherche d\'image pour:', query);
+      
       // Utiliser l'endpoint images de Serper
-      const response = await axios.post<SerperImageResponse>(
+      const response = await axios.post(
         'https://google.serper.dev/images',
         {
           q: query,
-          num: 5, // Récupérer 5 images pour choisir la meilleure
+          num: 10, // Récupérer 10 images pour avoir plus de choix
         },
         {
           headers: {
             'X-API-KEY': this.apiKey,
             'Content-Type': 'application/json',
           },
-          timeout: 10000, // Timeout de 10 secondes
+          timeout: 15000, // Timeout de 15 secondes
         }
       );
 
-      // Retourner la première image trouvée (la plus pertinente)
-      if (response.data && response.data.images && response.data.images.length > 0) {
-        const firstImage = response.data.images[0];
-        // Vérifier que l'URL de l'image est valide (essayer imageUrl ou url)
-        const imageUrl = firstImage.imageUrl || firstImage.url;
-        if (imageUrl && imageUrl.startsWith('http')) {
-          console.log('[Serper] Image trouvée:', imageUrl);
-          return imageUrl;
+      console.log('[Serper] Réponse reçue:', JSON.stringify(response.data, null, 2).substring(0, 500));
+
+      // Gérer différentes structures de réponse possibles
+      let images: any[] = [];
+      
+      if (response.data?.images && Array.isArray(response.data.images)) {
+        images = response.data.images;
+      } else if (response.data?.imageResults && Array.isArray(response.data.imageResults)) {
+        images = response.data.imageResults;
+      } else if (Array.isArray(response.data)) {
+        images = response.data;
+      }
+
+      // Parcourir les images pour trouver la première valide
+      for (const image of images) {
+        // Essayer différents champs possibles pour l'URL
+        const imageUrl = image.imageUrl || image.url || image.link || image.src || image.originalUrl;
+        
+        if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+          // Vérifier que ce n'est pas une URL de redirection ou invalide
+          if (!imageUrl.includes('googleusercontent.com/imgres') && 
+              !imageUrl.includes('gstatic.com') &&
+              !imageUrl.includes('google.com/search')) {
+            console.log('[Serper] Image valide trouvée:', imageUrl);
+            return imageUrl;
+          }
         }
       }
       
-      console.log('[Serper] Aucune image trouvée pour:', query);
+      console.log('[Serper] Aucune image valide trouvée pour:', query);
       return null;
     } catch (error) {
-      console.warn('Erreur lors de la recherche d\'image Serper (non bloquant):', error instanceof Error ? error.message : error);
+      if (axios.isAxiosError(error)) {
+        console.error('[Serper] Erreur API lors de la recherche d\'image:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+      } else {
+        console.error('[Serper] Erreur lors de la recherche d\'image:', error);
+      }
       // Ne pas faire échouer le processus si la recherche d'image échoue
       return null;
     }
