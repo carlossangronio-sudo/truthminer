@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
-import { supabase } from '@/lib/supabase/client';
+import { getCachedReport, insertReport } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,27 +29,21 @@ export async function POST(request: NextRequest) {
     const normalizedProductName = trimmedKeyword.toLowerCase();
 
     // 1. Vérifier dans Supabase si un rapport existe déjà pour ce produit (cache)
-    if (supabase) {
-      const { data: existing, error: selectError } = await supabase
-        .from('reports')
-        .select('*')
-        .ilike('product_name', normalizedProductName)
-        .maybeSingle();
+    const existing = await getCachedReport(normalizedProductName);
 
-      if (!selectError && existing) {
-        return NextResponse.json({
-          success: true,
-          report: {
-            ...(typeof existing.content === 'object'
-              ? existing.content
-              : JSON.parse(existing.content || '{}')),
-            keyword: trimmedKeyword,
-            createdAt: existing.created_at,
-            confidenceScore: existing.score,
-          },
-          cached: true,
-        });
-      }
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        report: {
+          ...(typeof existing.content === 'object'
+            ? existing.content
+            : JSON.parse(existing.content || '{}')),
+          keyword: trimmedKeyword,
+          createdAt: existing.created_at,
+          confidenceScore: existing.score,
+        },
+        cached: true,
+      });
     }
 
     // 2. Sinon, on génère un nouveau rapport avec Serper + OpenAI
@@ -69,18 +63,12 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
 
     // 3. Sauvegarder le rapport dans Supabase pour figer le score et le contenu
-    if (supabase) {
-      const { error: insertError } = await supabase.from('reports').insert({
-        product_name: normalizedProductName,
-        score: report.confidenceScore ?? 50,
-        content: report,
-        created_at: now,
-      });
-
-      if (insertError) {
-        console.warn('Erreur lors de la sauvegarde Supabase:', insertError);
-      }
-    }
+    await insertReport({
+      normalizedProductName,
+      score: report.confidenceScore ?? 50,
+      content: report,
+      createdAt: now,
+    });
 
     return NextResponse.json({
       success: true,
