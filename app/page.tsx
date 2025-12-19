@@ -130,39 +130,46 @@ export default function Home() {
     loadRecent();
   }, []);
 
-  // Charger les rapports par catégorie
+  // Charger les rapports par catégorie (avec délai pour ne pas bloquer le chargement initial)
   useEffect(() => {
-    const loadCategoryReports = async () => {
-      setIsLoadingCategories(true);
-      try {
-        // High-Tech (Électronique)
-        const resHighTech = await fetch('/api/reports/by-category?category=Électronique&limit=3');
-        const dataHighTech = await resHighTech.json();
-        if (resHighTech.ok) {
-          setHighTechReports(dataHighTech.reports || []);
-        }
+    // Attendre un peu avant de charger les catégories pour ne pas ralentir le chargement initial
+    const timeoutId = setTimeout(() => {
+      const loadCategoryReports = async () => {
+        setIsLoadingCategories(true);
+        try {
+          // Charger les catégories en parallèle pour plus de rapidité
+          const [resHighTech, resSanteBeaute, resAlimentation] = await Promise.all([
+            fetch('/api/reports/by-category?category=Électronique&limit=3'),
+            fetch('/api/reports/by-category?category=Cosmétiques&limit=3'),
+            fetch('/api/reports/by-category?category=Alimentation&limit=3'),
+          ]);
 
-        // Santé & Beauté (Cosmétiques)
-        const resSanteBeaute = await fetch('/api/reports/by-category?category=Cosmétiques&limit=3');
-        const dataSanteBeaute = await resSanteBeaute.json();
-        if (resSanteBeaute.ok) {
-          setSanteBeauteReports(dataSanteBeaute.reports || []);
-        }
+          const [dataHighTech, dataSanteBeaute, dataAlimentation] = await Promise.all([
+            resHighTech.json(),
+            resSanteBeaute.json(),
+            resAlimentation.json(),
+          ]);
 
-        // Alimentation
-        const resAlimentation = await fetch('/api/reports/by-category?category=Alimentation&limit=3');
-        const dataAlimentation = await resAlimentation.json();
-        if (resAlimentation.ok) {
-          setAlimentationReports(dataAlimentation.reports || []);
+          if (resHighTech.ok) {
+            setHighTechReports(dataHighTech.reports || []);
+          }
+          if (resSanteBeaute.ok) {
+            setSanteBeauteReports(dataSanteBeaute.reports || []);
+          }
+          if (resAlimentation.ok) {
+            setAlimentationReports(dataAlimentation.reports || []);
+          }
+        } catch (e) {
+          console.error('Erreur lors du chargement des catégories:', e);
+        } finally {
+          setIsLoadingCategories(false);
         }
-      } catch (e) {
-        console.error('Erreur lors du chargement des catégories:', e);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
+      };
 
-    loadCategoryReports();
+      loadCategoryReports();
+    }, 100); // Délai de 100ms pour laisser la page se charger d'abord
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleSelectRecent = (item: (typeof recent)[number]) => {

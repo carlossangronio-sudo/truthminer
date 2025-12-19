@@ -165,11 +165,12 @@ export async function getRecentReports(
 }
 
 export async function getAllReports(
-  category?: string
+  category?: string,
+  limit?: number
 ): Promise<SupabaseReportRow[]> {
   if (!supabaseUrl || !supabaseAnonKey) return [];
 
-  console.log('[Supabase] getAllReports →', { supabaseUrl, category });
+  console.log('[Supabase] getAllReports →', { supabaseUrl, category, limit });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
@@ -180,12 +181,18 @@ export async function getAllReports(
     url.searchParams.set('category', `eq.${category}`);
   }
 
+  // Limiter le nombre de résultats si fourni (pour améliorer les performances)
+  if (limit && limit > 0) {
+    url.searchParams.set('limit', limit.toString());
+  }
+
   const res = await fetch(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    cache: 'no-store',
+    // Utiliser un cache court pour améliorer les performances (60 secondes)
+    next: { revalidate: 60 },
   });
 
   if (!res.ok) {
@@ -199,34 +206,86 @@ export async function getAllReports(
 
 /**
  * Récupère un rapport par son slug depuis Supabase
- * Avec fallback : cherche d'abord par slug dans le contenu, puis par product_name si pas trouvé
+ * OPTIMISÉ : Essaie d'abord de trouver par product_name (rapide), puis cherche dans tous les rapports si nécessaire
  */
 export async function getReportBySlug(slug: string): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
   console.log('[Supabase] getReportBySlug →', { supabaseUrl, slug });
 
-  // 1. Récupérer tous les rapports (on ne peut pas filtrer par slug dans le JSON directement avec Supabase REST)
+  // OPTIMISATION 1 : Essayer de deviner le product_name à partir du slug
+  // Le slug est souvent basé sur le product_name, donc on peut essayer de le reconstruire
+  // Exemple : "souris-gaming-logitech" -> "souris gaming logitech"
+  const possibleProductName = slug
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (l) => l.toUpperCase()); // Capitaliser chaque mot
+
+  // Essayer de trouver par product_name exact ou proche
+  const normalizedSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  
+  // OPTIMISATION 2 : Récupérer seulement les 50 derniers rapports au lieu de tous
+  // (la plupart des rapports récents ont des slugs cohérents)
+  const url = new URL('/rest/v1/reports', supabaseUrl);
+  url.searchParams.set('select', '*');
+  url.searchParams.set('order', 'created_at.desc');
+  url.searchParams.set('limit', '50'); // Limiter à 50 rapports récents pour la performance
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    console.warn('Erreur Supabase (getReportBySlug):', await res.text());
+    return null;
+  }
+
+  const recentReports = (await res.json()) as SupabaseReportRow[];
+  
+  // 1. Chercher par slug dans le contenu (dans les rapports récents)
+  for (const report of recentReports) {
+    const content = typeof report.content === 'object'
+      ? report.content
+      : JSON.parse(report.content || '{}');
+    
+    if (content.slug === slug) {
+      console.log('[Supabase] Rapport trouvé par slug (rapide):', slug);
+      return report;
+    }
+  }
+
+  // 2. Fallback : si le slug correspond au product_name formaté
+  for (const report of recentReports) {
+    const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (normalizedProductName === normalizedSlug) {
+      console.log('[Supabase] Rapport trouvé par product_name (rapide):', report.product_name);
+      return report;
+    }
+  }
+
+  // 3. Si pas trouvé dans les 50 récents, chercher dans tous les rapports (plus lent mais nécessaire)
+  console.log('[Supabase] Slug non trouvé dans les 50 récents, recherche dans tous les rapports...');
   const allReports = await getAllReports();
   
-  // 2. Chercher par slug dans le contenu
   for (const report of allReports) {
     const content = typeof report.content === 'object'
       ? report.content
       : JSON.parse(report.content || '{}');
     
     if (content.slug === slug) {
-      console.log('[Supabase] Rapport trouvé par slug:', slug);
+      console.log('[Supabase] Rapport trouvé par slug (complet):', slug);
       return report;
     }
   }
 
-  // 3. Fallback : si le slug correspond au product_name formaté, chercher par product_name
-  const normalizedSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  // 4. Dernier fallback : chercher par product_name dans tous les rapports
   for (const report of allReports) {
     const normalizedProductName = report.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     if (normalizedProductName === normalizedSlug) {
-      console.log('[Supabase] Rapport trouvé par product_name (fallback):', report.product_name);
+      console.log('[Supabase] Rapport trouvé par product_name (complet):', report.product_name);
       return report;
     }
   }

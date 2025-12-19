@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const reports = await getAllReports(category);
+    const reports = await getAllReports(category, limit);
 
     const formattedReports = reports
       .slice(0, limit)
