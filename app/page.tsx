@@ -215,7 +215,7 @@ export default function Home() {
                     Vérifier les prix
                   </h2>
                   <div className="space-y-3">
-                    {report.products.map((product, index) => (
+                    {Array.from(new Set(report.products)).map((product, index) => (
                       <div key={index}>
                         <AffiliateLink productName={product} />
                       </div>
