@@ -73,4 +73,31 @@ export async function insertReport(row: {
   }
 }
 
+export async function getRecentReports(
+  limit = 6
+): Promise<SupabaseReportRow[]> {
+  if (!supabaseUrl || !supabaseAnonKey) return [];
+
+  const url = new URL('/rest/v1/reports', supabaseUrl);
+  url.searchParams.set('select', '*');
+  url.searchParams.set('order', 'created_at.desc');
+  url.searchParams.set('limit', String(limit));
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    console.warn('Erreur Supabase (getRecentReports):', await res.text());
+    return [];
+  }
+
+  const data = (await res.json()) as SupabaseReportRow[];
+  return data;
+}
+
 

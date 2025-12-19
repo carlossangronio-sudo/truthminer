@@ -49,6 +49,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ClientReport | null>(null);
+  const [recent, setRecent] = useState<
+    {
+      id: string;
+      productName: string;
+      score: number;
+      title: string;
+      choice: string;
+      slug: string | null;
+      createdAt: string;
+      report: ClientReport;
+    }[]
+  >([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -65,6 +79,49 @@ export default function Home() {
       console.warn('Impossible de charger le rapport depuis localStorage', e);
     }
   }, []);
+
+  useEffect(() => {
+    const loadRecent = async () => {
+      setIsLoadingRecent(true);
+      setRecentError(null);
+      try {
+        const res = await fetch('/api/reports/recent');
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Erreur lors du chargement des analyses récentes');
+        }
+        setRecent(data.items || []);
+      } catch (e) {
+        setRecentError(
+          e instanceof Error ? e.message : 'Erreur lors du chargement des analyses récentes'
+        );
+      } finally {
+        setIsLoadingRecent(false);
+      }
+    };
+
+    loadRecent();
+  }, []);
+
+  const handleSelectRecent = (item: (typeof recent)[number]) => {
+    const content = item.report;
+    const normalized: ClientReport = {
+      ...content,
+      keyword: item.productName,
+      createdAt: item.createdAt,
+      confidenceScore: item.score,
+    };
+    setReport(normalized);
+    setKeyword(item.productName);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('truthminer:lastReport', JSON.stringify(normalized));
+      } catch (e) {
+        console.warn('Impossible de sauvegarder le rapport sélectionné dans localStorage', e);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +183,7 @@ export default function Home() {
               Comparaisons de produits ultra-honnêtes
             </p>
             <p className="text-sm md:text-base text-gray-500">
-              Basées sur l'analyse des discussions Reddit, pas sur le marketing.
+              L&apos;IA qui n&apos;a pas sa langue dans sa poche.
             </p>
           </div>
 
@@ -186,6 +243,55 @@ export default function Home() {
                   <Loader message="Analyse des discussions Reddit et génération de l'article..." />
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Analyses récentes */}
+          <div className="w-full max-w-4xl mx-auto mb-8 md:mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-sm md:text-base font-semibold text-gray-900 tracking-tight">
+                  Analyses récentes
+                </h2>
+                <p className="text-xs md:text-sm text-gray-500">
+                  Les derniers produits passés au détecteur de bullshit.
+                </p>
+              </div>
+              {recentError && (
+                <span className="text-xs text-red-500">
+                  {recentError}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+              {isLoadingRecent
+                ? Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-28 rounded-3xl bg-white/60 border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] animate-pulse"
+                    />
+                  ))
+                : recent.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectRecent(item)}
+                      className="group text-left rounded-3xl bg-white border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-200 p-4 md:p-5 flex flex-col justify-between cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2">
+                          {item.title}
+                        </h3>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-gray-900 text-gray-50">
+                          Truth Score&nbsp;{item.score}%
+                        </span>
+                      </div>
+                      <p className="text-xs md:text-sm text-gray-600 line-clamp-2">
+                        {item.choice || 'Analyse basée sur les discussions Reddit.'}
+                      </p>
+                    </button>
+                  ))}
             </div>
           </div>
 

@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getRecentReports } from '@/lib/supabase/client';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(_req: NextRequest) {
+  try {
+    const rows = await getRecentReports(6);
+
+    const items = rows.map((row) => {
+      const content =
+        typeof row.content === 'object'
+          ? row.content
+          : JSON.parse(row.content || '{}');
+
+      return {
+        id: row.id,
+        productName: content.keyword || row.product_name,
+        score: row.score,
+        slug: content.slug || null,
+        title: content.title || content.keyword || row.product_name,
+        choice: content.choice || '',
+        createdAt: row.created_at,
+        report: content,
+      };
+    });
+
+    return NextResponse.json({ items });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rapports récents:', error);
+    return NextResponse.json(
+      { error: 'Impossible de charger les analyses récentes' },
+      { status: 500 }
+    );
+  }
+}
+
+
