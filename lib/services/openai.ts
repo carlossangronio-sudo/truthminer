@@ -203,7 +203,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
       const validCategories = ['Électronique', 'Cosmétiques', 'Alimentation', 'Services'];
       let category = validCategories.includes(parsed.category) 
         ? parsed.category 
-        : this.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
+        : OpenAIService.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
 
       return {
         title: parsed.title || keyword,
@@ -229,7 +229,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
    * Détecte automatiquement la catégorie basée sur le mot-clé
    * Utilisé comme fallback si l'IA se trompe
    */
-  private detectCategoryFromKeyword(keyword: string): string {
+  public static detectCategoryFromKeyword(keyword: string): string {
     const lowerKeyword = keyword.toLowerCase();
     
     // Mots-clés pour Électronique

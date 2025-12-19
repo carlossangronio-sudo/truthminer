@@ -102,6 +102,39 @@ export async function insertReport(row: {
   }
 }
 
+/**
+ * Met à jour la catégorie d'un rapport dans Supabase
+ */
+export async function updateReportCategory(
+  reportId: string,
+  category: string
+): Promise<boolean> {
+  if (!supabaseUrl || !supabaseAnonKey) return false;
+
+  // Supabase REST API : PATCH avec filtre dans l'URL
+  const url = new URL(`/rest/v1/reports`, supabaseUrl);
+  url.searchParams.set('id', `eq.${reportId}`);
+
+  const res = await fetch(url.toString(), {
+    method: 'PATCH',
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify({ category }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.warn('Erreur Supabase (updateReportCategory):', errorText);
+    return false;
+  }
+
+  return true;
+}
+
 export async function getRecentReports(
   limit = 6
 ): Promise<SupabaseReportRow[]> {
