@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Loader from '@/components/Loader';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
@@ -71,6 +71,9 @@ export default function Home() {
   const [santeBeauteReports, setSanteBeauteReports] = useState<any[]>([]);
   const [alimentationReports, setAlimentationReports] = useState<any[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  
+  // Ref pour le scroll automatique vers le rapport
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -82,6 +85,12 @@ export default function Home() {
         if (parsed.keyword) {
           setKeyword(parsed.keyword);
         }
+        // Scroll vers le rapport après un court délai
+        setTimeout(() => {
+          if (reportRef.current) {
+            reportRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
       }
     } catch (e) {
       console.warn('Impossible de charger le rapport depuis localStorage', e);
@@ -208,6 +217,13 @@ export default function Home() {
         }
       }
       setIsLoading(false);
+      
+      // Scroll automatique vers le rapport après un court délai pour laisser le DOM se mettre à jour
+      setTimeout(() => {
+        if (reportRef.current) {
+          reportRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       setIsLoading(false);
@@ -293,90 +309,9 @@ export default function Home() {
 
         </div>
 
-        {/* Sections par catégories - Portail de contenu - Toujours affichées */}
-        <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
-              {/* Section High-Tech */}
-              <CategorySection
-                title="High-Tech"
-                icon={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-blue-600 dark:text-blue-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                  </svg>
-                }
-                category="Électronique"
-                reports={highTechReports}
-                isLoading={isLoadingCategories}
-                gradientFrom="from-blue-500"
-                gradientTo="to-indigo-600"
-                iconBg="bg-blue-100 dark:bg-blue-900/30"
-              />
-
-              {/* Section Santé & Beauté */}
-              <CategorySection
-                title="Santé & Beauté"
-                icon={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-pink-600 dark:text-pink-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                }
-                category="Cosmétiques"
-                reports={santeBeauteReports}
-                isLoading={isLoadingCategories}
-                gradientFrom="from-pink-500"
-                gradientTo="to-rose-600"
-                iconBg="bg-pink-100 dark:bg-pink-900/30"
-              />
-
-              {/* Section Alimentation */}
-              <CategorySection
-                title="Alimentation"
-                icon={
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 0 1-8 0" />
-                  </svg>
-                }
-                category="Alimentation"
-                reports={alimentationReports}
-                isLoading={isLoadingCategories}
-                gradientFrom="from-emerald-500"
-                gradientTo="to-green-600"
-                iconBg="bg-emerald-100 dark:bg-emerald-900/30"
-              />
-        </div>
-
-        {/* Affichage du rapport généré */}
+        {/* Affichage du rapport généré - PRIORITÉ ABSOLUE si présent */}
         {report ? (
-          <div className="w-full max-w-4xl">
+          <div ref={reportRef} className="w-full max-w-4xl mt-8">
             {/* Bouton pour revenir à l'accueil */}
             <div className="mb-6">
               <button
@@ -617,6 +552,87 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Sections par catégories - Affichées en dessous du rapport si présent, sinon juste après la barre de recherche */}
+        <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
+          {/* Section High-Tech */}
+          <CategorySection
+            title="High-Tech"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-blue-600 dark:text-blue-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            }
+            category="Électronique"
+            reports={highTechReports}
+            isLoading={isLoadingCategories}
+            gradientFrom="from-blue-500"
+            gradientTo="to-indigo-600"
+            iconBg="bg-blue-100 dark:bg-blue-900/30"
+          />
+
+          {/* Section Santé & Beauté */}
+          <CategorySection
+            title="Santé & Beauté"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-pink-600 dark:text-pink-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            }
+            category="Cosmétiques"
+            reports={santeBeauteReports}
+            isLoading={isLoadingCategories}
+            gradientFrom="from-pink-500"
+            gradientTo="to-rose-600"
+            iconBg="bg-pink-100 dark:bg-pink-900/30"
+          />
+
+          {/* Section Alimentation */}
+          <CategorySection
+            title="Alimentation"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+            }
+            category="Alimentation"
+            reports={alimentationReports}
+            isLoading={isLoadingCategories}
+            gradientFrom="from-emerald-500"
+            gradientTo="to-green-600"
+            iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+          />
+        </div>
       </div>
     </main>
   );
