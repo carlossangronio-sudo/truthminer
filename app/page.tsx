@@ -293,9 +293,8 @@ export default function Home() {
 
         </div>
 
-        {/* Sections par catégories - Portail de contenu */}
-        {!report && (
-          <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
+        {/* Sections par catégories - Portail de contenu - Toujours affichées */}
+        <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
               {/* Section High-Tech */}
               <CategorySection
                 title="High-Tech"
@@ -373,12 +372,39 @@ export default function Home() {
                 gradientTo="to-green-600"
                 iconBg="bg-emerald-100 dark:bg-emerald-900/30"
               />
-          </div>
-        )}
+        </div>
 
         {/* Affichage du rapport généré */}
         {report ? (
           <div className="w-full max-w-4xl">
+            {/* Bouton pour revenir à l'accueil */}
+            <div className="mb-6">
+              <button
+                onClick={() => {
+                  setReport(null);
+                  setKeyword('');
+                  if (typeof window !== 'undefined') {
+                    window.localStorage.removeItem('truthminer:lastReport');
+                  }
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M19 12H5" />
+                  <path d="M12 19l-7-7 7-7" />
+                </svg>
+                Retour à l&apos;accueil
+              </button>
+            </div>
             <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
               {/* Score de confiance TruthMiner */}
               <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1 dark:bg-slate-900/80 dark:border-slate-800">
