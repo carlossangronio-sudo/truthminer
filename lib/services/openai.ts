@@ -105,11 +105,38 @@ Instructions détaillées :
    - 40-59 : mitigé
    - 0-39 : majoritairement négatif
    Ce score doit être basé UNIQUEMENT sur le ton et la proportion des commentaires positifs / neutres / négatifs dans les discussions fournies, sans rien inventer.
-8. "category" : Attribue UNE SEULE catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services". Choisis celle qui correspond le mieux au produit analysé :
-   - "Électronique" : smartphones, ordinateurs, écrans, casques audio, souris, clavier, gadgets tech, etc.
-   - "Cosmétiques" : produits de beauté, soins de la peau, maquillage, parfums, etc.
-   - "Alimentation" : produits alimentaires, boissons, compléments alimentaires, etc.
-   - "Services" : VPN, logiciels, banques en ligne, services SaaS, applications, etc.
+8. "category" : Attribue UNE SEULE catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services". Choisis celle qui correspond le mieux au produit analysé en te basant sur le mot-clé ET le contenu des discussions Reddit :
+   
+   **"Électronique"** : Tous les produits physiques technologiques et électroniques
+   - Matériel informatique : ordinateurs, laptops, tablettes, smartphones, écrans, moniteurs, imprimantes
+   - Périphériques : souris, claviers, webcams, casques audio, écouteurs, enceintes, microphones
+   - Gadgets tech : smartwatches, trackers fitness, drones, caméras, projecteurs, routeurs, NAS
+   - Électronique grand public : téléviseurs, consoles de jeu, liseuses, appareils photo
+   - Accessoires tech : chargeurs, batteries, câbles, hubs USB, étuis, supports
+   
+   **"Cosmétiques"** : Tous les produits de beauté, soins et hygiène personnelle
+   - Soins de la peau : crèmes, sérums, nettoyants, exfoliants, masques, toners
+   - Maquillage : fond de teint, rouge à lèvres, mascara, fard à paupières, pinceaux
+   - Parfums et eaux de toilette
+   - Produits capillaires : shampoings, après-shampoings, masques, colorations
+   - Produits de rasage et épilation
+   - Soins du corps : lotions, huiles, déodorants, savons
+   
+   **"Alimentation"** : Tous les produits alimentaires et boissons
+   - Produits alimentaires : snacks, plats préparés, ingrédients, épices, conserves
+   - Boissons : eaux, sodas, jus, thés, cafés, boissons énergisantes, alcools
+   - Compléments alimentaires : vitamines, protéines, probiotiques, suppléments
+   - Produits diététiques et bio
+   - Équipement de cuisine : machines à café, robots, extracteurs
+   
+   **"Services"** : Tous les services numériques, logiciels et abonnements (PAS de produits physiques)
+   - Services en ligne : VPN, stockage cloud, hébergement web, streaming
+   - Logiciels et applications : suites bureautiques, outils de design, antivirus, gestion de projet
+   - Services financiers : banques en ligne, applications de paiement, investissement
+   - Services SaaS : CRM, email marketing, analytics, SEO tools
+   - Abonnements : services de streaming, logiciels en abonnement
+   
+   **RÈGLE IMPORTANTE** : Si le produit est un OBJET PHYSIQUE que tu peux toucher, c'est "Électronique" ou "Cosmétiques" ou "Alimentation". Si c'est un SERVICE ou LOGICIEL, c'est "Services".
 
 Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes. Ne crée aucune information technique ou avis qui ne soit pas présent dans les extraits fournis.`;
 
@@ -172,11 +199,11 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
           ? Math.min(100, Math.max(0, Math.round(rawConfidence)))
           : 50;
 
-      // Valider la catégorie
+      // Valider et corriger la catégorie avec détection automatique basée sur le mot-clé
       const validCategories = ['Électronique', 'Cosmétiques', 'Alimentation', 'Services'];
-      const category = validCategories.includes(parsed.category) 
+      let category = validCategories.includes(parsed.category) 
         ? parsed.category 
-        : 'Services'; // Par défaut si non valide
+        : this.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
 
       return {
         title: parsed.title || keyword,
@@ -196,6 +223,76 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
       }
       throw error;
     }
+  }
+
+  /**
+   * Détecte automatiquement la catégorie basée sur le mot-clé
+   * Utilisé comme fallback si l'IA se trompe
+   */
+  private detectCategoryFromKeyword(keyword: string): string {
+    const lowerKeyword = keyword.toLowerCase();
+    
+    // Mots-clés pour Électronique
+    const electroniqueKeywords = [
+      'souris', 'mouse', 'clavier', 'keyboard', 'casque', 'headphone', 'écouteur', 'earbud',
+      'écran', 'moniteur', 'screen', 'monitor', 'ordinateur', 'laptop', 'pc', 'macbook',
+      'smartphone', 'iphone', 'android', 'tablette', 'tablet', 'ipad',
+      'webcam', 'microphone', 'micro', 'enceinte', 'speaker', 'haut-parleur',
+      'imprimante', 'printer', 'scanner', 'routeur', 'router', 'nas',
+      'smartwatch', 'watch', 'montre', 'tracker', 'fitness', 'drone',
+      'caméra', 'camera', 'appareil photo', 'projecteur', 'projector',
+      'chargeur', 'charger', 'câble', 'cable', 'hub', 'usb', 'batterie',
+      'console', 'playstation', 'xbox', 'nintendo', 'switch',
+      'télévision', 'tv', 'television', 'liseuse', 'ereader', 'kindle'
+    ];
+    
+    // Mots-clés pour Cosmétiques
+    const cosmetiquesKeywords = [
+      'crème', 'cream', 'sérum', 'serum', 'nettoyant', 'cleanser', 'exfoliant',
+      'masque', 'mask', 'toner', 'maquillage', 'makeup', 'fond de teint',
+      'rouge à lèvres', 'lipstick', 'mascara', 'fard', 'eyeshadow',
+      'parfum', 'perfume', 'eau de toilette', 'cologne',
+      'shampoing', 'shampoo', 'après-shampoing', 'conditioner', 'coloration',
+      'rasage', 'shaving', 'épilation', 'déodorant', 'deodorant',
+      'savon', 'soap', 'lotion', 'huile', 'oil', 'beauté', 'beauty'
+    ];
+    
+    // Mots-clés pour Alimentation
+    const alimentationKeywords = [
+      'café', 'coffee', 'thé', 'tea', 'boisson', 'drink', 'eau', 'water',
+      'snack', 'aliment', 'food', 'nourriture', 'repas', 'meal',
+      'complément', 'supplement', 'vitamine', 'vitamin', 'protéine', 'protein',
+      'machine à café', 'coffee machine', 'robot', 'robot cuisine', 'extracteur',
+      'épice', 'spice', 'conserves', 'canned', 'bio', 'organic'
+    ];
+    
+    // Mots-clés pour Services
+    const servicesKeywords = [
+      'vpn', 'vpn service', 'logiciel', 'software', 'application', 'app',
+      'banque en ligne', 'online bank', 'banque', 'bank',
+      'streaming', 'netflix', 'spotify', 'disney', 'prime',
+      'cloud', 'stockage', 'storage', 'hébergement', 'hosting',
+      'crm', 'saas', 'seo tool', 'outil seo', 'analytics',
+      'antivirus', 'antivirus software', 'suite bureautique', 'office suite',
+      'abonnement', 'subscription', 'service'
+    ];
+    
+    // Vérifier dans l'ordre de priorité
+    if (electroniqueKeywords.some(kw => lowerKeyword.includes(kw))) {
+      return 'Électronique';
+    }
+    if (cosmetiquesKeywords.some(kw => lowerKeyword.includes(kw))) {
+      return 'Cosmétiques';
+    }
+    if (alimentationKeywords.some(kw => lowerKeyword.includes(kw))) {
+      return 'Alimentation';
+    }
+    if (servicesKeywords.some(kw => lowerKeyword.includes(kw))) {
+      return 'Services';
+    }
+    
+    // Par défaut, Services (car c'est souvent des services en ligne)
+    return 'Services';
   }
 
   /**
