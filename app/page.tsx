@@ -85,12 +85,20 @@ export default function Home() {
         if (parsed.keyword) {
           setKeyword(parsed.keyword);
         }
-        // Scroll vers le rapport après un court délai
+        // Scroll vers le rapport après un délai pour laisser le DOM se rendre
+        // Utiliser un scroll avec offset pour ne pas scroller trop bas
         setTimeout(() => {
           if (reportRef.current) {
-            reportRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const element = reportRef.current;
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - 100; // 100px d'offset depuis le haut
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
           }
-        }, 300);
+        }, 500); // Délai plus long pour laisser le DOM se rendre complètement
       }
     } catch (e) {
       console.warn('Impossible de charger le rapport depuis localStorage', e);
@@ -230,14 +238,24 @@ export default function Home() {
       // Le composant CircularProgress gère l'animation vers 100% quand completed=true
       setTimeout(() => {
         setIsLoading(false);
+        
+        // Scroll automatique vers le début du rapport APRÈS que le loader soit masqué
+        // On attend que le DOM soit complètement rendu et que l'animation soit terminée
+        setTimeout(() => {
+          if (reportRef.current) {
+            // Scroller vers le début du conteneur du rapport (score de confiance)
+            // avec un offset pour laisser de l'espace en haut
+            const element = reportRef.current;
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = Math.max(0, elementPosition - 80); // 80px d'offset depuis le haut
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 500); // Délai suffisant après la disparition du loader pour que le DOM soit rendu
       }, 1500);
-      
-      // Scroll automatique vers le rapport après un court délai pour laisser le DOM se mettre à jour
-      setTimeout(() => {
-        if (reportRef.current) {
-          reportRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Une erreur est survenue';
       console.error('Erreur lors de la génération:', err);
@@ -335,7 +353,7 @@ export default function Home() {
 
         {/* Affichage du rapport généré - PRIORITÉ ABSOLUE si présent */}
         {report ? (
-          <div ref={reportRef} className="w-full max-w-4xl mt-8">
+          <div ref={reportRef} className="w-full max-w-4xl mt-8" id="report-container">
             {/* Bouton pour revenir à l'accueil */}
             <div className="mb-6">
               <button
