@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Loader from '@/components/Loader';
+import CircularProgress from '@/components/CircularProgress';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
 import Navbar from '@/components/Navbar';
@@ -216,6 +216,7 @@ export default function Home() {
           ? highlightKeyword(rawReport.userProfiles, baseKeyword)
           : undefined,
       };
+      // Marquer le rapport comme prêt (la progression passera à 100%)
       setReport(cleanedReport);
       if (typeof window !== 'undefined') {
         try {
@@ -224,7 +225,11 @@ export default function Home() {
           console.warn('Impossible de sauvegarder le rapport dans localStorage', e);
         }
       }
-      setIsLoading(false);
+      
+      // Laisser la progression atteindre 100% avant de masquer le loader
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1200);
       
       // Scroll automatique vers le rapport après un court délai pour laisser le DOM se mettre à jour
       setTimeout(() => {
@@ -316,7 +321,10 @@ export default function Home() {
 
               {isLoading && (
                 <div className="mt-8">
-                  <Loader message="Analyse des discussions Reddit et génération de l'article..." />
+                  <CircularProgress 
+                    isActive={isLoading} 
+                    completed={!!report && isLoading}
+                  />
                 </div>
               )}
             </div>
