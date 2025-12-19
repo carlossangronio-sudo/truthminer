@@ -31,12 +31,28 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Lire le paramètre de catégorie depuis l'URL au chargement
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const categoryParam = params.get('category');
+      if (categoryParam) {
+        setSelectedCategory(categoryParam);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const fetchReports = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/reports/all');
+        // Si une catégorie est sélectionnée, filtrer directement côté serveur
+        const url = selectedCategory && selectedCategory !== 'Tous'
+          ? `/api/reports/all?category=${encodeURIComponent(selectedCategory)}`
+          : '/api/reports/all';
+        
+        const res = await fetch(url);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.error || 'Erreur lors du chargement des analyses');
@@ -51,7 +67,7 @@ export default function ExplorePage() {
     };
 
     fetchReports();
-  }, []);
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (selectedCategory === 'Tous') {

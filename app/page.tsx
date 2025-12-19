@@ -5,6 +5,7 @@ import Loader from '@/components/Loader';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
 import Navbar from '@/components/Navbar';
+import CategorySection from '@/components/CategorySection';
 
 // Utilitaires pour le nettoyage et la mise en forme du contenu
 function cleanDefectText(text: string): string {
@@ -64,6 +65,12 @@ export default function Home() {
   >([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
+  
+  // Données des sections par catégorie
+  const [highTechReports, setHighTechReports] = useState<any[]>([]);
+  const [santeBeauteReports, setSanteBeauteReports] = useState<any[]>([]);
+  const [alimentationReports, setAlimentationReports] = useState<any[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -102,6 +109,41 @@ export default function Home() {
     };
 
     loadRecent();
+  }, []);
+
+  // Charger les rapports par catégorie
+  useEffect(() => {
+    const loadCategoryReports = async () => {
+      setIsLoadingCategories(true);
+      try {
+        // High-Tech (Électronique)
+        const resHighTech = await fetch('/api/reports/by-category?category=Électronique&limit=3');
+        const dataHighTech = await resHighTech.json();
+        if (resHighTech.ok) {
+          setHighTechReports(dataHighTech.reports || []);
+        }
+
+        // Santé & Beauté (Cosmétiques)
+        const resSanteBeaute = await fetch('/api/reports/by-category?category=Cosmétiques&limit=3');
+        const dataSanteBeaute = await resSanteBeaute.json();
+        if (resSanteBeaute.ok) {
+          setSanteBeauteReports(dataSanteBeaute.reports || []);
+        }
+
+        // Alimentation
+        const resAlimentation = await fetch('/api/reports/by-category?category=Alimentation&limit=3');
+        const dataAlimentation = await resAlimentation.json();
+        if (resAlimentation.ok) {
+          setAlimentationReports(dataAlimentation.reports || []);
+        }
+      } catch (e) {
+        console.error('Erreur lors du chargement des catégories:', e);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadCategoryReports();
   }, []);
 
   const handleSelectRecent = (item: (typeof recent)[number]) => {
@@ -177,6 +219,7 @@ export default function Home() {
       <Navbar />
       <div className="container mx-auto px-4 md:px-6 py-8 md:py-14 flex flex-col items-center">
         <div className="w-full max-w-4xl">
+          {/* Header et barre de recherche */}
           <div className="text-center mb-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-gray-50 mb-4 tracking-tight">
               TruthMiner
@@ -248,56 +291,94 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Analyses récentes */}
-          <div className="w-full max-w-4xl mx-auto mb-8 md:mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
-                  Analyses récentes
-                </h2>
-                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                  Les derniers produits passés au détecteur de bullshit.
-                </p>
-              </div>
-              {recentError && (
-                <span className="text-xs text-red-500 dark:text-red-300">
-                  {recentError}
-                </span>
-              )}
-            </div>
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-              {isLoadingRecent
-                ? Array.from({ length: 4 }).map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="h-28 rounded-3xl bg-white/60 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-800 shadow-[0_12px_30px_rgba(15,23,42,0.04)] animate-pulse"
-                    />
-                  ))
-                : recent.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSelectRecent(item)}
-                      className="group text-left rounded-3xl bg-white border border-gray-100 shadow-[0_12px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-200 p-4 md:p-5 flex flex-col justify-between cursor-pointer dark:bg-slate-900/90 dark:border-slate-800"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-gray-50 line-clamp-2">
-                          {item.title}
-                        </h3>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-gray-900 text-gray-50">
-                          Truth Score&nbsp;{item.score}%
-                        </span>
-                      </div>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                        {item.choice || 'Analyse basée sur les discussions Reddit.'}
-                      </p>
-                    </button>
-                  ))}
-            </div>
+        {/* Sections par catégories - Portail de contenu */}
+        {!report && (
+          <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
+              {/* Section High-Tech */}
+              <CategorySection
+                title="High-Tech"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-blue-600 dark:text-blue-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                }
+                category="Électronique"
+                reports={highTechReports}
+                isLoading={isLoadingCategories}
+                gradientFrom="from-blue-500"
+                gradientTo="to-indigo-600"
+                iconBg="bg-blue-100 dark:bg-blue-900/30"
+              />
+
+              {/* Section Santé & Beauté */}
+              <CategorySection
+                title="Santé & Beauté"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-pink-600 dark:text-pink-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                }
+                category="Cosmétiques"
+                reports={santeBeauteReports}
+                isLoading={isLoadingCategories}
+                gradientFrom="from-pink-500"
+                gradientTo="to-rose-600"
+                iconBg="bg-pink-100 dark:bg-pink-900/30"
+              />
+
+              {/* Section Alimentation */}
+              <CategorySection
+                title="Alimentation"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                }
+                category="Alimentation"
+                reports={alimentationReports}
+                isLoading={isLoadingCategories}
+                gradientFrom="from-emerald-500"
+                gradientTo="to-green-600"
+                iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+              />
           </div>
+        )}
 
-          {report ? (
+        {/* Affichage du rapport généré */}
+        {report ? (
+          <div className="w-full max-w-4xl">
             <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
               {/* Score de confiance TruthMiner */}
               <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1 dark:bg-slate-900/80 dark:border-slate-800">
@@ -482,7 +563,9 @@ export default function Home() {
                 </p>
               </section>
             </div>
-          ) : (
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl">
             <div className="bg-gray-50 rounded-xl p-6 dark:bg-slate-900/80">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                 Comment ça fonctionne ?
@@ -506,8 +589,8 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );
