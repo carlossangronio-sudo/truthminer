@@ -11,6 +11,7 @@ type ReportItem = {
   choice: string;
   createdAt: string;
   category?: string;
+  imageUrl?: string;
 };
 
 type CategorySectionProps = {
@@ -104,6 +105,7 @@ export default function CategorySection({
               choice={report.choice}
               createdAt={report.createdAt}
               category={report.category}
+              imageUrl={report.imageUrl}
             />
           ))}
         </div>

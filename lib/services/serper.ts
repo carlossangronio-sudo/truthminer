@@ -14,6 +14,14 @@ export interface SerperResponse {
   }>;
 }
 
+export interface SerperImageResponse {
+  images: Array<{
+    title: string;
+    imageUrl: string;
+    link: string;
+  }>;
+}
+
 /**
  * Service pour rechercher des discussions Reddit via Serper.dev API
  */
@@ -65,6 +73,42 @@ export class SerperService {
         );
       }
       throw error;
+    }
+  }
+
+  /**
+   * Recherche une image Google pour un produit donné
+   * @param productName - Le nom du produit (ex: "Souris gaming Logitech G Pro")
+   * @returns URL de l'image la plus pertinente, ou null si aucune trouvée
+   */
+  async searchImage(productName: string): Promise<string | null> {
+    const query = productName;
+    
+    try {
+      const response = await axios.post<SerperImageResponse>(
+        'https://google.serper.dev/images',
+        {
+          q: query,
+          num: 5, // Récupérer 5 images pour choisir la meilleure
+        },
+        {
+          headers: {
+            'X-API-KEY': this.apiKey,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // Retourner la première image trouvée (la plus pertinente)
+      if (response.data.images && response.data.images.length > 0) {
+        return response.data.images[0].imageUrl;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'image Serper:', error);
+      // Ne pas faire échouer le processus si la recherche d'image échoue
+      return null;
     }
   }
 }

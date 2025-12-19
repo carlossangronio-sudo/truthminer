@@ -89,6 +89,7 @@ export default async function ReportPage({ params }: PageProps) {
     createdAt: supabaseReport.created_at,
     amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
     amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
+    imageUrl: supabaseReport.image_url || content.imageUrl || null,
   };
 
   return (
@@ -114,6 +115,22 @@ export default async function ReportPage({ params }: PageProps) {
             })}
           </p>
         </div>
+
+        {/* Image principale du produit */}
+        {report.imageUrl && (
+          <div className="mb-10 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800">
+            <img
+              src={report.imageUrl}
+              alt={report.title}
+              className="w-full h-auto max-h-[500px] object-cover"
+              loading="eager"
+              onError={(e) => {
+                // Masquer l'image si elle ne charge pas
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}

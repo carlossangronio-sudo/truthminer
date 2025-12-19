@@ -13,6 +13,7 @@ type ReportCard = {
   title: string;
   choice: string;
   createdAt: string;
+  imageUrl?: string;
 };
 
 const CATEGORIES = ['Tous', 'Électronique', 'Cosmétiques', 'Alimentation', 'Services'];
@@ -158,6 +159,21 @@ export default function ExplorePage() {
                 href={`/report/${report.slug}`}
                 className="group block rounded-2xl bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
               >
+                {/* Image miniature en haut de la carte */}
+                {report.imageUrl && (
+                  <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-slate-800">
+                    <img
+                      src={report.imageUrl}
+                      alt={report.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        // Masquer l'image si elle ne charge pas
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="p-5 md:p-6">
                   {/* En-tête avec catégorie et score */}
                   <div className="flex items-start justify-between mb-3">

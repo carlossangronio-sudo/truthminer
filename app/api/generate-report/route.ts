@@ -32,15 +32,18 @@ export async function POST(request: NextRequest) {
     const existing = await getCachedReport(normalizedProductName);
 
     if (existing) {
+      const existingContent = typeof existing.content === 'object'
+        ? existing.content
+        : JSON.parse(existing.content || '{}');
+      
       return NextResponse.json({
         success: true,
         report: {
-          ...(typeof existing.content === 'object'
-            ? existing.content
-            : JSON.parse(existing.content || '{}')),
+          ...existingContent,
           keyword: trimmedKeyword,
           createdAt: existing.created_at,
           confidenceScore: existing.score,
+          imageUrl: existing.image_url || existingContent.imageUrl || null,
         },
         cached: true,
       });
@@ -60,21 +63,46 @@ export async function POST(request: NextRequest) {
     const openaiService = new OpenAIService();
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
+    // 3. Rechercher une image pour le produit
+    let imageUrl: string | null = null;
+    try {
+      // Utiliser le titre du rapport ou le mot-clé pour rechercher une image
+      const imageSearchQuery = report.title || trimmedKeyword;
+      imageUrl = await serperService.searchImage(imageSearchQuery);
+      
+      // Si aucune image trouvée, utiliser une image par défaut générique
+      if (!imageUrl) {
+        // Image par défaut : placeholder générique pour produits
+        imageUrl = `https://via.placeholder.com/800x600/4F46E5/FFFFFF?text=${encodeURIComponent(imageSearchQuery)}`;
+      }
+    } catch (error) {
+      console.warn('Erreur lors de la recherche d\'image, utilisation d\'une image par défaut:', error);
+      // Image par défaut en cas d'erreur
+      imageUrl = `https://via.placeholder.com/800x600/4F46E5/FFFFFF?text=${encodeURIComponent(report.title || trimmedKeyword)}`;
+    }
+
+    // Mettre à jour le rapport avec l'image trouvée
+    const reportWithImage = {
+      ...report,
+      imageUrl: imageUrl || report.imageUrl,
+    };
+
     const now = new Date().toISOString();
 
-    // 3. Sauvegarder le rapport dans Supabase pour figer le score et le contenu
+    // 4. Sauvegarder le rapport dans Supabase pour figer le score et le contenu
     await insertReport({
       normalizedProductName,
-      score: report.confidenceScore ?? 50,
-      content: report,
-      category: report.category,
+      score: reportWithImage.confidenceScore ?? 50,
+      content: reportWithImage,
+      category: reportWithImage.category,
+      imageUrl: reportWithImage.imageUrl,
       createdAt: now,
     });
 
     return NextResponse.json({
       success: true,
       report: {
-        ...report,
+        ...reportWithImage,
         keyword: trimmedKeyword,
         createdAt: now,
       },

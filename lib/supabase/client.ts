@@ -20,6 +20,7 @@ type SupabaseReportRow = {
   score: number;
   content: any;
   category?: string;
+  image_url?: string;
   created_at: string;
 };
 
@@ -60,6 +61,7 @@ export async function insertReport(row: {
   score: number;
   content: any;
   category?: string;
+  imageUrl?: string;
   createdAt: string;
 }): Promise<void> {
   if (!supabaseUrl || !supabaseAnonKey) return;
@@ -84,6 +86,11 @@ export async function insertReport(row: {
   // Ajouter la catégorie si elle existe
   if (row.category) {
     payload.category = row.category;
+  }
+
+  // Ajouter l'image si elle existe
+  if (row.imageUrl) {
+    payload.image_url = row.imageUrl;
   }
 
   const res = await fetch(url.toString(), {

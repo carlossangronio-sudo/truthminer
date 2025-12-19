@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
         title: content.title || row.product_name,
         choice: content.choice || 'Non spécifié',
         createdAt: row.created_at,
+        imageUrl: row.image_url || content.imageUrl || null,
         report: content,
       };
     });

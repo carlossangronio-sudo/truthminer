@@ -10,6 +10,7 @@ type ArticleCardProps = {
   choice: string;
   createdAt: string;
   category?: string;
+  imageUrl?: string;
 };
 
 function getConfidenceColor(score: number): string {
@@ -26,12 +27,28 @@ export default function ArticleCard({
   choice,
   createdAt,
   category,
+  imageUrl,
 }: ArticleCardProps) {
   return (
     <Link
       href={`/report/${slug}`}
       className="group block rounded-xl bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
     >
+      {/* Image miniature en haut de la carte */}
+      {imageUrl && (
+        <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-slate-800">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            onError={(e) => {
+              // Masquer l'image si elle ne charge pas
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
       <div className="p-5 md:p-6">
         {/* Header avec score */}
         <div className="flex items-start justify-between mb-3">

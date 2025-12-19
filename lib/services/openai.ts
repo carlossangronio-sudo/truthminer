@@ -13,6 +13,7 @@ export interface GeneratedReport {
   category?: string; // Catégorie du produit (Électronique, Cosmétiques, Alimentation, Services)
   amazonSearchQuery?: string; // Requête de recherche Amazon optimisée et précise
   amazonRecommendationReason?: string; // Raison pour laquelle ce lien Amazon est proposé
+  imageUrl?: string; // URL de l'image principale du produit
 }
 
 /**
@@ -53,7 +54,8 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format sui
   "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit),
   "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services" (une seule catégorie, celle qui correspond le mieux au produit analysé),
   "amazonSearchQuery": "Requête de recherche Amazon optimisée et précise",
-  "amazonRecommendationReason": "Explication courte (1 phrase) de pourquoi ce lien Amazon est proposé"
+  "amazonRecommendationReason": "Explication courte (1 phrase) de pourquoi ce lien Amazon est proposé",
+  "imageUrl": "URL de l'image principale du produit (sera remplie automatiquement par une recherche Google Images, tu peux mettre null ou une URL par défaut si tu n'en as pas)"
 }
 
 RÈGLES STRICTES DE VÉRIFICATION TECHNIQUE :
@@ -234,6 +236,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         category,
         amazonSearchQuery: parsed.amazonSearchQuery || parsed.amazon_search_query || keyword,
         amazonRecommendationReason: parsed.amazonRecommendationReason || parsed.amazon_recommendation_reason || 'Produit recommandé par la communauté Reddit',
+        imageUrl: parsed.imageUrl || parsed.image_url || null,
       };
     } catch (error) {
       console.error('Erreur lors de la génération OpenAI:', error);
