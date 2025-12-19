@@ -1,6 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Utilitaires pour le nettoyage et la mise en forme du contenu
+function cleanDefectText(text: string): string {
+  let t = text.trim();
+  // Supprimer les "..." de fin éventuels
+  t = t.replace(/\.{3,}$/g, '');
+  // Normaliser les espaces
+  t = t.replace(/\s+/g, ' ');
+  return t;
+}
+
+function stripEstCeFaitPourVousSection(markdown: string): string {
+  // Supprimer une éventuelle section "Est-ce fait pour vous" en doublon dans l'article
+  return markdown.replace(/##\s*Est-ce fait pour vous[\s\S]*$/i, '').trim();
+}
+
+function highlightKeyword(text: string, keyword?: string): string {
+  if (!keyword) return text;
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  return text.replace(regex, '**$1**');
+}
 import Loader from '@/components/Loader';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
@@ -68,15 +90,31 @@ export default function Home() {
         throw new Error(data.error || 'Erreur lors de la génération du rapport');
       }
 
-      const nextReport = data.report as ClientReport;
-      setReport(nextReport);
+      const rawReport = data.report as ClientReport;
+      const baseKeyword = rawReport.keyword || keyword.trim();
+
+      // Nettoyage du rapport pour un affichage plus professionnel
+      const cleanedReport: ClientReport = {
+        ...rawReport,
+        defects: Array.isArray(rawReport.defects)
+          ? rawReport.defects.map(cleanDefectText)
+          : [],
+        article: rawReport.article
+          ? highlightKeyword(stripEstCeFaitPourVousSection(rawReport.article), baseKeyword)
+          : '',
+        userProfiles: rawReport.userProfiles
+          ? highlightKeyword(rawReport.userProfiles, baseKeyword)
+          : undefined,
+      };
+
+      setReport(cleanedReport);
 
       // Sauvegarder le rapport dans le localStorage pour le garder après rafraîchissement
       if (typeof window !== 'undefined') {
         try {
           window.localStorage.setItem(
             'truthminer:lastReport',
-            JSON.stringify(nextReport)
+            JSON.stringify(cleanedReport)
           );
         } catch (e) {
           console.warn('Impossible de sauvegarder le rapport dans localStorage', e);
