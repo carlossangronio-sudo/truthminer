@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
-import { ReportsStorage } from '@/lib/storage/reports';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +8,9 @@ export const dynamic = 'force-dynamic';
  * Route API pour générer un rapport de comparaison de produits
  * POST /api/generate-report
  * Body: { keyword: string }
+ *
+ * Note: Aucun stockage persistant n'est utilisé côté serveur.
+ * Le rapport est renvoyé directement au frontend qui le gère en mémoire (state).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -23,17 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     const trimmedKeyword = keyword.trim();
-    const storage = new ReportsStorage();
-
-    // Vérifier si un rapport existe déjà pour ce mot-clé
-    const existingReport = await storage.getReportByKeyword(trimmedKeyword);
-    if (existingReport) {
-      return NextResponse.json({
-        success: true,
-        report: existingReport,
-        cached: true,
-      });
-    }
 
     // Rechercher sur Reddit via Serper
     const serperService = new SerperService();
@@ -50,12 +41,16 @@ export async function POST(request: NextRequest) {
     const openaiService = new OpenAIService();
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
-    // Sauvegarder le rapport
-    const storedReport = await storage.saveReport(trimmedKeyword, report);
+    // Ajouter des métadonnées simples côté serveur (date de génération)
+    const now = new Date().toISOString();
 
     return NextResponse.json({
       success: true,
-      report: storedReport,
+      report: {
+        ...report,
+        keyword: trimmedKeyword,
+        createdAt: now,
+      },
       cached: false,
     });
   } catch (error) {
