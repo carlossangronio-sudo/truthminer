@@ -1,0 +1,18 @@
+# robots.txt pour TruthMiner (tminer.io)
+# Autorise l'indexation par tous les moteurs de recherche
+
+User-agent: *
+Allow: /
+
+# Autorise spécifiquement Google
+User-agent: Googlebot
+Allow: /
+
+# Autorise Bing
+User-agent: Bingbot
+Allow: /
+
+# Sitemap (à créer plus tard si nécessaire)
+# Sitemap: https://tminer.io/sitemap.xml
+
+
