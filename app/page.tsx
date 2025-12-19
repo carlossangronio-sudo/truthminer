@@ -227,9 +227,10 @@ export default function Home() {
       }
       
       // Laisser la progression atteindre 100% avant de masquer le loader
+      // Le composant CircularProgress gère l'animation vers 100% quand completed=true
       setTimeout(() => {
         setIsLoading(false);
-      }, 1200);
+      }, 1500);
       
       // Scroll automatique vers le rapport après un court délai pour laisser le DOM se mettre à jour
       setTimeout(() => {

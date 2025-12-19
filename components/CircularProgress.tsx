@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface CircularProgressProps {
   isActive: boolean;
@@ -13,31 +13,70 @@ interface CircularProgressProps {
  */
 export default function CircularProgress({ isActive, completed = false, onComplete }: CircularProgressProps) {
   const [progress, setProgress] = useState(0);
+  const completedRef = useRef(false);
+  const animatingRef = useRef(false);
 
   // Quand le rapport est terminé, passer à 100%
   useEffect(() => {
-    if (completed && progress >= 95 && progress < 100) {
-      // Animation fluide vers 100%
-      const startProgress = progress;
-      const duration = 500; // 500ms pour atteindre 100%
-      const startTime = Date.now();
+    if (completed && !completedRef.current && !animatingRef.current && progress < 100) {
+      completedRef.current = true;
+      animatingRef.current = true;
+      
+      // Si on est déjà à 95% ou plus, animer vers 100%
+      if (progress >= 95) {
+        const startProgress = progress;
+        const duration = 500; // 500ms pour atteindre 100%
+        const startTime = Date.now();
 
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const t = Math.min(elapsed / duration, 1);
-        const newProgress = startProgress + (100 - startProgress) * t;
-        setProgress(Math.round(newProgress));
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const t = Math.min(elapsed / duration, 1);
+          const newProgress = startProgress + (100 - startProgress) * t;
+          setProgress(Math.round(newProgress));
 
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          if (onComplete) {
-            setTimeout(onComplete, 300);
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            animatingRef.current = false;
+            if (onComplete) {
+              setTimeout(onComplete, 300);
+            }
           }
-        }
-      };
+        };
 
-      requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
+      } else {
+        // Si on n'est pas encore à 95%, accélérer jusqu'à 95% puis passer à 100%
+        const targetProgress = 95;
+        const startProgress = progress;
+        const duration = 300;
+        const startTime = Date.now();
+
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const t = Math.min(elapsed / duration, 1);
+          const newProgress = startProgress + (targetProgress - startProgress) * t;
+          setProgress(Math.round(newProgress));
+
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Une fois à 95%, passer immédiatement à 100%
+            setProgress(100);
+            animatingRef.current = false;
+            if (onComplete) {
+              setTimeout(onComplete, 300);
+            }
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+    }
+    
+    // Réinitialiser quand completed redevient false
+    if (!completed) {
+      completedRef.current = false;
     }
   }, [completed, progress, onComplete]);
 
@@ -93,10 +132,12 @@ export default function CircularProgress({ isActive, completed = false, onComple
 
   // Réinitialiser quand on devient inactif
   useEffect(() => {
-    if (!isActive && progress > 0) {
+    if (!isActive) {
       setProgress(0);
+      completedRef.current = false;
+      animatingRef.current = false;
     }
-  }, [isActive, progress]);
+  }, [isActive]);
 
   // Calculer le message selon le pourcentage
   const getMessage = (): string => {
