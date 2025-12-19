@@ -191,8 +191,7 @@ export async function getAllReports(
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    // Utiliser un cache court pour améliorer les performances (60 secondes)
-    next: { revalidate: 60 },
+    cache: 'no-store', // Pas de cache pour les fonctions utilitaires
   });
 
   if (!res.ok) {
