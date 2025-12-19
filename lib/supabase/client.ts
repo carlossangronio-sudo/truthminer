@@ -142,6 +142,38 @@ export async function updateReportCategory(
   return true;
 }
 
+/**
+ * Met à jour l'image_url d'un rapport dans Supabase
+ */
+export async function updateReportImage(
+  reportId: string,
+  imageUrl: string
+): Promise<boolean> {
+  if (!supabaseUrl || !supabaseAnonKey) return false;
+
+  const url = new URL(`/rest/v1/reports`, supabaseUrl);
+  url.searchParams.set('id', `eq.${reportId}`);
+
+  const res = await fetch(url.toString(), {
+    method: 'PATCH',
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify({ image_url: imageUrl }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.warn('Erreur Supabase (updateReportImage):', errorText);
+    return false;
+  }
+
+  return true;
+}
+
 export async function getRecentReports(
   limit = 6
 ): Promise<SupabaseReportRow[]> {
