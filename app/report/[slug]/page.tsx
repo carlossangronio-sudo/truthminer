@@ -87,6 +87,8 @@ export default async function ReportPage({ params }: PageProps) {
     userProfiles: content.userProfiles || '',
     confidenceScore: supabaseReport.score,
     createdAt: supabaseReport.created_at,
+    amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
+    amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
   };
 
   return (
@@ -256,17 +258,26 @@ export default async function ReportPage({ params }: PageProps) {
           )}
 
           {/* Liens d'affiliation */}
-          {report.products && report.products.length > 0 && (
+          {(report.amazonSearchQuery || (report.products && report.products.length > 0)) && (
             <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                 Vérifier les prix
               </h2>
               <div className="space-y-3">
-                {(Array.from(new Set(report.products)) as string[]).map((product: string, index: number) => (
-                  <div key={index}>
-                    <AffiliateLink productName={product} />
-                  </div>
-                ))}
+                {/* Afficher un seul bouton avec la requête optimisée si disponible */}
+                {report.amazonSearchQuery ? (
+                  <AffiliateLink
+                    amazonSearchQuery={report.amazonSearchQuery}
+                    recommendationReason={report.amazonRecommendationReason}
+                  />
+                ) : (
+                  // Fallback : afficher les produits si amazonSearchQuery n'est pas disponible
+                  (Array.from(new Set(report.products)) as string[]).map((product: string, index: number) => (
+                    <div key={index}>
+                      <AffiliateLink productName={product} />
+                    </div>
+                  ))
+                )}
               </div>
             </section>
           )}

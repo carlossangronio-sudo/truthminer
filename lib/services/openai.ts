@@ -11,6 +11,8 @@ export interface GeneratedReport {
   userProfiles?: string; // Section "Est-ce fait pour vous ?"
   confidenceScore?: number; // Score de confiance TruthMiner (0-100)
   category?: string; // Catégorie du produit (Électronique, Cosmétiques, Alimentation, Services)
+  amazonSearchQuery?: string; // Requête de recherche Amazon optimisée et précise
+  amazonRecommendationReason?: string; // Raison pour laquelle ce lien Amazon est proposé
 }
 
 /**
@@ -49,7 +51,9 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format sui
   "products": ["Nom du produit 1", "Nom du produit 2"],
   "userProfiles": "Section 'Est-ce fait pour vous ?' avec profils d'utilisateurs",
   "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit),
-  "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services" (une seule catégorie, celle qui correspond le mieux au produit analysé)
+  "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services" (une seule catégorie, celle qui correspond le mieux au produit analysé),
+  "amazonSearchQuery": "Requête de recherche Amazon optimisée et précise",
+  "amazonRecommendationReason": "Explication courte (1 phrase) de pourquoi ce lien Amazon est proposé"
 }
 
 RÈGLES STRICTES DE VÉRIFICATION TECHNIQUE :
@@ -98,6 +102,19 @@ Instructions détaillées :
 3. "defects" : Chaque défaut DOIT inclure une citation Reddit anonymisée. Format : "Description du défaut : '[citation exacte]' - Un utilisateur Reddit". Utilise des listes à puces Markdown (-) et mets les termes importants en **gras**.
 4. "article" : Article complet en Markdown avec TOUTES les sections listées ci-dessus. Utilise des titres clairs, des listes à puces pour les arguments, et mets en **gras** les concepts et caractéristiques clés. Si une information n'est pas mentionnée dans les discussions, écris "Non précisé sur Reddit" au lieu d'inventer.
 5. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
+6. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
+   - Si le mot-clé est flou (ex: "Maison", "Tesla", "Gaming"), identifie l'objet PRÉCIS dont parle l'analyse
+   - Exemple : "Maison" -> "Domotique HomeKit" si l'analyse parle de domotique
+   - Exemple : "Tesla" -> "Batterie externe haute capacité" si l'analyse parle d'autonomie/batterie
+   - Exemple : "Gaming" -> "Souris gaming Logitech G Pro" si l'analyse parle de souris
+   - Utilise le nom exact du produit recommandé par Reddit si disponible
+   - Si aucun produit physique n'est pertinent (service, logiciel), utilise une catégorie générale pertinente (ex: "VPN", "Logiciel de montage vidéo")
+   - La requête doit être en français et optimisée pour Amazon.fr
+7. "amazonRecommendationReason" : EXPLICATION COURTE (1 phrase maximum) de pourquoi ce lien Amazon est proposé :
+   - Exemple : "Nous avons sélectionné ce modèle car c'est la référence citée par les utilisateurs Reddit"
+   - Exemple : "Basé sur votre intérêt pour l'autonomie Tesla, voici l'accessoire de charge le plus recommandé"
+   - Exemple : "Ce produit correspond au choix de la communauté Reddit pour cette catégorie"
+   - Si c'est un service/logiciel : "Redirection vers la catégorie générale la plus pertinente sur Amazon"
 6. "userProfiles" : Section "Est-ce fait pour vous ?" avec au moins 3-4 profils d'utilisateurs. Format : "Pour [profil] : OUI/NON - [explication]"
 7. "confidenceScore" : Un entier entre 0 et 100 qui reflète le niveau de confiance global de la communauté Reddit vis-à-vis du produit :
    - 80-100 : avis très positifs et cohérents
@@ -163,7 +180,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services").`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -215,6 +232,8 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         userProfiles: parsed.userProfiles || '',
         confidenceScore,
         category,
+        amazonSearchQuery: parsed.amazonSearchQuery || parsed.amazon_search_query || keyword,
+        amazonRecommendationReason: parsed.amazonRecommendationReason || parsed.amazon_recommendation_reason || 'Produit recommandé par la communauté Reddit',
       };
     } catch (error) {
       console.error('Erreur lors de la génération OpenAI:', error);
