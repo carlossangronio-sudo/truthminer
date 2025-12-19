@@ -15,10 +15,11 @@ export interface SerperResponse {
 }
 
 export interface SerperImageResponse {
-  images: Array<{
-    title: string;
-    imageUrl: string;
-    link: string;
+  images?: Array<{
+    title?: string;
+    imageUrl?: string;
+    link?: string;
+    url?: string; // Certaines versions de l'API utilisent 'url' au lieu de 'imageUrl'
   }>;
 }
 
@@ -85,6 +86,7 @@ export class SerperService {
     const query = productName;
     
     try {
+      // Utiliser l'endpoint images de Serper
       const response = await axios.post<SerperImageResponse>(
         'https://google.serper.dev/images',
         {
@@ -96,17 +98,25 @@ export class SerperService {
             'X-API-KEY': this.apiKey,
             'Content-Type': 'application/json',
           },
+          timeout: 10000, // Timeout de 10 secondes
         }
       );
 
       // Retourner la première image trouvée (la plus pertinente)
-      if (response.data.images && response.data.images.length > 0) {
-        return response.data.images[0].imageUrl;
+      if (response.data && response.data.images && response.data.images.length > 0) {
+        const firstImage = response.data.images[0];
+        // Vérifier que l'URL de l'image est valide (essayer imageUrl ou url)
+        const imageUrl = firstImage.imageUrl || firstImage.url;
+        if (imageUrl && imageUrl.startsWith('http')) {
+          console.log('[Serper] Image trouvée:', imageUrl);
+          return imageUrl;
+        }
       }
       
+      console.log('[Serper] Aucune image trouvée pour:', query);
       return null;
     } catch (error) {
-      console.error('Erreur lors de la recherche d\'image Serper:', error);
+      console.warn('Erreur lors de la recherche d\'image Serper (non bloquant):', error instanceof Error ? error.message : error);
       // Ne pas faire échouer le processus si la recherche d'image échoue
       return null;
     }

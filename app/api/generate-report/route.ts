@@ -68,12 +68,15 @@ export async function POST(request: NextRequest) {
     try {
       // Utiliser le titre du rapport ou le mot-clé pour rechercher une image
       const imageSearchQuery = report.title || trimmedKeyword;
+      console.log('[API] Recherche d\'image pour:', imageSearchQuery);
       imageUrl = await serperService.searchImage(imageSearchQuery);
+      console.log('[API] Image trouvée:', imageUrl);
       
       // Si aucune image trouvée, utiliser une image par défaut générique
       if (!imageUrl) {
         // Image par défaut : placeholder générique pour produits
         imageUrl = `https://via.placeholder.com/800x600/4F46E5/FFFFFF?text=${encodeURIComponent(imageSearchQuery)}`;
+        console.log('[API] Utilisation d\'une image placeholder:', imageUrl);
       }
     } catch (error) {
       console.warn('Erreur lors de la recherche d\'image, utilisation d\'une image par défaut:', error);
