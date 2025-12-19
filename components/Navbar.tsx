@@ -15,7 +15,13 @@ export default function Navbar() {
             L&apos;IA qui n&apos;a pas sa langue dans sa poche.
           </span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/explore"
+            className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            Bibliothèque
+          </Link>
           <ThemeToggle />
         </div>
       </div>

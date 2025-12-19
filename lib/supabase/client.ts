@@ -19,6 +19,7 @@ type SupabaseReportRow = {
   product_name: string;
   score: number;
   content: any;
+  category?: string;
   created_at: string;
 };
 
@@ -58,6 +59,7 @@ export async function insertReport(row: {
   normalizedProductName: string;
   score: number;
   content: any;
+  category?: string;
   createdAt: string;
 }): Promise<void> {
   if (!supabaseUrl || !supabaseAnonKey) return;
@@ -66,10 +68,23 @@ export async function insertReport(row: {
     supabaseUrl,
     product_name: row.normalizedProductName,
     score: row.score,
+    category: row.category,
     created_at: row.createdAt,
   });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
+
+  const payload: any = {
+    product_name: row.normalizedProductName,
+    score: row.score,
+    content: row.content,
+    created_at: row.createdAt,
+  };
+
+  // Ajouter la catégorie si elle existe
+  if (row.category) {
+    payload.category = row.category;
+  }
 
   const res = await fetch(url.toString(), {
     method: 'POST',
@@ -79,12 +94,7 @@ export async function insertReport(row: {
       'Content-Type': 'application/json',
       Prefer: 'return=minimal',
     },
-    body: JSON.stringify({
-      product_name: row.normalizedProductName,
-      score: row.score,
-      content: row.content,
-      created_at: row.createdAt,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -114,6 +124,39 @@ export async function getRecentReports(
 
   if (!res.ok) {
     console.warn('Erreur Supabase (getRecentReports):', await res.text());
+    return [];
+  }
+
+  const data = (await res.json()) as SupabaseReportRow[];
+  return data;
+}
+
+export async function getAllReports(
+  category?: string
+): Promise<SupabaseReportRow[]> {
+  if (!supabaseUrl || !supabaseAnonKey) return [];
+
+  console.log('[Supabase] getAllReports →', { supabaseUrl, category });
+
+  const url = new URL('/rest/v1/reports', supabaseUrl);
+  url.searchParams.set('select', '*');
+  url.searchParams.set('order', 'created_at.desc');
+
+  // Filtrer par catégorie si fournie
+  if (category && category !== 'Tous') {
+    url.searchParams.set('category', `eq.${category}`);
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    console.warn('Erreur Supabase (getAllReports):', await res.text());
     return [];
   }
 

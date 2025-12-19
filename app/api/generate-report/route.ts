@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       normalizedProductName,
       score: report.confidenceScore ?? 50,
       content: report,
+      category: report.category,
       createdAt: now,
     });
 

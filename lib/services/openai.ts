@@ -10,6 +10,7 @@ export interface GeneratedReport {
   products: string[]; // Liste des produits mentionnés
   userProfiles?: string; // Section "Est-ce fait pour vous ?"
   confidenceScore?: number; // Score de confiance TruthMiner (0-100)
+  category?: string; // Catégorie du produit (Électronique, Cosmétiques, Alimentation, Services)
 }
 
 /**
@@ -47,7 +48,8 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format sui
   "article": "Article complet en Markdown avec introduction, sections, conclusion/verdict final",
   "products": ["Nom du produit 1", "Nom du produit 2"],
   "userProfiles": "Section 'Est-ce fait pour vous ?' avec profils d'utilisateurs",
-  "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit)
+  "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit),
+  "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services" (une seule catégorie, celle qui correspond le mieux au produit analysé)
 }
 
 RÈGLES STRICTES DE VÉRIFICATION TECHNIQUE :
@@ -103,6 +105,11 @@ Instructions détaillées :
    - 40-59 : mitigé
    - 0-39 : majoritairement négatif
    Ce score doit être basé UNIQUEMENT sur le ton et la proportion des commentaires positifs / neutres / négatifs dans les discussions fournies, sans rien inventer.
+8. "category" : Attribue UNE SEULE catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services". Choisis celle qui correspond le mieux au produit analysé :
+   - "Électronique" : smartphones, ordinateurs, écrans, casques audio, souris, clavier, gadgets tech, etc.
+   - "Cosmétiques" : produits de beauté, soins de la peau, maquillage, parfums, etc.
+   - "Alimentation" : produits alimentaires, boissons, compléments alimentaires, etc.
+   - "Services" : VPN, logiciels, banques en ligne, services SaaS, applications, etc.
 
 Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes. Ne crée aucune information technique ou avis qui ne soit pas présent dans les extraits fournis.`;
 
@@ -129,7 +136,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services").`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -165,6 +172,12 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
           ? Math.min(100, Math.max(0, Math.round(rawConfidence)))
           : 50;
 
+      // Valider la catégorie
+      const validCategories = ['Électronique', 'Cosmétiques', 'Alimentation', 'Services'];
+      const category = validCategories.includes(parsed.category) 
+        ? parsed.category 
+        : 'Services'; // Par défaut si non valide
+
       return {
         title: parsed.title || keyword,
         slug,
@@ -174,6 +187,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         products: Array.isArray(parsed.products) ? parsed.products : [],
         userProfiles: parsed.userProfiles || '',
         confidenceScore,
+        category,
       };
     } catch (error) {
       console.error('Erreur lors de la génération OpenAI:', error);
