@@ -59,6 +59,7 @@ export default function Home() {
   const [gamingReports, setGamingReports] = useState<ReportCard[]>([]);
   const [servicesReports, setServicesReports] = useState<ReportCard[]>([]);
   const [diversReports, setDiversReports] = useState<ReportCard[]>([]);
+  const [allReports, setAllReports] = useState<ReportCard[]>([]);
   const [isLoadingMagazine, setIsLoadingMagazine] = useState(true);
   
   const reportRef = useRef<HTMLDivElement>(null);
@@ -86,13 +87,13 @@ export default function Home() {
           });
         }
 
-        // Charger les rapports par catégorie
+        // Charger les rapports par catégorie et TOUS les rapports
         const [techRes, gamingRes, servicesRes, diversRes, allRes] = await Promise.all([
           fetch('/api/reports/by-category?category=Électronique&limit=4'),
           fetch('/api/reports/by-category?category=Gaming&limit=4'),
           fetch('/api/reports/by-category?category=Services&limit=4'),
           fetch('/api/reports/by-category?category=Divers&limit=4'),
-          fetch('/api/reports/all?limit=20'),
+          fetch('/api/reports/all'), // Récupérer TOUS les rapports (sans limite)
         ]);
 
         const [techData, gamingData, servicesData, diversData, allData] = await Promise.all([
@@ -109,15 +110,22 @@ export default function Home() {
         if (servicesRes.ok) setServicesReports(servicesData.reports || []);
         if (diversRes.ok) setDiversReports(diversData.reports || []);
 
-        // Scams : rapports avec score faible (< 40)
+        // Scams : rapports avec score faible (< 40) mais > 0
         if (allRes.ok && allData.reports) {
-          const scams = allData.reports
+          // Filtrer les rapports valides (score > 0)
+          const validReports = allData.reports.filter((r: ReportCard) => r.score > 0);
+          
+          // Stocker TOUS les rapports valides pour la section "Toutes les analyses"
+          setAllReports(validReports);
+          
+          // Scams : rapports avec score faible (< 40)
+          const scams = validReports
             .filter((r: ReportCard) => r.score < 40)
             .slice(0, 4);
           setScamsReports(scams);
 
           // Tops : rapports avec score élevé (>= 80)
-          const tops = allData.reports
+          const tops = validReports
             .filter((r: ReportCard) => r.score >= 80)
             .slice(0, 4);
           setTopReports(tops);

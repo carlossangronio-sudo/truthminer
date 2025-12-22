@@ -262,6 +262,7 @@ export async function getRecentReports(
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('order', 'created_at.desc');
+  url.searchParams.set('score', 'gt.0'); // FILTRE : Exclure les rapports avec score 0%
   url.searchParams.set('limit', String(limit));
 
   const res = await fetch(url.toString(), {
@@ -292,6 +293,7 @@ export async function getAllReports(
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('order', 'created_at.desc');
+  url.searchParams.set('score', 'gt.0'); // FILTRE : Exclure les rapports avec score 0%
 
   // Filtrer par catégorie si fournie
   if (category && category !== 'Tous') {
@@ -317,7 +319,20 @@ export async function getAllReports(
   }
 
   const data = (await res.json()) as SupabaseReportRow[];
-  return data;
+  
+  // FILTRE SUPPLÉMENTAIRE : Supprimer les doublons basés sur product_name
+  // (pour éviter les doublons comme "Indigo Park")
+  const seen = new Set<string>();
+  const uniqueReports = data.filter(report => {
+    const normalizedName = report.product_name.toLowerCase().trim();
+    if (seen.has(normalizedName)) {
+      return false; // Doublon détecté, exclure
+    }
+    seen.add(normalizedName);
+    return true;
+  });
+  
+  return uniqueReports;
 }
 
 /**

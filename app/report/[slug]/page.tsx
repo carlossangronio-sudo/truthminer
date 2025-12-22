@@ -6,6 +6,7 @@ import ShareButtons from '@/components/ShareButtons';
 import ReactMarkdown from 'react-markdown';
 import Navbar from '@/components/Navbar';
 import ReportImage from '@/components/ReportImage';
+import SimilarReports from '@/components/SimilarReports';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -318,6 +319,12 @@ export default async function ReportPage({ params }: PageProps) {
             title={report.title} 
             slug={report.slug} 
             score={report.confidenceScore}
+          />
+
+          {/* Analyses Similaires */}
+          <SimilarReports 
+            currentSlug={report.slug}
+            currentCategory={content.category}
           />
 
           {/* Footer */}
