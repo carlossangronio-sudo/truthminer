@@ -78,10 +78,11 @@ export default async function ReportPage({ params }: PageProps) {
     ? supabaseReport.content
     : JSON.parse(supabaseReport.content || '{}');
 
-  // Formater le rapport dans le format attendu par le composant
-  // MÊME LOGIQUE QUE LA BIBLIOTHÈQUE : Utiliser image_url de Supabase en premier, puis fallback
-  const imageUrl = supabaseReport.image_url || content.imageUrl || content.image_url || null;
+  // DEBUG : Vérifier que image_url arrive bien depuis Supabase
+  console.log('DEBUG IMAGE:', supabaseReport.image_url);
+  console.log('DEBUG supabaseReport complet:', JSON.stringify(supabaseReport, null, 2));
   
+  // Formater le rapport dans le format attendu par le composant
   const report = {
     title: content.title || supabaseReport.product_name,
     slug: content.slug || slug,
@@ -94,7 +95,7 @@ export default async function ReportPage({ params }: PageProps) {
     createdAt: supabaseReport.created_at,
     amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
     amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
-    imageUrl: imageUrl, // Même logique que app/api/reports/all/route.ts : row.image_url || content.imageUrl || null
+    image_url: supabaseReport.image_url || null, // Utiliser directement image_url de Supabase
   };
 
   return (
@@ -121,15 +122,17 @@ export default async function ReportPage({ params }: PageProps) {
           </p>
         </div>
 
-        {/* Image principale du produit avec placeholder élégant */}
-        {/* MÊME LOGIQUE QUE LA BIBLIOTHÈQUE : Passer imageUrl tel quel (peut être null/undefined) */}
-        <div className="mb-10">
-          <ReportImage 
-            imageUrl={report.imageUrl} 
-            title={report.title}
-            className="mb-10"
-          />
-        </div>
+        {/* Image principale du produit - TEST RADICAL avec balise <img> simple */}
+        {report.image_url && (
+          <div className="mb-10">
+            <img 
+              src={report.image_url} 
+              alt={report.title} 
+              style={{ width: '100%', height: 'auto' }}
+              className="rounded-2xl shadow-lg"
+            />
+          </div>
+        )}
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
