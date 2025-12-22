@@ -49,51 +49,37 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ClientReport | null>(null);
-  const [recentReports, setRecentReports] = useState<ReportCard[]>([]);
-  const [isLoadingRecent, setIsLoadingRecent] = useState(true);
+  const [allReports, setAllReports] = useState<ReportCard[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
   
   const reportRef = useRef<HTMLDivElement>(null);
 
-  // Charger les analyses récentes
+  // Charger tous les rapports
   useEffect(() => {
-    const loadRecent = async () => {
-      setIsLoadingRecent(true);
+    const loadReports = async () => {
+      setIsLoadingReports(true);
       try {
         const res = await fetch('/api/reports/all');
         const data = await res.json();
         
         if (res.ok && data.reports) {
-          // Filtrer : score > 0 et supprimer les doublons
-          const validReports = data.reports.filter((r: ReportCard) => r.score > 0);
-          
-          // Supprimer les doublons basés sur le titre normalisé
-          const seenTitles = new Set<string>();
-          const uniqueReports = validReports.filter((r: ReportCard) => {
-            const normalizedTitle = r.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ');
-            if (seenTitles.has(normalizedTitle)) {
-              return false;
-            }
-            seenTitles.add(normalizedTitle);
-            return true;
-          });
-          
           // Trier par date (plus récent en premier)
-          uniqueReports.sort((a, b) => {
+          const sorted = [...data.reports].sort((a: ReportCard, b: ReportCard) => {
             const dateA = new Date(a.createdAt).getTime();
             const dateB = new Date(b.createdAt).getTime();
             return dateB - dateA;
           });
           
-          setRecentReports(uniqueReports);
+          setAllReports(sorted);
         }
       } catch (e) {
-        console.error('Erreur lors du chargement des analyses récentes:', e);
+        console.error('Erreur lors du chargement des rapports:', e);
       } finally {
-        setIsLoadingRecent(false);
+        setIsLoadingReports(false);
       }
     };
 
-    loadRecent();
+    loadReports();
   }, []);
 
   // Restaurer le rapport depuis localStorage si présent
@@ -329,7 +315,7 @@ export default function Home() {
           {report.amazonSearchQuery && (
             <section className="mb-8">
               <AffiliateLink
-                searchQuery={report.amazonSearchQuery}
+                amazonSearchQuery={report.amazonSearchQuery}
                 recommendationReason={report.amazonRecommendationReason || 'Produit recommandé par la communauté Reddit'}
               />
             </section>
@@ -344,22 +330,22 @@ export default function Home() {
         </div>
       )}
 
-      {/* Section Analyses Récentes */}
+      {/* Section Tous les Rapports */}
       {!report && (
         <div className="container mx-auto px-4 md:px-6 py-12">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-            📚 Analyses Récentes
+            📚 Toutes les Analyses
           </h2>
           
-          {isLoadingRecent ? (
+          {isLoadingReports ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                 <div key={i} className="h-64 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
               ))}
             </div>
-          ) : recentReports.length > 0 ? (
+          ) : allReports.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {recentReports.map((report) => (
+              {allReports.map((report) => (
                 <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
                   <ArticleCard
                     id={report.id}

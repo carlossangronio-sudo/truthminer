@@ -39,7 +39,7 @@ export class OpenAIService {
   async generateReport(
     keyword: string,
     redditResults: SerperResult[]
-  ): Promise<GeneratedReport | { error: string }> {
+  ): Promise<GeneratedReport> {
     const systemPrompt = `Tu es un journaliste d'investigation tech, honnête et factuel.
 Tu analyses les discussions Reddit pour donner la vérité brute sur les produits.
 
@@ -63,14 +63,7 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format sui
   "imageUrl": "URL de l'image principale du produit (sera remplie automatiquement par une recherche Google Images, tu peux mettre null ou une URL par défaut si tu n'en as pas)"
 }
 
-SÉCURITÉ ANTI-HALLUCINATION - VÉRIFICATION OBLIGATOIRE :
-⚠️ AVANT DE GÉNÉRER LE RAPPORT, TU DOIS VÉRIFIER QUE LES RÉSULTATS REDDIT CORRESPONDENT AU SUJET DEMANDÉ :
-- Si les discussions Reddit parlent d'un sujet COMPLÈTEMENT DIFFÉRENT du mot-clé recherché (ex: on cherche "Avatar 3" mais les résultats parlent de magasins, de restaurants, ou d'un autre sujet sans rapport), TU NE DOIS PAS GÉNÉRER DE RAPPORT.
-- Si les résultats ne contiennent AUCUNE discussion pertinente sur le produit/service demandé, TU NE DOIS PAS GÉNÉRER DE RAPPORT.
-- Dans ces cas, réponds UNIQUEMENT avec ce JSON : {"error": "Les résultats de recherche Reddit ne correspondent pas au sujet demandé. Il n'y a pas assez d'avis fiables pour générer une analyse fiable à ce moment."}
-- Ne génère JAMAIS un rapport basé sur des résultats qui n'ont aucun rapport avec le mot-clé recherché.
-
-RÈGLES STRICTES DE VÉRIFICATION TECHNIQUE :
+RÈGLES DE VÉRIFICATION TECHNIQUE :
 - Distingue TOUJOURS les produits "Smart" (caméra/audio comme Meta Ray-Ban) des produits "AR" (avec écran comme Xreal)
 - Ne confonds JAMAIS les fonctionnalités : si un produit n'a pas d'écran, ne mentionne jamais d'écran
 - Vérifie les spécifications techniques mentionnées dans les discussions Reddit avant de les citer
@@ -214,11 +207,6 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
 
       // Parse la réponse JSON
       const parsed = JSON.parse(content);
-
-      // Vérifier si OpenAI a détecté une hallucination (résultats non pertinents)
-      if (parsed.error) {
-        return { error: parsed.error } as any;
-      }
 
       // Générer un slug à partir du titre
       const slug = this.generateSlug(parsed.title || keyword);

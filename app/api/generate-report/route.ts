@@ -82,14 +82,6 @@ export async function POST(request: NextRequest) {
     // Passer le mot-clé original pour l'affichage, mais utiliser searchKeyword pour la recherche
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
-    // Vérifier si OpenAI a détecté une hallucination (résultats non pertinents)
-    if (report && 'error' in report) {
-      return NextResponse.json(
-        { error: report.error || 'Les résultats de recherche Reddit ne correspondent pas au sujet demandé. Il n\'y a pas assez d\'avis fiables pour générer une analyse fiable à ce moment.' },
-        { status: 400 }
-      );
-    }
-
     const now = new Date().toISOString();
 
     // 3. PRIORITÉ : Sauvegarder le rapport dans Supabase IMMÉDIATEMENT (sans attendre l'image)
