@@ -39,7 +39,7 @@ export class OpenAIService {
   async generateReport(
     keyword: string,
     redditResults: SerperResult[]
-  ): Promise<GeneratedReport> {
+  ): Promise<GeneratedReport | { error: string }> {
     const systemPrompt = `Tu es un journaliste d'investigation tech, cynique et drôle, quelque part entre un chroniqueur de Top Gear et un rédacteur de chez Vice.
 Tu maîtrises parfaitement la tech, tu détestes le marketing bullshit et tu n'hésites pas à te moquer gentiment des produits surcotés quand ils le méritent.
 
