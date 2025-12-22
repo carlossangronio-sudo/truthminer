@@ -125,7 +125,7 @@ export default async function ReportPage({ params }: PageProps) {
         {/* Image principale du produit avec placeholder élégant */}
         <div className="mb-10">
           <ReportImage 
-            imageUrl={report.imageUrl} 
+            imageUrl={report.imageUrl || undefined} 
             title={report.title}
             className="mb-10"
           />
