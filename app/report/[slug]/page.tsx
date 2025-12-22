@@ -79,6 +79,10 @@ export default async function ReportPage({ params }: PageProps) {
     : JSON.parse(supabaseReport.content || '{}');
 
   // Formater le rapport dans le format attendu par le composant
+  // PRIORITÉ : Utiliser image_url de Supabase en premier (colonne de la table reports)
+  // Puis fallback vers content.imageUrl si image_url n'est pas dans la table
+  const imageUrl = supabaseReport.image_url || content.imageUrl || content.image_url || null;
+  
   const report = {
     title: content.title || supabaseReport.product_name,
     slug: content.slug || slug,
@@ -91,7 +95,7 @@ export default async function ReportPage({ params }: PageProps) {
     createdAt: supabaseReport.created_at,
     amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
     amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
-    imageUrl: supabaseReport.image_url || content.imageUrl || null,
+    imageUrl: imageUrl, // Utiliser image_url de Supabase en priorité
   };
 
   return (
