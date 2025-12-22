@@ -28,34 +28,30 @@ export default function SimilarReports({ currentSlug, currentCategory }: Similar
     const loadSimilarReports = async () => {
       setIsLoading(true);
       try {
-        // Charger les rapports de la même catégorie, ou tous les rapports récents
-        const url = currentCategory
-          ? `/api/reports/by-category?category=${encodeURIComponent(currentCategory)}&limit=5`
-          : '/api/reports/recent?limit=5';
-        
-        const res = await fetch(url);
+        // Charger TOUS les rapports pour sélectionner 3 aléatoires
+        const res = await fetch('/api/reports/all');
         const data = await res.json();
 
-        if (res.ok) {
-          const reports = currentCategory
-            ? (data.reports || [])
-            : (data.items || []).map((item: any) => ({
-                id: item.id,
-                title: item.title,
-                slug: item.slug || item.id,
-                score: item.score,
-                choice: item.choice,
-                createdAt: item.createdAt,
-                category: item.report?.category,
-                imageUrl: item.report?.imageUrl,
-              }));
+        if (res.ok && data.reports) {
+          // Filtrer les rapports valides (score > 0) et exclure le rapport actuel
+          const validReports = data.reports
+            .filter((r: any) => r.score > 0 && (r.slug || r.id) !== currentSlug)
+            .map((r: any) => ({
+              id: r.id,
+              title: r.title,
+              slug: r.slug || r.id,
+              score: r.score,
+              choice: r.choice,
+              createdAt: r.createdAt,
+              category: r.category,
+              imageUrl: r.imageUrl,
+            }));
 
-          // Exclure le rapport actuel et prendre les 4 premiers
-          const filtered = reports
-            .filter((r: SimilarReport) => r.slug !== currentSlug)
-            .slice(0, 4);
+          // Sélectionner 3 rapports aléatoires
+          const shuffled = [...validReports].sort(() => Math.random() - 0.5);
+          const randomReports = shuffled.slice(0, 3);
           
-          setSimilarReports(filtered);
+          setSimilarReports(randomReports);
         }
       } catch (e) {
         console.error('Erreur lors du chargement des analyses similaires:', e);
@@ -65,16 +61,16 @@ export default function SimilarReports({ currentSlug, currentCategory }: Similar
     };
 
     loadSimilarReports();
-  }, [currentSlug, currentCategory]);
+  }, [currentSlug]);
 
   if (isLoading) {
     return (
       <section className="mt-16 pt-12 border-t border-gray-200 dark:border-slate-800">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          📖 À lire aussi
+          🔍 D'autres vérités à découvrir
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
             <div key={i} className="h-64 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
           ))}
         </div>
@@ -90,7 +86,7 @@ export default function SimilarReports({ currentSlug, currentCategory }: Similar
     <section className="mt-16 pt-12 border-t border-gray-200 dark:border-slate-800">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          📖 À lire aussi
+          🔍 D'autres vérités à découvrir
         </h2>
         <Link
           href="/explore"
@@ -99,7 +95,7 @@ export default function SimilarReports({ currentSlug, currentCategory }: Similar
           Voir toutes les analyses →
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {similarReports.map((report) => (
           <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
             <ArticleCard

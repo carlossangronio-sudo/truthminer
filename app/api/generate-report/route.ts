@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
 import { getCachedReport, insertReport, updateReportImage } from '@/lib/supabase/client';
+import { extractMainKeyword, normalizeKeyword } from '@/lib/utils/keyword-extractor';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,15 @@ export async function POST(request: NextRequest) {
     }
 
     const trimmedKeyword = keyword.trim();
-    const normalizedProductName = trimmedKeyword.toLowerCase();
+    
+    // INTELLIGENCE DE RECHERCHE : Extraire le nom principal de la phrase
+    // Exemple: "Quel est le meilleur iPhone 15 Pro Max" -> "iPhone 15 Pro Max"
+    const searchKeyword = extractMainKeyword(trimmedKeyword);
+    const normalizedProductName = normalizeKeyword(searchKeyword);
+    
+    console.log('[API] 🔍 Requête originale:', trimmedKeyword);
+    console.log('[API] 🔍 Mot-clé extrait pour recherche:', searchKeyword);
+    console.log('[API] 🔍 Mot-clé normalisé:', normalizedProductName);
 
     // 1. SYSTÈME DE CACHE ANTI-DOUBLONS : Vérifier EXACTEMENT le même nom dans Supabase
     // Avant de consommer des crédits OpenAI/Serper, on vérifie si un rapport identique existe
@@ -58,8 +67,9 @@ export async function POST(request: NextRequest) {
     console.log('[API] ⚠️ Aucun rapport existant trouvé - génération d\'un nouveau rapport (consommation de crédits)');
 
     // 2. Sinon, on génère un nouveau rapport avec Serper + OpenAI
+    // Utiliser le mot-clé extrait pour la recherche (plus précis)
     const serperService = new SerperService();
-    const redditResults = await serperService.searchReddit(trimmedKeyword);
+    const redditResults = await serperService.searchReddit(searchKeyword);
 
     if (redditResults.length === 0) {
       return NextResponse.json(
@@ -69,6 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     const openaiService = new OpenAIService();
+    // Passer le mot-clé original pour l'affichage, mais utiliser searchKeyword pour la recherche
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
     // Vérifier si OpenAI a détecté une hallucination (résultats non pertinents)

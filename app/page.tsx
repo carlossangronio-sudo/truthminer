@@ -112,20 +112,31 @@ export default function Home() {
 
         // Scams : rapports avec score faible (< 40) mais > 0
         if (allRes.ok && allData.reports) {
-          // Filtrer les rapports valides (score > 0)
+          // NETTOYAGE STRICT : Filtrer les rapports valides (score > 0) et supprimer les doublons
           const validReports = allData.reports.filter((r: ReportCard) => r.score > 0);
           
-          // Stocker TOUS les rapports valides pour la section "Toutes les analyses"
-          setAllReports(validReports);
+          // Supprimer les doublons évidents basés sur le titre normalisé
+          const seenTitles = new Set<string>();
+          const uniqueReports = validReports.filter((r: ReportCard) => {
+            const normalizedTitle = r.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ');
+            if (seenTitles.has(normalizedTitle)) {
+              return false; // Doublon détecté
+            }
+            seenTitles.add(normalizedTitle);
+            return true;
+          });
+          
+          // Stocker TOUS les rapports valides pour la section "Archives"
+          setAllReports(uniqueReports);
           
           // Scams : rapports avec score faible (< 40)
-          const scams = validReports
+          const scams = uniqueReports
             .filter((r: ReportCard) => r.score < 40)
             .slice(0, 4);
           setScamsReports(scams);
 
           // Tops : rapports avec score élevé (>= 80)
-          const tops = validReports
+          const tops = uniqueReports
             .filter((r: ReportCard) => r.score >= 80)
             .slice(0, 4);
           setTopReports(tops);
