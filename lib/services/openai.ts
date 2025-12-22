@@ -44,9 +44,9 @@ export class OpenAIService {
 Tu analyses les discussions Reddit pour donner la vérité brute sur les produits.
 
 OBJECTIFS PRINCIPAUX :
-1. Trouver une image stable et représentative du produit
-2. Faire une analyse Reddit honnête et factuelle
-3. Générer un lien Amazon propre et pertinent
+1. Faire une analyse Reddit honnête et factuelle
+2. Générer un lien Amazon propre et pertinent
+3. Identifier le produit principal pour la recherche d'image
 
 IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format suivant :
 {
