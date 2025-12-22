@@ -180,9 +180,13 @@ export default function Home() {
       }
 
       if (data.cached && data.report) {
-        // Si le rapport existe déjà, rediriger vers la page de détail
-        window.location.href = `/report/${data.report.slug}`;
-        return;
+        // SYSTÈME DE CACHE : Si le rapport existe déjà, rediriger vers la page de détail
+        // Évite de consommer des crédits OpenAI/Serper pour un rapport déjà existant
+        const slug = data.report.slug || data.report.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || data.report.keyword?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (slug) {
+          window.location.href = `/report/${slug}`;
+          return;
+        }
       }
 
       if (data.report) {
