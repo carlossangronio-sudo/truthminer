@@ -44,6 +44,11 @@ export default function ImageCard({ imageUrl, title, className = '', height = 'h
   const [imageError, setImageError] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
+  // DEBUG: Log pour vérifier les images
+  if (imageUrl) {
+    console.log('[ImageCard] Tentative d\'affichage image:', imageUrl.substring(0, 50) + '...');
+  }
+
   // Afficher le placeholder UNIQUEMENT si pas d'image_url ou si erreur réelle
   if (!imageUrl || imageError) {
     return (
@@ -68,10 +73,11 @@ export default function ImageCard({ imageUrl, title, className = '', height = 'h
         unoptimized={true}
         loading="lazy"
         onLoad={() => {
+          console.log('[ImageCard] Image chargée avec succès:', imageUrl.substring(0, 50) + '...');
           setHasLoaded(true);
         }}
-        onError={() => {
-          // Seulement en cas d'erreur réelle (404, etc.)
+        onError={(e) => {
+          console.error('[ImageCard] Erreur chargement image:', imageUrl);
           setImageError(true);
         }}
       />

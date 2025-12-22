@@ -79,10 +79,6 @@ export default async function ReportPage({ params }: PageProps) {
     ? supabaseReport.content
     : JSON.parse(supabaseReport.content || '{}');
 
-  // DEBUG : Vérifier que image_url arrive bien depuis Supabase
-  console.log('DEBUG IMAGE:', supabaseReport.image_url);
-  console.log('DEBUG supabaseReport complet:', JSON.stringify(supabaseReport, null, 2));
-  
   // Formater le rapport dans le format attendu par le composant
   const report = {
     title: content.title || supabaseReport.product_name,
@@ -96,8 +92,15 @@ export default async function ReportPage({ params }: PageProps) {
     createdAt: supabaseReport.created_at,
     amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
     amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
-    image_url: supabaseReport.image_url || null, // Utiliser directement image_url de Supabase
+    image_url: supabaseReport.image_url || content.imageUrl || null, // Utiliser image_url de Supabase ou fallback vers content.imageUrl
   };
+  
+  // DEBUG : Log l'URL de l'image
+  if (report.image_url) {
+    console.log('[ReportPage] Image URL trouvée:', report.image_url);
+  } else {
+    console.log('[ReportPage] Aucune image URL trouvée pour:', report.title);
+  }
 
   return (
     <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
@@ -124,7 +127,28 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Image principale du produit */}
-        {report.image_url && <img src={report.image_url} alt="" className="w-full h-auto rounded-lg mb-6" />}
+        {report.image_url ? (
+          <img 
+            src={report.image_url} 
+            alt={report.title} 
+            className="w-full h-auto rounded-lg mb-6"
+            onError={(e) => {
+              console.error('[ReportPage] Erreur chargement image:', report.image_url);
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-full h-64 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 dark:from-blue-600 dark:via-indigo-700 dark:to-purple-800 rounded-lg mb-6 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2 text-white">
+              <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold tracking-wider">TRUTHMINER</span>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
