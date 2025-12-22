@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getReportBySlug } from '@/lib/supabase/client';
@@ -6,8 +8,6 @@ import ShareButtons from '@/components/ShareButtons';
 import ReactMarkdown from 'react-markdown';
 import Navbar from '@/components/Navbar';
 import SimilarReports from '@/components/SimilarReports';
-
-export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -124,13 +124,11 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Image principale du produit */}
-        {report.image_url && (
-          <img 
-            src={report.image_url} 
-            alt="" 
-            className="w-full h-auto rounded-lg mb-6"
-          />
-        )}
+        <img 
+          src={report.image_url || '/placeholder-truthminer.png'} 
+          alt={report.title} 
+          className="w-full h-auto rounded-xl mb-8 shadow-2xl"
+        />
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
