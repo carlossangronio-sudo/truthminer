@@ -7,6 +7,7 @@ import AffiliateLink from '@/components/AffiliateLink';
 import Navbar from '@/components/Navbar';
 import CategorySection from '@/components/CategorySection';
 import ShareButtons from '@/components/ShareButtons';
+import ReportImage from '@/components/ReportImage';
 
 // Utilitaires pour le nettoyage et la mise en forme du contenu
 function cleanDefectText(text: string): string {
@@ -434,21 +435,12 @@ export default function Home() {
               </section>
 
               {/* Image principale du produit - AFFICHÉE IMMÉDIATEMENT APRÈS GÉNÉRATION */}
-              {report.imageUrl && (
-                <div className="mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800">
-                  <img
-                    src={report.imageUrl}
-                    alt={report.title}
-                    className="w-full h-auto max-h-[500px] object-cover"
-                    loading="eager"
-                    onError={(e) => {
-                      console.warn('Erreur de chargement d\'image:', report.imageUrl);
-                      // Masquer l'image si elle ne charge pas
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
+              <div className="mb-8">
+                <ReportImage 
+                  imageUrl={report.imageUrl} 
+                  title={report.title}
+                />
+              </div>
 
               <div className="border-b border-gray-200 dark:border-slate-800 pb-4">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
