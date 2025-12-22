@@ -42,29 +42,10 @@ function TruthMinerPlaceholder({ height = 'h-48', size = 'small' }: { height?: s
 
 export default function ImageCard({ imageUrl, title, className = '', height = 'h-48' }: ImageCardProps) {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  const [showPlaceholder, setShowPlaceholder] = useState(!imageUrl);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  useEffect(() => {
-    if (!imageUrl) {
-      setShowPlaceholder(true);
-      setImageLoading(false);
-      return;
-    }
-
-    // Timeout de 5 secondes pour afficher le placeholder si l'image ne charge pas
-    const timeoutId = setTimeout(() => {
-      if (imageLoading) {
-        setShowPlaceholder(true);
-        setImageLoading(false);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timeoutId);
-  }, [imageUrl, imageLoading]);
-
-  // Afficher le placeholder si pas d'image, erreur, ou timeout
-  if (showPlaceholder || imageError || !imageUrl) {
+  // Afficher le placeholder UNIQUEMENT si pas d'image_url ou si erreur réelle
+  if (!imageUrl || imageError) {
     return (
       <div className={className}>
         <TruthMinerPlaceholder height={height} size="small" />
@@ -74,21 +55,24 @@ export default function ImageCard({ imageUrl, title, className = '', height = 'h
 
   return (
     <div className={`relative w-full ${height} overflow-hidden bg-gray-100 dark:bg-slate-800 ${className}`}>
+      {!hasLoaded && (
+        <div className="absolute inset-0 bg-gray-100 dark:bg-slate-800 animate-pulse flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-gray-300 dark:border-slate-600 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
       <Image
         src={imageUrl}
         alt={title}
         fill
-        className="object-cover group-hover:scale-105 transition-transform duration-300"
+        className={`object-cover group-hover:scale-105 transition-all duration-300 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
         unoptimized={true}
         loading="lazy"
         onLoad={() => {
-          setImageLoading(false);
-          setShowPlaceholder(false);
+          setHasLoaded(true);
         }}
         onError={() => {
+          // Seulement en cas d'erreur réelle (404, etc.)
           setImageError(true);
-          setImageLoading(false);
-          setShowPlaceholder(true);
         }}
       />
     </div>

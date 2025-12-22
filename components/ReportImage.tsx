@@ -47,29 +47,10 @@ function TruthMinerPlaceholder({ minHeight = '400px', size = 'large' }: { minHei
 
 export default function ReportImage({ imageUrl, title, className = '' }: ReportImageProps) {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  const [showPlaceholder, setShowPlaceholder] = useState(!imageUrl);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  useEffect(() => {
-    if (!imageUrl) {
-      setShowPlaceholder(true);
-      setImageLoading(false);
-      return;
-    }
-
-    // Timeout de 5 secondes pour afficher le placeholder si l'image ne charge pas
-    const timeoutId = setTimeout(() => {
-      if (imageLoading) {
-        setShowPlaceholder(true);
-        setImageLoading(false);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timeoutId);
-  }, [imageUrl, imageLoading]);
-
-  // Afficher le placeholder si pas d'image, erreur, ou timeout
-  if (showPlaceholder || imageError || !imageUrl) {
+  // Afficher le placeholder UNIQUEMENT si pas d'image_url ou si erreur réelle
+  if (!imageUrl || imageError) {
     return (
       <div className={className}>
         <TruthMinerPlaceholder minHeight="400px" size="large" />
@@ -80,20 +61,23 @@ export default function ReportImage({ imageUrl, title, className = '' }: ReportI
   return (
     <div className={`rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800 ${className}`}>
       <div className="relative w-full" style={{ minHeight: '400px', maxHeight: '500px' }}>
+        {!hasLoaded && (
+          <div className="absolute inset-0 bg-gray-100 dark:bg-slate-800 animate-pulse flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-gray-300 dark:border-slate-600 border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+        )}
         <Image
           src={imageUrl}
           alt={title}
           fill
-          className="object-cover"
+          className={`object-cover ${hasLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
           unoptimized={true}
           onLoad={() => {
-            setImageLoading(false);
-            setShowPlaceholder(false);
+            setHasLoaded(true);
           }}
           onError={() => {
+            // Seulement en cas d'erreur réelle (404, etc.)
             setImageError(true);
-            setImageLoading(false);
-            setShowPlaceholder(true);
           }}
         />
       </div>

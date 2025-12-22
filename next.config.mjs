@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Configuration des images externes
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
+    ],
+    unoptimized: true, // Désactiver l'optimisation pour éviter les erreurs Vercel
+  },
   // Configuration du domaine officiel
   async headers() {
     return [
