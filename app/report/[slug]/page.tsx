@@ -127,7 +127,7 @@ export default async function ReportPage({ params }: PageProps) {
         <img 
           src={report.image_url || '/placeholder-truthminer.png'} 
           alt={report.title} 
-          className="w-full h-auto rounded-xl mb-8 shadow-2xl"
+          className="w-full h-auto rounded-lg mb-6 shadow-lg"
         />
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
