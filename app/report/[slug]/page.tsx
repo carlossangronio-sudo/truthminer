@@ -124,11 +124,14 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Image principale du produit */}
-        <img 
-          src={report.image_url || '/placeholder-truthminer.png'} 
-          alt={report.title} 
-          className="w-full h-auto rounded-lg mb-6 shadow-lg"
-        />
+        {report.image_url && (
+          <img 
+            src={report.image_url} 
+            alt="" 
+            className="w-full max-h-[500px] object-cover rounded-xl mb-8"
+          />
+        )}
+        {/* DEBUG: {report.image_url} */}
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
