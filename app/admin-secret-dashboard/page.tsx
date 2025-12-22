@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { getAllReports, getRecentReports } from '@/lib/supabase/client';
-import axios from 'axios';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,48 +11,10 @@ export const metadata: Metadata = {
   },
 };
 
-interface SerperCreditsResponse {
-  credits?: number;
-  remaining?: number;
-  limit?: number;
-}
-
-async function getSerperCredits(): Promise<{ credits: number | null; error: string | null }> {
-  try {
-    const apiKey = process.env.SERPER_API_KEY;
-    if (!apiKey) {
-      return { credits: null, error: 'SERPER_API_KEY non configurée' };
-    }
-
-    const response = await axios.get<SerperCreditsResponse>(
-      'https://google.serper.dev/credits',
-      {
-        headers: {
-          'X-API-KEY': apiKey,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      }
-    );
-
-    const credits = response.data.credits ?? response.data.remaining ?? null;
-    return { credits, error: null };
-  } catch (error) {
-    console.error('[Admin] Erreur lors de la récupération des crédits Serper:', error);
-    if (axios.isAxiosError(error)) {
-      return { credits: null, error: `Erreur API: ${error.response?.status} ${error.response?.statusText}` };
-    }
-    return { credits: null, error: 'Erreur inconnue lors de la récupération des crédits' };
-  }
-}
-
 export default async function AdminSecretDashboard() {
   // Récupérer les données Supabase
   const allReports = await getAllReports();
   const recentReports = await getRecentReports(10);
-  
-  // Récupérer les crédits Serper
-  const { credits: serperCredits, error: serperError } = await getSerperCredits();
 
   // Formater les rapports récents
   const formattedRecentReports = recentReports.map((report) => {
@@ -76,14 +37,6 @@ export default async function AdminSecretDashboard() {
     };
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Déterminer la couleur des crédits
-  const creditsColor = serperCredits !== null
-    ? serperCredits > 1000
-      ? 'text-emerald-400'
-      : serperCredits < 100
-        ? 'text-red-400'
-        : 'text-amber-400'
-    : 'text-gray-400';
 
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono p-8">
@@ -114,34 +67,26 @@ export default async function AdminSecretDashboard() {
             </div>
           </div>
 
-          {/* Serper Credits */}
+          {/* Serper Credits Info */}
           <div className="bg-gray-900 border border-green-800 p-6 rounded">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-green-600 text-sm">SERPER_CREDITS</span>
-              <span className="text-green-800 text-xs">{'//'} API Balance</span>
+              <span className="text-green-600 text-sm">SERPER_API</span>
+              <span className="text-green-800 text-xs">{'//'} Status</span>
             </div>
-            {serperError ? (
-              <div className="text-red-400 text-sm">
-                {'>'} ERROR: {serperError}
-              </div>
-            ) : serperCredits !== null ? (
-              <>
-                <div className={`text-4xl font-bold ${creditsColor}`}>
-                  {serperCredits.toLocaleString()}
-                </div>
-                <div className="mt-2 text-xs text-green-700">
-                  {serperCredits > 1000 
-                    ? '> Status: OK (High)'
-                    : serperCredits < 100
-                      ? '> Status: WARNING (Low)'
-                      : '> Status: MEDIUM'}
-                </div>
-              </>
-            ) : (
-              <div className="text-gray-500 text-sm">
-                {'>'} Unable to fetch credits
-              </div>
-            )}
+            <div className="text-green-400 text-sm mb-2">
+              {'>'} Vérifier sur{' '}
+              <a
+                href="https://serper.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-300 hover:text-green-200 underline"
+              >
+                Serper.dev
+              </a>
+            </div>
+            <div className="text-xs text-green-700 mt-2">
+              {'//'} Les crédits sont disponibles dans les headers des réponses API
+            </div>
           </div>
         </div>
 
