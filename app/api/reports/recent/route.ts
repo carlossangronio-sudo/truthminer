@@ -3,9 +3,11 @@ import { getRecentReports } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const rows = await getRecentReports(6);
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '6', 10);
+    const rows = await getRecentReports(limit);
 
     const items = rows.map((row) => {
       const content =

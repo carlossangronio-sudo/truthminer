@@ -28,14 +28,19 @@ export async function POST(request: NextRequest) {
     const trimmedKeyword = keyword.trim();
     const normalizedProductName = trimmedKeyword.toLowerCase();
 
-    // 1. Vérifier dans Supabase si un rapport existe déjà pour ce produit (cache)
+    // 1. SYSTÈME DE CACHE ANTI-DOUBLONS : Vérifier EXACTEMENT le même nom dans Supabase
+    // Avant de consommer des crédits OpenAI/Serper, on vérifie si un rapport identique existe
+    console.log('[API] 🔍 Vérification cache anti-doublons pour:', normalizedProductName);
     const existing = await getCachedReport(normalizedProductName);
 
     if (existing) {
+      console.log('[API] ✅ Rapport existant trouvé (cache hit) - redirection vers le rapport existant');
       const existingContent = typeof existing.content === 'object'
         ? existing.content
         : JSON.parse(existing.content || '{}');
       
+      // Retourner le rapport existant avec un flag cached=true
+      // Le frontend redirigera automatiquement vers /report/[slug]
       return NextResponse.json({
         success: true,
         report: {
@@ -46,8 +51,11 @@ export async function POST(request: NextRequest) {
           imageUrl: existing.image_url || existingContent.imageUrl || null,
         },
         cached: true,
+        redirect: `/report/${existingContent.slug || normalizedProductName}`,
       });
     }
+
+    console.log('[API] ⚠️ Aucun rapport existant trouvé - génération d\'un nouveau rapport (consommation de crédits)');
 
     // 2. Sinon, on génère un nouveau rapport avec Serper + OpenAI
     const serperService = new SerperService();

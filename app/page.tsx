@@ -5,28 +5,10 @@ import CircularProgress from '@/components/CircularProgress';
 import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
 import Navbar from '@/components/Navbar';
-import CategorySection from '@/components/CategorySection';
+import ArticleCard from '@/components/ArticleCard';
 import ShareButtons from '@/components/ShareButtons';
 import ReportImage from '@/components/ReportImage';
-
-// Utilitaires pour le nettoyage et la mise en forme du contenu
-function cleanDefectText(text: string): string {
-  let t = text.trim();
-  t = t.replace(/\.{3,}$/g, '');
-  t = t.replace(/\s+/g, ' ');
-  return t;
-}
-
-function stripEstCeFaitPourVousSection(markdown: string): string {
-  return markdown.replace(/##\s*Est-ce fait pour vous[\s\S]*$/i, '').trim();
-}
-
-function highlightKeyword(text: string, keyword?: string): string {
-  if (!keyword) return text;
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escaped})`, 'gi');
-  return text.replace(regex, '**$1**');
-}
+import Link from 'next/link';
 
 type ClientReport = {
   title: string;
@@ -44,6 +26,18 @@ type ClientReport = {
   imageUrl?: string;
 };
 
+type ReportCard = {
+  id: string;
+  title: string;
+  slug: string;
+  score: number;
+  choice: string;
+  createdAt: string;
+  category?: string;
+  imageUrl?: string;
+  productName: string;
+};
+
 function getConfidenceLabel(score: number): string {
   if (score >= 80) return 'Confiance très forte';
   if (score >= 60) return 'Confiance élevée';
@@ -56,30 +50,89 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ClientReport | null>(null);
-  const [recent, setRecent] = useState<
-    {
-      id: string;
-      productName: string;
-      score: number;
-      title: string;
-      choice: string;
-      slug: string | null;
-      createdAt: string;
-      report: ClientReport;
-    }[]
-  >([]);
-  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
-  const [recentError, setRecentError] = useState<string | null>(null);
   
-  // Données des sections par catégorie
-  const [highTechReports, setHighTechReports] = useState<any[]>([]);
-  const [santeBeauteReports, setSanteBeauteReports] = useState<any[]>([]);
-  const [alimentationReports, setAlimentationReports] = useState<any[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  // Données pour le magazine
+  const [latestReport, setLatestReport] = useState<ReportCard | null>(null);
+  const [scamsReports, setScamsReports] = useState<ReportCard[]>([]);
+  const [topReports, setTopReports] = useState<ReportCard[]>([]);
+  const [techReports, setTechReports] = useState<ReportCard[]>([]);
+  const [gamingReports, setGamingReports] = useState<ReportCard[]>([]);
+  const [servicesReports, setServicesReports] = useState<ReportCard[]>([]);
+  const [diversReports, setDiversReports] = useState<ReportCard[]>([]);
+  const [isLoadingMagazine, setIsLoadingMagazine] = useState(true);
   
-  // Ref pour le scroll automatique vers le rapport
   const reportRef = useRef<HTMLDivElement>(null);
 
+  // Charger les données du magazine
+  useEffect(() => {
+    const loadMagazineData = async () => {
+      setIsLoadingMagazine(true);
+      try {
+        // Charger le dernier rapport pour la section Hero
+        const latestRes = await fetch('/api/reports/recent?limit=1');
+        const latestData = await latestRes.json();
+        if (latestRes.ok && latestData.items && latestData.items.length > 0) {
+          const latest = latestData.items[0];
+          setLatestReport({
+            id: latest.id,
+            title: latest.title,
+            slug: latest.slug || latest.id,
+            score: latest.score,
+            choice: latest.choice,
+            createdAt: latest.createdAt,
+            category: latest.report?.category,
+            imageUrl: latest.report?.imageUrl,
+            productName: latest.productName,
+          });
+        }
+
+        // Charger les rapports par catégorie
+        const [techRes, gamingRes, servicesRes, diversRes, allRes] = await Promise.all([
+          fetch('/api/reports/by-category?category=Électronique&limit=4'),
+          fetch('/api/reports/by-category?category=Gaming&limit=4'),
+          fetch('/api/reports/by-category?category=Services&limit=4'),
+          fetch('/api/reports/by-category?category=Divers&limit=4'),
+          fetch('/api/reports/all?limit=20'),
+        ]);
+
+        const [techData, gamingData, servicesData, diversData, allData] = await Promise.all([
+          techRes.json(),
+          gamingRes.json(),
+          gamingRes.json(), // Gaming utilise la même catégorie pour l'instant
+          servicesRes.json(),
+          diversRes.json(),
+          allRes.json(),
+        ]);
+
+        if (techRes.ok) setTechReports(techData.reports || []);
+        if (gamingRes.ok) setGamingReports(gamingData.reports || []);
+        if (servicesRes.ok) setServicesReports(servicesData.reports || []);
+        if (diversRes.ok) setDiversReports(diversData.reports || []);
+
+        // Scams : rapports avec score faible (< 40)
+        if (allRes.ok && allData.reports) {
+          const scams = allData.reports
+            .filter((r: ReportCard) => r.score < 40)
+            .slice(0, 4);
+          setScamsReports(scams);
+
+          // Tops : rapports avec score élevé (>= 80)
+          const tops = allData.reports
+            .filter((r: ReportCard) => r.score >= 80)
+            .slice(0, 4);
+          setTopReports(tops);
+        }
+      } catch (e) {
+        console.error('Erreur lors du chargement des données du magazine:', e);
+      } finally {
+        setIsLoadingMagazine(false);
+      }
+    };
+
+    loadMagazineData();
+  }, []);
+
+  // Restaurer le rapport depuis localStorage si présent
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -90,632 +143,482 @@ export default function Home() {
         if (parsed.keyword) {
           setKeyword(parsed.keyword);
         }
-        // Scroll vers le rapport après un délai pour laisser le DOM se rendre
-        // Utiliser un scroll avec offset pour ne pas scroller trop bas
         setTimeout(() => {
           if (reportRef.current) {
             const element = reportRef.current;
             const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = elementPosition - 100; // 100px d'offset depuis le haut
-            
             window.scrollTo({
-              top: offsetPosition,
+              top: elementPosition - 100,
               behavior: 'smooth'
             });
           }
-        }, 500); // Délai plus long pour laisser le DOM se rendre complètement
+        }, 500);
       }
     } catch (e) {
       console.warn('Impossible de charger le rapport depuis localStorage', e);
     }
   }, []);
 
-  useEffect(() => {
-    const loadRecent = async () => {
-      setIsLoadingRecent(true);
-      setRecentError(null);
-      try {
-        const res = await fetch('/api/reports/recent');
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || 'Erreur lors du chargement des analyses récentes');
-        }
-        setRecent(data.items || []);
-      } catch (e) {
-        setRecentError(
-          e instanceof Error ? e.message : 'Erreur lors du chargement des analyses récentes'
-        );
-      } finally {
-        setIsLoadingRecent(false);
-      }
-    };
+  const handleGenerate = async () => {
+    if (!keyword.trim()) return;
 
-    loadRecent();
-  }, []);
-
-  // Charger les rapports par catégorie (avec délai pour ne pas bloquer le chargement initial)
-  useEffect(() => {
-    // Attendre un peu avant de charger les catégories pour ne pas ralentir le chargement initial
-    const timeoutId = setTimeout(() => {
-      const loadCategoryReports = async () => {
-        setIsLoadingCategories(true);
-        try {
-          // Charger les catégories en parallèle pour plus de rapidité
-          const [resHighTech, resSanteBeaute, resAlimentation] = await Promise.all([
-            fetch('/api/reports/by-category?category=Électronique&limit=3'),
-            fetch('/api/reports/by-category?category=Cosmétiques&limit=3'),
-            fetch('/api/reports/by-category?category=Alimentation&limit=3'),
-          ]);
-
-          const [dataHighTech, dataSanteBeaute, dataAlimentation] = await Promise.all([
-            resHighTech.json(),
-            resSanteBeaute.json(),
-            resAlimentation.json(),
-          ]);
-
-          if (resHighTech.ok) {
-            setHighTechReports(dataHighTech.reports || []);
-          }
-          if (resSanteBeaute.ok) {
-            setSanteBeauteReports(dataSanteBeaute.reports || []);
-          }
-          if (resAlimentation.ok) {
-            setAlimentationReports(dataAlimentation.reports || []);
-          }
-        } catch (e) {
-          console.error('Erreur lors du chargement des catégories:', e);
-        } finally {
-          setIsLoadingCategories(false);
-        }
-      };
-
-      loadCategoryReports();
-    }, 100); // Délai de 100ms pour laisser la page se charger d'abord
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  const handleSelectRecent = (item: (typeof recent)[number]) => {
-    const content = item.report;
-    const normalized: ClientReport = {
-      ...content,
-      keyword: item.productName,
-      createdAt: item.createdAt,
-      confidenceScore: item.score,
-    };
-    setReport(normalized);
-    setKeyword(item.productName);
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem('truthminer:lastReport', JSON.stringify(normalized));
-      } catch (e) {
-        console.warn('Impossible de sauvegarder le rapport sélectionné dans localStorage', e);
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyword.trim()) {
-      setError('Veuillez entrer un mot-clé');
-      return;
-    }
     setIsLoading(true);
     setError(null);
     setReport(null);
+
     try {
-      const response = await fetch('/api/generate-report', {
+      const res = await fetch('/api/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keyword: keyword.trim() }),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-        const errorMsg = errorData.error || `Erreur ${response.status}: ${response.statusText}`;
-        console.error('Erreur API:', errorMsg, errorData.details);
-        throw new Error(errorMsg);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors de la génération');
       }
-      
-      const data = await response.json();
-      if (!data.success || !data.report) {
-        throw new Error(data.error || 'Aucun rapport généré');
+
+      if (data.cached && data.report) {
+        // Si le rapport existe déjà, rediriger vers la page de détail
+        window.location.href = `/report/${data.report.slug}`;
+        return;
       }
-      const rawReport = data.report as ClientReport;
-      const baseKeyword = rawReport.keyword || keyword.trim();
-      const cleanedReport: ClientReport = {
-        ...rawReport,
-        defects: Array.isArray(rawReport.defects)
-          ? rawReport.defects.map(cleanDefectText)
-          : [],
-        article: rawReport.article
-          ? highlightKeyword(stripEstCeFaitPourVousSection(rawReport.article), baseKeyword)
-          : '',
-        userProfiles: rawReport.userProfiles
-          ? highlightKeyword(rawReport.userProfiles, baseKeyword)
-          : undefined,
-        imageUrl: rawReport.imageUrl, // S'assurer que imageUrl est inclus
-      };
-      
-      console.log('[Frontend] Rapport reçu avec imageUrl:', cleanedReport.imageUrl);
-      // Marquer le rapport comme prêt (la progression passera à 100%)
-      setReport(cleanedReport);
-      if (typeof window !== 'undefined') {
-        try {
-          window.localStorage.setItem('truthminer:lastReport', JSON.stringify(cleanedReport));
-        } catch (e) {
-          console.warn('Impossible de sauvegarder le rapport dans localStorage', e);
+
+      if (data.report) {
+        setReport(data.report);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('truthminer:lastReport', JSON.stringify(data.report));
         }
-      }
-      
-      // Laisser la progression atteindre 100% avant de masquer le loader
-      // Le composant CircularProgress gère l'animation vers 100% quand completed=true
-      setTimeout(() => {
-        setIsLoading(false);
-        
-        // Scroll automatique vers le début du rapport APRÈS que le loader soit masqué
-        // On attend que le DOM soit complètement rendu et que l'animation soit terminée
         setTimeout(() => {
           if (reportRef.current) {
-            // Scroller vers le début du conteneur du rapport (score de confiance)
-            // avec un offset pour laisser de l'espace en haut
-            const element = reportRef.current;
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = Math.max(0, elementPosition - 80); // 80px d'offset depuis le haut
-            
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
+            reportRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
-        }, 500); // Délai suffisant après la disparition du loader pour que le DOM soit rendu
-      }, 1500);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Une erreur est survenue';
-      console.error('Erreur lors de la génération:', err);
-      setError(errorMsg);
-      setIsLoading(false);
-      
-      // Afficher les détails en mode développement
-      if (process.env.NODE_ENV === 'development' && err instanceof Error) {
-        console.error('Stack trace:', err.stack);
+        }, 100);
       }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Une erreur est survenue');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
       <Navbar />
-      <div className="container mx-auto px-4 md:px-6 py-8 md:py-14 flex flex-col items-center">
-        <div className="w-full max-w-4xl">
-          {/* Header et barre de recherche */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-gray-50 mb-4 tracking-tight">
-              TruthMiner
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-1">
-              Comparaisons de produits ultra-honnêtes
-            </p>
-            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">
-              L&apos;IA qui n&apos;a pas sa langue dans sa poche.
-            </p>
-          </div>
-
-          <div className="w-full max-w-2xl mx-auto mb-12">
-            <div className="bg-white/95 dark:bg-slate-900/90 backdrop-blur-sm rounded-3xl shadow-[0_18px_60px_rgba(15,23,42,0.08)] border border-gray-200/70 dark:border-slate-700 px-5 py-4">
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <label
-                  htmlFor="keyword"
-                  className="block text-xs font-medium uppercase tracking-[0.18em] text-gray-500"
-                >
-                  Analyse un produit via Reddit
-                </label>
-                <div className="relative flex items-center">
-                  <span className="pointer-events-none absolute left-4 text-gray-400 dark:text-gray-500">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.7}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="11" cy="11" r="7" />
-                      <line x1="16.65" y1="16.65" x2="21" y2="21" />
-                    </svg>
-                  </span>
-                  <input
-                    id="keyword"
-                    type="text"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="Ex: Meilleure souris gaming, Casque audio sans fil..."
-                    className="w-full pl-12 pr-4 py-3.5 text-base md:text-lg font-medium text-black dark:text-white bg-transparent border border-transparent rounded-2xl focus:ring-0 focus:border-gray-300 dark:focus:border-slate-500 outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 disabled:bg-gray-50 disabled:text-gray-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
-                    disabled={isLoading}
-                  />
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isLoading || !keyword.trim()}
-                  className="w-full inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 px-6 text-sm md:text-base shadow-[0_14px_40px_rgba(37,99,235,0.35)] transition-all duration-200 dark:disabled:from-slate-700 dark:disabled:to-slate-800"
-                >
-                  {isLoading ? 'Analyse en cours...' : 'Générer un rapport honnête'}
-                </button>
-              </form>
-
-              {isLoading && (
-                <div className="mt-8">
-                  <CircularProgress 
-                    isActive={isLoading} 
-                    completed={!!report && isLoading}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Affichage du rapport généré - PRIORITÉ ABSOLUE si présent */}
-        {report ? (
-          <div ref={reportRef} className="w-full max-w-4xl mt-8" id="report-container">
-            {/* Bouton pour revenir à l'accueil */}
-            <div className="mb-6">
-              <button
-                onClick={() => {
-                  setReport(null);
-                  setKeyword('');
-                  if (typeof window !== 'undefined') {
-                    window.localStorage.removeItem('truthminer:lastReport');
-                  }
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 12H5" />
-                  <path d="M12 19l-7-7 7-7" />
-                </svg>
-                Retour à l&apos;accueil
-              </button>
-            </div>
-            <div className="mt-6 md:mt-10 space-y-8 md:space-y-10 animate-fade-in">
-              {/* Score de confiance TruthMiner */}
-              <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1 dark:bg-slate-900/80 dark:border-slate-800">
-                <div className="flex items-center gap-4">
-                  {(() => {
-                    const score = report.confidenceScore ?? 50;
-                    const label = getConfidenceLabel(score);
-                    const colorClasses =
-                      score >= 80
-                        ? 'border-emerald-400 text-emerald-700 bg-emerald-50'
-                        : score >= 60
-                        ? 'border-amber-400 text-amber-700 bg-amber-50'
-                        : score >= 40
-                        ? 'border-amber-400 text-amber-700 bg-amber-50'
-                        : 'border-red-400 text-red-700 bg-red-50';
-                    return (
-                      <>
-                        <div
-                          className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-sm font-bold ${colorClasses}`}
-                        >
-                          {score}%
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 mb-0.5">
-                            Score de confiance TruthMiner
-                          </p>
-                          <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug">
-                            <span className="font-semibold">{label}</span>{' '}
-                            — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
-                          </p>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </section>
-
-              {/* Image principale du produit - AFFICHÉE IMMÉDIATEMENT APRÈS GÉNÉRATION */}
-              <div className="mb-8">
-                <ReportImage 
-                  imageUrl={report.imageUrl} 
-                  title={report.title}
-                />
-              </div>
-
-              <div className="border-b border-gray-200 dark:border-slate-800 pb-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {report.createdAt
-                    ? `Rapport généré le ${new Date(report.createdAt).toLocaleDateString('fr-FR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}`
-                    : `Rapport généré à partir des discussions Reddit`}
-                </p>
-                {report.keyword && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Mot-clé analysé :{' '}
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
-                      {report.keyword}
-                    </span>
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 animate-fade-in-delay-1 dark:bg-slate-900/90 dark:border-emerald-900/60">
-                  <div className="flex items-center mb-4">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.7}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
-                        Points forts (Choix de la communauté)
-                      </h2>
-                      <p className="text-xs text-emerald-700 mt-0.5">
-                        Ce que la communauté Reddit apprécie vraiment
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
-                    {report.choice}
-                  </p>
-                </section>
-
-                {report.defects && report.defects.length > 0 && (
-                  <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 animate-fade-in-delay-2 dark:bg-slate-900/90 dark:border-red-900/70">
-                    <div className="flex items-center mb-4">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.7}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 9v4" />
-                          <path d="M12 17h.01" />
-                          <path d="M10.29 3.86L2.82 18a1 1 0 00.9 1.47h16.56a1 1 0 00.9-1.47L13.71 3.86a1 1 0 00-1.82 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
-                          Points faibles (Défauts rédhibitoires)
-                        </h2>
-                        <p className="text-xs text-red-700 mt-0.5">
-                          Ce que le marketing ne vous dit pas
-                        </p>
-                      </div>
-                    </div>
-                    <ul className="space-y-2.5">
-                      {report.defects.map((defect, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3 dark:bg-red-300" />
-                          <span className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
-                            {defect}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-              </div>
-
-              <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-3 dark:bg-slate-900/90 dark:border-slate-800">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-                  Analyse détaillée
-                </h2>
-                <div className="prose prose-lg max-w-none markdown-content">
-                  <ReactMarkdown>{report.article}</ReactMarkdown>
-                </div>
-              </section>
-
-              {report.userProfiles && report.userProfiles.trim().length > 0 && (
-                <section className="rounded-2xl bg-gradient-to-br from-green-50 to-white dark:from-emerald-950 dark:to-slate-950 border border-green-100 dark:border-emerald-900 shadow-md p-6 md:p-8 animate-fade-in-delay-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-                    Est-ce fait pour vous ?
-                  </h2>
-                  <div className="prose prose-lg max-w-none markdown-content">
-                    <ReactMarkdown>{report.userProfiles}</ReactMarkdown>
-                  </div>
-                </section>
-              )}
-
-              {(report.amazonSearchQuery || (report.products && report.products.length > 0)) && (
-                <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
-                    Vérifier les prix
-                  </h2>
-                  <div className="space-y-3">
-                    {/* Afficher un seul bouton avec la requête optimisée si disponible */}
-                    {report.amazonSearchQuery ? (
-                      <AffiliateLink
-                        amazonSearchQuery={report.amazonSearchQuery}
-                        recommendationReason={report.amazonRecommendationReason}
-                      />
-                    ) : (
-                      // Fallback : afficher les produits si amazonSearchQuery n'est pas disponible
-                      Array.from(new Set(report.products)).map((product: string, index: number) => (
-                        <div key={index}>
-                          <AffiliateLink productName={product} />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </section>
-              )}
-
-              <section className="rounded-3xl bg-gray-50 border border-gray-200 shadow-sm p-6 md:p-7 animate-fade-in-delay-6 dark:bg-slate-900/80 dark:border-slate-800">
-                <div className="flex items-center justify-between mb-3 gap-3">
-                  <div className="inline-flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
-                      Verdict TruthMiner
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    Synthèse basée sur les discussions Reddit
-                  </span>
-                </div>
-                <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed font-semibold">
-                  Le consensus Reddit est sans appel :{' '}
-                  <span className="font-extrabold">
-                    {report.choice}
-                  </span>
-                </p>
-              </section>
-
-              {/* Boutons de partage immédiats */}
-              <ShareButtons 
-                title={report.title} 
-                slug={report.slug} 
-                score={report.confidenceScore}
+      
+      {/* Section Hero - À la Une */}
+      {latestReport && !report && (
+        <section className="relative w-full h-[70vh] min-h-[600px] overflow-hidden">
+          {latestReport.imageUrl ? (
+            <div className="absolute inset-0">
+              <img
+                src={latestReport.imageUrl}
+                alt={latestReport.title}
+                className="w-full h-full object-cover"
+                style={{ filter: 'brightness(0.4)' }}
               />
             </div>
-          </div>
-        ) : (
-          <div className="w-full max-w-4xl">
-            <div className="bg-gray-50 rounded-xl p-6 dark:bg-slate-900/80">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
-                Comment ça fonctionne ?
-              </h2>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">✓</span>
-                  <span>Recherche automatique des discussions Reddit pertinentes</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">✓</span>
-                  <span>Analyse par GPT-4o pour identifier le choix de la communauté</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">✓</span>
-                  <span>Révélation des défauts rédhibitoires ignorés par le marketing</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2">✓</span>
-                  <span>Génération d'un article structuré et honnête</span>
-                </li>
-              </ul>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          
+          <div className="relative z-10 container mx-auto px-4 md:px-6 h-full flex items-end pb-16">
+            <div className="max-w-4xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/90 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-4">
+                <span>À LA UNE</span>
+              </div>
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight">
+                {latestReport.title}
+              </h1>
+              <p className="text-xl md:text-2xl text-white/90 mb-6 line-clamp-2">
+                {latestReport.choice}
+              </p>
+              <div className="flex items-center gap-4 mb-6">
+                <div className={`px-4 py-2 rounded-full text-sm font-bold ${
+                  latestReport.score >= 80
+                    ? 'bg-emerald-500 text-white'
+                    : latestReport.score >= 60
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  Score: {latestReport.score}%
+                </div>
+                <span className="text-white/80 text-sm">
+                  {new Date(latestReport.createdAt).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+              <Link
+                href={`/report/${latestReport.slug}`}
+                className="inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Lire l'analyse complète →
+              </Link>
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {/* Sections par catégories - Affichées en dessous du rapport si présent, sinon juste après la barre de recherche */}
-        <div className="w-full max-w-6xl mx-auto space-y-12 md:space-y-16 mt-8">
-          {/* Section High-Tech */}
-          <CategorySection
-            title="High-Tech"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-blue-600 dark:text-blue-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      {/* Barre de Recherche Centrale */}
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+              Vérifiez la vérité sur n'importe quel produit
+            </h2>
+            <p className="text-xl text-white/80 mb-8">
+              L'IA analyse des milliers de discussions Reddit pour vous donner la vérité brute
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                placeholder="Ex: Meilleure souris gaming, iPhone 15, etc."
+                className="flex-1 px-6 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              />
+              <button
+                onClick={handleGenerate}
+                disabled={isLoading || !keyword.trim()}
+                className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-              </svg>
-            }
-            category="Électronique"
-            reports={highTechReports}
-            isLoading={isLoadingCategories}
-            gradientFrom="from-blue-500"
-            gradientTo="to-indigo-600"
-            iconBg="bg-blue-100 dark:bg-blue-900/30"
-          />
+                {isLoading ? 'Analyse en cours...' : 'Générer avec l\'IA'}
+              </button>
+            </div>
 
-          {/* Section Santé & Beauté */}
-          <CategorySection
-            title="Santé & Beauté"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-pink-600 dark:text-pink-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            }
-            category="Cosmétiques"
-            reports={santeBeauteReports}
-            isLoading={isLoadingCategories}
-            gradientFrom="from-pink-500"
-            gradientTo="to-rose-600"
-            iconBg="bg-pink-100 dark:bg-pink-900/30"
-          />
+            {isLoading && (
+              <div className="mt-8">
+                <CircularProgress isActive={isLoading} />
+              </div>
+            )}
 
-          {/* Section Alimentation */}
-          <CategorySection
-            title="Alimentation"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-            }
-            category="Alimentation"
-            reports={alimentationReports}
-            isLoading={isLoadingCategories}
-            gradientFrom="from-emerald-500"
-            gradientTo="to-green-600"
-            iconBg="bg-emerald-100 dark:bg-emerald-900/30"
+            {error && (
+              <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Section Rapport Généré */}
+      {report && (
+        <div ref={reportRef} className="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
+          {/* Score de confiance */}
+          <section className="rounded-2xl bg-white/90 border border-gray-100 shadow-sm p-4 mb-1 dark:bg-slate-900/80 dark:border-slate-800">
+            <div className="flex items-center gap-4">
+              {(() => {
+                const score = report.confidenceScore ?? 50;
+                const label = getConfidenceLabel(score);
+                const colorClasses =
+                  score >= 80
+                    ? 'border-emerald-400 text-emerald-700 bg-emerald-50'
+                    : score >= 60
+                    ? 'border-amber-400 text-amber-700 bg-amber-50'
+                    : score >= 40
+                    ? 'border-amber-400 text-amber-700 bg-amber-50'
+                    : 'border-red-400 text-red-700 bg-red-50';
+                return (
+                  <>
+                    <div
+                      className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-sm font-bold ${colorClasses}`}
+                    >
+                      {score}%
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 mb-0.5">
+                        Score de confiance TruthMiner
+                      </p>
+                      <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug">
+                        <span className="font-semibold">{label}</span>{' '}
+                        — basé uniquement sur le ton des avis Reddit analysés, sans contenu sponsorisé.
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </section>
+
+          {/* Image principale */}
+          <div className="mb-8">
+            <ReportImage 
+              imageUrl={report.imageUrl} 
+              title={report.title}
+            />
+          </div>
+
+          {/* Points forts et faibles */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <section className="rounded-3xl bg-white border border-emerald-100 shadow-[0_18px_50px_rgba(16,185,129,0.08)] p-6 md:p-8 dark:bg-slate-900/90 dark:border-emerald-900/60">
+              <div className="flex items-center mb-4">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mr-3 border border-emerald-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
+                    Points forts (Choix de la communauté)
+                  </h2>
+                </div>
+              </div>
+              <p className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
+                {report.choice}
+              </p>
+            </section>
+
+            {report.defects && report.defects.length > 0 && (
+              <section className="rounded-3xl bg-white border border-red-100 shadow-[0_18px_50px_rgba(248,113,113,0.08)] p-6 md:p-8 dark:bg-slate-900/90 dark:border-red-900/70">
+                <div className="flex items-center mb-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600 mr-3 border border-red-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                      <path d="M10.29 3.86L2.82 18a1 1 0 00.9 1.47h16.56a1 1 0 00.9-1.47L13.71 3.86a1 1 0 00-1.82 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 tracking-tight">
+                      Points faibles (Défauts rédhibitoires)
+                    </h2>
+                  </div>
+                </div>
+                <ul className="space-y-2.5">
+                  {report.defects.map((defect: string, index: number) => (
+                    <li key={index} className="flex items-start">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400 mr-3 dark:bg-red-300" />
+                      <span className="text-sm md:text-base text-gray-800 dark:text-gray-100 leading-relaxed">
+                        {defect}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+
+          {/* Analyse détaillée */}
+          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 mb-8 dark:bg-slate-900/90 dark:border-slate-800">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
+              Analyse détaillée
+            </h2>
+            <div className="prose prose-lg max-w-none markdown-content">
+              <ReactMarkdown>{report.article}</ReactMarkdown>
+            </div>
+          </section>
+
+          {/* Boutons de partage */}
+          <ShareButtons 
+            title={report.title} 
+            slug={report.slug} 
+            score={report.confidenceScore}
           />
         </div>
-      </div>
+      )}
+
+      {/* Sections Magazine */}
+      {!report && (
+        <div className="container mx-auto px-4 md:px-6 py-12 space-y-16">
+          {/* Derniers Scams Détectés */}
+          {scamsReports.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  🚨 Derniers Scams Détectés
+                </h2>
+                <Link
+                  href="/explore"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Voir tout →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {scamsReports.map((report) => (
+                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                    <ArticleCard
+                      id={report.id}
+                      title={report.title}
+                      slug={report.slug}
+                      score={report.score}
+                      choice={report.choice}
+                      createdAt={report.createdAt}
+                      category={report.category}
+                      imageUrl={report.imageUrl}
+                      searchTerms={[report.title]}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Les Tops du Moment */}
+          {topReports.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  ⭐ Les Tops du Moment
+                </h2>
+                <Link
+                  href="/explore"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Voir tout →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {topReports.map((report) => (
+                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                    <ArticleCard
+                      id={report.id}
+                      title={report.title}
+                      slug={report.slug}
+                      score={report.score}
+                      choice={report.choice}
+                      createdAt={report.createdAt}
+                      category={report.category}
+                      imageUrl={report.imageUrl}
+                      searchTerms={[report.title]}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Grille de Catégories */}
+          <section>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+              Par Catégorie
+            </h2>
+            
+            {/* Tech */}
+            {techReports.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">💻 Tech</h3>
+                  <Link href="/explore?category=Électronique" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                    Voir tout →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {techReports.map((report) => (
+                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                      <ArticleCard
+                        id={report.id}
+                        title={report.title}
+                        slug={report.slug}
+                        score={report.score}
+                        choice={report.choice}
+                        createdAt={report.createdAt}
+                        category={report.category}
+                        imageUrl={report.imageUrl}
+                        searchTerms={[report.title]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gaming */}
+            {gamingReports.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">🎮 Gaming</h3>
+                  <Link href="/explore?category=Gaming" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                    Voir tout →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {gamingReports.map((report) => (
+                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                      <ArticleCard
+                        id={report.id}
+                        title={report.title}
+                        slug={report.slug}
+                        score={report.score}
+                        choice={report.choice}
+                        createdAt={report.createdAt}
+                        category={report.category}
+                        imageUrl={report.imageUrl}
+                        searchTerms={[report.title]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Services */}
+            {servicesReports.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">🔧 Services</h3>
+                  <Link href="/explore?category=Services" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                    Voir tout →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {servicesReports.map((report) => (
+                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                      <ArticleCard
+                        id={report.id}
+                        title={report.title}
+                        slug={report.slug}
+                        score={report.score}
+                        choice={report.choice}
+                        createdAt={report.createdAt}
+                        category={report.category}
+                        imageUrl={report.imageUrl}
+                        searchTerms={[report.title]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Divers */}
+            {diversReports.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">📦 Divers</h3>
+                  <Link href="/explore?category=Divers" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                    Voir tout →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {diversReports.map((report) => (
+                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                      <ArticleCard
+                        id={report.id}
+                        title={report.title}
+                        slug={report.slug}
+                        score={report.score}
+                        choice={report.choice}
+                        createdAt={report.createdAt}
+                        category={report.category}
+                        imageUrl={report.imageUrl}
+                        searchTerms={[report.title]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </main>
   );
 }
-
