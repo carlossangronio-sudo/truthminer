@@ -5,8 +5,9 @@ import AffiliateLink from '@/components/AffiliateLink';
 import ShareButtons from '@/components/ShareButtons';
 import ReactMarkdown from 'react-markdown';
 import Navbar from '@/components/Navbar';
-import ReportImage from '@/components/ReportImage';
 import SimilarReports from '@/components/SimilarReports';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -122,16 +123,13 @@ export default async function ReportPage({ params }: PageProps) {
           </p>
         </div>
 
-        {/* Image principale du produit - TEST RADICAL avec balise <img> simple */}
+        {/* Image principale du produit */}
         {report.image_url && (
-          <div className="mb-10">
-            <img 
-              src={report.image_url} 
-              alt={report.title} 
-              style={{ width: '100%', height: 'auto' }}
-              className="rounded-2xl shadow-lg"
-            />
-          </div>
+          <img 
+            src={report.image_url} 
+            alt="" 
+            className="w-full h-auto rounded-lg mb-6"
+          />
         )}
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
