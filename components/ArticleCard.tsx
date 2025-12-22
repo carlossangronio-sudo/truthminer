@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ImageCard from './ImageCard';
 
 type ArticleCardProps = {
   id: string;

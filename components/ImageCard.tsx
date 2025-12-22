@@ -3,25 +3,23 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-interface ReportImageProps {
+interface ImageCardProps {
   imageUrl: string | null | undefined;
   title: string;
   className?: string;
+  height?: string;
 }
 
 // Composant Placeholder TruthMiner réutilisable
-function TruthMinerPlaceholder({ minHeight = '400px', size = 'large' }: { minHeight?: string; size?: 'large' | 'small' }) {
+function TruthMinerPlaceholder({ height = 'h-48', size = 'small' }: { height?: string; size?: 'large' | 'small' }) {
   const iconSize = size === 'large' ? 'w-24 h-24' : 'w-16 h-16';
   const iconInnerSize = size === 'large' ? 'w-14 h-14' : 'w-10 h-10';
   const textSize = size === 'large' ? 'text-xl' : 'text-sm';
   
   return (
-    <div 
-      className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 dark:from-blue-600 dark:via-indigo-700 dark:to-purple-800 flex items-center justify-center"
-      style={{ minHeight }}
-    >
-      <div className="flex flex-col items-center gap-4 text-white p-8">
-        <div className={`${iconSize} bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-lg`}>
+    <div className={`relative w-full ${height} overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 dark:from-blue-600 dark:via-indigo-700 dark:to-purple-800 flex items-center justify-center`}>
+      <div className="flex flex-col items-center gap-2 text-white">
+        <div className={`${iconSize} bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm`}>
           <svg
             className={iconInnerSize}
             fill="none"
@@ -36,16 +34,13 @@ function TruthMinerPlaceholder({ minHeight = '400px', size = 'large' }: { minHei
             />
           </svg>
         </div>
-        <div className="text-center">
-          <div className={`${textSize} font-bold tracking-wider mb-1`}>TRUTHMINER</div>
-          <div className="text-sm text-white/80">Analyse basée sur Reddit</div>
-        </div>
+        <span className={`${textSize} font-semibold tracking-wider">TRUTHMINER</span>
       </div>
     </div>
   );
 }
 
-export default function ReportImage({ imageUrl, title, className = '' }: ReportImageProps) {
+export default function ImageCard({ imageUrl, title, className = '', height = 'h-48' }: ImageCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [showPlaceholder, setShowPlaceholder] = useState(!imageUrl);
@@ -72,31 +67,30 @@ export default function ReportImage({ imageUrl, title, className = '' }: ReportI
   if (showPlaceholder || imageError || !imageUrl) {
     return (
       <div className={className}>
-        <TruthMinerPlaceholder minHeight="400px" size="large" />
+        <TruthMinerPlaceholder height={height} size="small" />
       </div>
     );
   }
 
   return (
-    <div className={`rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-800 ${className}`}>
-      <div className="relative w-full" style={{ minHeight: '400px', maxHeight: '500px' }}>
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover"
-          unoptimized={true}
-          onLoad={() => {
-            setImageLoading(false);
-            setShowPlaceholder(false);
-          }}
-          onError={() => {
-            setImageError(true);
-            setImageLoading(false);
-            setShowPlaceholder(true);
-          }}
-        />
-      </div>
+    <div className={`relative w-full ${height} overflow-hidden bg-gray-100 dark:bg-slate-800 ${className}`}>
+      <Image
+        src={imageUrl}
+        alt={title}
+        fill
+        className="object-cover group-hover:scale-105 transition-transform duration-300"
+        unoptimized={true}
+        loading="lazy"
+        onLoad={() => {
+          setImageLoading(false);
+          setShowPlaceholder(false);
+        }}
+        onError={() => {
+          setImageError(true);
+          setImageLoading(false);
+          setShowPlaceholder(true);
+        }}
+      />
     </div>
   );
 }
