@@ -56,3 +56,7 @@ Après avoir mis à jour les variables d'environnement sur Vercel :
 2. Clique sur les 3 points du dernier déploiement
 3. Sélectionne "Redeploy"
 
+
+
+
+

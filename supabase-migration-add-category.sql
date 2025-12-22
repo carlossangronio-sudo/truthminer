@@ -25,3 +25,7 @@ END $$;
 -- Créer un index pour améliorer les performances des filtres par catégorie
 CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);
 
+
+
+
+

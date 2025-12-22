@@ -72,3 +72,7 @@ npm run dev
 3. As-tu attendu assez longtemps (10-30 secondes) après avoir lancé `npm run dev` ?
 4. As-tu essayé un hard refresh dans le navigateur ? (`Ctrl + Shift + R`)
 
+
+
+
+

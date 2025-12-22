@@ -68,3 +68,7 @@ Ouvre la console du serveur (terminal où `npm run dev` tourne) et cherche :
 - **Les placeholders** s'affichent maintenant même si pas d'image (icône de photo)
 - **Les logs** sont ajoutés pour faciliter le débogage
 
+
+
+
+

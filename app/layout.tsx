@@ -13,11 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "TruthMiner - Comparaisons de produits ultra-honnêtes",
+    default: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
     template: "%s | TruthMiner",
   },
-  description: "Générez des articles de comparaison de produits basés sur les discussions Reddit. Découvrez la vérité sur les produits au-delà du marketing.",
-  keywords: ["comparaison produits", "avis Reddit", "test produits", "vérité produits", "comparatif honnête"],
+  description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
+  keywords: ["TruthMiner", "avis Reddit", "vérité produits", "analyse Reddit", "comparaison honnête", "test produits", "avis utilisateurs", "vérité brute"],
   authors: [{ name: "TruthMiner" }],
   creator: "TruthMiner",
   publisher: "TruthMiner",
@@ -31,21 +31,21 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: siteUrl,
     siteName: "TruthMiner",
-    title: "TruthMiner - Comparaisons de produits ultra-honnêtes",
-    description: "Générez des articles de comparaison de produits basés sur les discussions Reddit",
+    title: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
+    description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "TruthMiner",
+        alt: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TruthMiner - Comparaisons de produits ultra-honnêtes",
-    description: "Générez des articles de comparaison de produits basés sur les discussions Reddit",
+    title: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
+    description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
     images: [`${siteUrl}/og-image.png`],
   },
   robots: {

@@ -93,3 +93,7 @@ La réponse JSON contiendra :
 - La détection se base uniquement sur le nom du produit (product_name)
 - Si un rapport ne correspond à aucun mot-clé, il sera classé en "Services" par défaut
 
+
+
+
+

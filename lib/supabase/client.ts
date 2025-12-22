@@ -63,19 +63,25 @@ export async function insertReport(row: {
   category?: string;
   imageUrl?: string;
   createdAt: string;
-}): Promise<void> {
-  if (!supabaseUrl || !supabaseAnonKey) return;
+}): Promise<string | null> {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    const error = 'Supabase non configuré : NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY manquant';
+    console.error('[Supabase] ❌', error);
+    throw new Error(error);
+  }
 
   console.log('[Supabase] insertReport →', {
     supabaseUrl,
     product_name: row.normalizedProductName,
     score: row.score,
     category: row.category,
+    imageUrl: row.imageUrl,
     created_at: row.createdAt,
   });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
 
+  // Vérification des colonnes : product_name, score, content, category, image_url, created_at
   const payload: any = {
     product_name: row.normalizedProductName,
     score: row.score,
@@ -93,19 +99,70 @@ export async function insertReport(row: {
     payload.image_url = row.imageUrl;
   }
 
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: {
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify(payload),
-  });
+  console.log('[Supabase] Payload d\'insertion:', JSON.stringify(payload, null, 2));
 
-  if (!res.ok) {
-    console.warn('Erreur Supabase (insertReport):', await res.text());
+  try {
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation', // Retourner l'ID du rapport créé
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[Supabase] ❌ Erreur HTTP lors de l\'insertion:', {
+        status: res.status,
+        statusText: res.statusText,
+        error: errorText,
+        payload: payload,
+      });
+      
+      // Essayer de parser l'erreur Supabase
+      let errorMessage = `Erreur Supabase (${res.status}): ${errorText}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+        if (errorJson.details) {
+          errorMessage += ` - Détails: ${errorJson.details}`;
+        }
+        if (errorJson.hint) {
+          errorMessage += ` - Hint: ${errorJson.hint}`;
+        }
+      } catch (e) {
+        // Erreur non JSON, utiliser le texte brut
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // Récupérer l'ID du rapport créé
+    const data = await res.json();
+    const reportId = Array.isArray(data) && data.length > 0 ? data[0].id : null;
+    
+    if (reportId) {
+      console.log('[Supabase] ✅ Rapport inséré avec succès (ID:', reportId, ')');
+      return reportId;
+    } else {
+      console.warn('[Supabase] ⚠️ Rapport inséré mais ID non récupéré');
+      return null;
+    }
+  } catch (error) {
+    console.error('[Supabase] ❌ Exception lors de l\'insertion:', error);
+    
+    if (error instanceof Error) {
+      console.error('[Supabase] Message d\'erreur:', error.message);
+      console.error('[Supabase] Stack trace:', error.stack);
+      throw error; // Re-lancer l'erreur pour que l'appelant puisse la gérer
+    }
+    
+    throw new Error(`Erreur inconnue lors de l'insertion Supabase: ${String(error)}`);
   }
 }
 
@@ -149,29 +206,50 @@ export async function updateReportImage(
   reportId: string,
   imageUrl: string
 ): Promise<boolean> {
-  if (!supabaseUrl || !supabaseAnonKey) return false;
-
-  const url = new URL(`/rest/v1/reports`, supabaseUrl);
-  url.searchParams.set('id', `eq.${reportId}`);
-
-  const res = await fetch(url.toString(), {
-    method: 'PATCH',
-    headers: {
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify({ image_url: imageUrl }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.warn('Erreur Supabase (updateReportImage):', errorText);
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Supabase] ❌ Supabase non configuré pour updateReportImage');
     return false;
   }
 
-  return true;
+  console.log('[Supabase] updateReportImage →', { reportId, imageUrl });
+
+  try {
+    const url = new URL(`/rest/v1/reports`, supabaseUrl);
+    url.searchParams.set('id', `eq.${reportId}`);
+
+    const res = await fetch(url.toString(), {
+      method: 'PATCH',
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ image_url: imageUrl }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[Supabase] ❌ Erreur HTTP lors de la mise à jour de l\'image:', {
+        status: res.status,
+        statusText: res.statusText,
+        error: errorText,
+        reportId,
+        imageUrl,
+      });
+      return false;
+    }
+
+    console.log('[Supabase] ✅ Image mise à jour avec succès pour le rapport:', reportId);
+    return true;
+  } catch (error) {
+    console.error('[Supabase] ❌ Exception lors de la mise à jour de l\'image:', error);
+    if (error instanceof Error) {
+      console.error('[Supabase] Message d\'erreur:', error.message);
+      console.error('[Supabase] Stack trace:', error.stack);
+    }
+    return false;
+  }
 }
 
 export async function getRecentReports(

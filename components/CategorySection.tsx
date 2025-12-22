@@ -106,6 +106,7 @@ export default function CategorySection({
               createdAt={report.createdAt}
               category={report.category}
               imageUrl={report.imageUrl}
+              searchTerms={[report.title].filter(Boolean)} // Fallback : chercher avec le titre si pas d'image
             />
           ))}
         </div>

@@ -93,3 +93,7 @@ Une fois l'API exécutée :
 3. Les images seront visibles sur les pages de rapport individuelles (`/report/[slug]`)
 4. Les images seront visibles sur la page d'accueil après génération
 
+
+
+
+

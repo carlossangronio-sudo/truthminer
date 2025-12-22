@@ -338,7 +338,11 @@ export default async function ReportPage({ params }: PageProps) {
           </section>
 
           {/* Partage social */}
-          <ShareButtons title={report.title} slug={report.slug} />
+          <ShareButtons 
+            title={report.title} 
+            slug={report.slug} 
+            score={report.confidenceScore}
+          />
 
           {/* Footer */}
           <div className="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">

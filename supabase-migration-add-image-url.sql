@@ -8,3 +8,7 @@ END $$;
 -- Create an index on the image_url column for faster queries (optional)
 -- CREATE INDEX IF NOT EXISTS idx_reports_image_url ON reports (image_url) WHERE image_url IS NOT NULL;
 
+
+
+
+

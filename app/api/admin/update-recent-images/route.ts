@@ -5,9 +5,9 @@ import { SerperService } from '@/lib/services/serper';
 export const dynamic = 'force-dynamic';
 
 /**
- * Route API pour ajouter des images aux rapports existants qui n'en ont pas
- * POST /api/admin/add-images-to-reports
- * Headers: Authorization: Bearer <secret-key>
+ * Route API pour mettre à jour les images des 10 derniers rapports sans image
+ * POST /api/admin/update-recent-images
+ * Headers: Authorization: Bearer <ADMIN_SECRET_KEY>
  */
 export async function POST(request: NextRequest) {
   try {
@@ -21,31 +21,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Admin] Début de l\'ajout d\'images aux rapports existants...');
+    console.log('[Admin] Début de la mise à jour des images des 10 derniers rapports...');
 
+    // Récupérer tous les rapports
     const allReports = await getAllReports();
-    const serperService = new SerperService();
     
+    // Filtrer ceux sans image et prendre les 10 plus récents
+    const reportsWithoutImage = allReports
+      .filter(report => !report.image_url)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10);
+
+    console.log(`[Admin] ${reportsWithoutImage.length} rapports sans image trouvés (sur ${allReports.length} total)`);
+
+    if (reportsWithoutImage.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'Aucun rapport sans image trouvé parmi les 10 derniers',
+        results: {
+          total: allReports.length,
+          withoutImage: 0,
+          updated: 0,
+          errors: 0,
+        },
+      });
+    }
+
+    const serperService = new SerperService();
     let updatedCount = 0;
-    let skippedCount = 0;
     let errorCount = 0;
     const details = [];
 
-    for (const report of allReports) {
+    for (const report of reportsWithoutImage) {
       try {
-        // Vérifier si le rapport a déjà une image
-        if (report.image_url) {
-          skippedCount++;
-          details.push({
-            id: report.id,
-            productName: report.product_name,
-            status: 'skipped',
-            reason: 'Image déjà présente',
-          });
-          continue;
-        }
-
-        // Extraire le contenu pour obtenir le titre
+        // Extraire le contenu pour obtenir le titre et les produits
         const content = typeof report.content === 'object'
           ? report.content
           : JSON.parse(report.content || '{}');
@@ -60,7 +69,7 @@ export async function POST(request: NextRequest) {
           products[0],
         ].filter(Boolean) as string[];
 
-        console.log(`[Admin] Recherche d'image pour "${report.product_name}"...`);
+        console.log(`[Admin] Recherche d'image pour "${report.product_name}" (ID: ${report.id})...`);
 
         // Rechercher une image
         let imageUrl: string | null = null;
@@ -72,6 +81,9 @@ export async function POST(request: NextRequest) {
             console.log(`[Admin] Image trouvée pour "${report.product_name}":`, imageUrl);
             break;
           }
+          
+          // Pause pour éviter le rate limit
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         if (imageUrl) {
@@ -82,8 +94,8 @@ export async function POST(request: NextRequest) {
             details.push({
               id: report.id,
               productName: report.product_name,
-              status: 'updated',
               imageUrl,
+              status: 'updated',
             });
           } else {
             errorCount++;
@@ -95,17 +107,14 @@ export async function POST(request: NextRequest) {
             });
           }
         } else {
-          skippedCount++;
+          errorCount++;
           details.push({
             id: report.id,
             productName: report.product_name,
-            status: 'skipped',
-            reason: 'Aucune image trouvée',
+            status: 'error',
+            message: 'Aucune image trouvée via Serper',
           });
         }
-
-        // Petite pause pour ne pas surcharger l'API Serper
-        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (innerError) {
         errorCount++;
         console.error(`[Admin] Erreur lors du traitement du rapport ID ${report.id}:`, innerError);
@@ -118,25 +127,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[Admin] Ajout d'images terminé : ${updatedCount} mis à jour, ${skippedCount} ignorés, ${errorCount} erreurs.`);
+    console.log(`[Admin] Mise à jour terminée : ${updatedCount} mis à jour, ${errorCount} erreurs.`);
 
     return NextResponse.json({
       success: true,
-      message: `Ajout d'images terminé : ${updatedCount} mis à jour, ${skippedCount} ignorés, ${errorCount} erreurs`,
+      message: `Mise à jour terminée : ${updatedCount} mis à jour, ${errorCount} erreurs`,
       results: {
         total: allReports.length,
+        withoutImage: reportsWithoutImage.length,
         updated: updatedCount,
-        skipped: skippedCount,
         errors: errorCount,
         details,
       },
     });
   } catch (error) {
-    console.error('Erreur lors de l\'ajout d\'images aux rapports:', error);
+    console.error('Erreur lors de la mise à jour des images:', error);
     const errorMessage =
       error instanceof Error ? error.message : 'Erreur inconnue';
     return NextResponse.json(
-      { error: `Erreur lors de l'ajout d'images: ${errorMessage}` },
+      { error: `Erreur lors de la mise à jour des images: ${errorMessage}` },
       { status: 500 }
     );
   }

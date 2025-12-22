@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import AffiliateLink from '@/components/AffiliateLink';
 import Navbar from '@/components/Navbar';
 import CategorySection from '@/components/CategorySection';
+import ShareButtons from '@/components/ShareButtons';
 
 // Utilitaires pour le nettoyage et la mise en forme du contenu
 function cleanDefectText(text: string): string {
@@ -604,6 +605,13 @@ export default function Home() {
                   </span>
                 </p>
               </section>
+
+              {/* Boutons de partage immédiats */}
+              <ShareButtons 
+                title={report.title} 
+                slug={report.slug} 
+                score={report.confidenceScore}
+              />
             </div>
           </div>
         ) : (

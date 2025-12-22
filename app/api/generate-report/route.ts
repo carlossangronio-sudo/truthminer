@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
-import { getCachedReport, insertReport } from '@/lib/supabase/client';
+import { getCachedReport, insertReport, updateReportImage } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,67 +63,118 @@ export async function POST(request: NextRequest) {
     const openaiService = new OpenAIService();
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
-    // 3. Rechercher une image pour le produit AVANT de sauvegarder
-    let imageUrl: string | null = null;
-    try {
-      // Utiliser le titre du rapport ou le mot-clé pour rechercher une image
-      // Essayer d'abord avec le titre complet, puis avec le mot-clé
-      const imageSearchQueries = [
-        report.title,
-        trimmedKeyword,
-        report.products?.[0] || trimmedKeyword, // Essayer avec le premier produit mentionné
-      ].filter(Boolean) as string[];
-
-      console.log('[API] Recherche d\'image pour:', imageSearchQueries);
-
-      // Essayer chaque requête jusqu'à trouver une image
-      for (const searchQuery of imageSearchQueries) {
-        if (!searchQuery) continue;
-        
-        imageUrl = await serperService.searchImage(searchQuery);
-        if (imageUrl) {
-          console.log('[API] Image trouvée avec la requête:', searchQuery, '→', imageUrl);
-          break;
-        }
-      }
-
-      // Si aucune image trouvée après tous les essais, utiliser une image par défaut
-      if (!imageUrl) {
-        console.log('[API] Aucune image trouvée, utilisation d\'une image placeholder');
-        // Ne pas utiliser de placeholder, laisser null pour afficher l'icône
-        imageUrl = null;
-      }
-    } catch (error) {
-      console.error('[API] Erreur lors de la recherche d\'image:', error);
-      // En cas d'erreur, laisser null pour afficher l'icône
-      imageUrl = null;
-    }
-
-    // Mettre à jour le rapport avec l'image trouvée
-    const reportWithImage = {
-      ...report,
-      imageUrl: imageUrl || report.imageUrl,
-    };
-
     const now = new Date().toISOString();
 
-    // 4. Sauvegarder le rapport dans Supabase pour figer le score et le contenu
-    await insertReport({
-      normalizedProductName,
-      score: reportWithImage.confidenceScore ?? 50,
-      content: reportWithImage,
-      category: reportWithImage.category,
-      imageUrl: reportWithImage.imageUrl,
-      createdAt: now,
+    // 3. PRIORITÉ : Sauvegarder le rapport dans Supabase IMMÉDIATEMENT (sans attendre l'image)
+    // Le texte est plus important que l'image, donc on sauvegarde d'abord
+    console.log('[API] 💾 Sauvegarde PRIORITAIRE dans Supabase (sans image pour l\'instant)...');
+    
+    let reportId: string | null = null;
+    try {
+      reportId = await insertReport({
+        normalizedProductName,
+        score: report.confidenceScore ?? 50,
+        content: report,
+        category: report.category,
+        imageUrl: undefined, // Pas d'image pour l'instant, on la cherchera après
+        createdAt: now,
+      });
+      
+      console.log('[API] ✅ Rapport sauvegardé avec succès dans Supabase (ID:', reportId, ')');
+    } catch (insertError) {
+      // Erreur critique : on ne peut pas continuer sans sauvegarder
+      console.error('[API] ❌ ERREUR CRITIQUE lors de l\'insertion Supabase:', insertError);
+      
+      if (insertError instanceof Error) {
+        console.error('[API] Message d\'erreur:', insertError.message);
+        console.error('[API] Stack trace:', insertError.stack);
+      }
+      
+      // Retourner une erreur explicite
+      return NextResponse.json(
+        {
+          error: 'Erreur lors de l\'enregistrement du rapport dans Supabase',
+          details: process.env.NODE_ENV === 'development' 
+            ? (insertError instanceof Error ? insertError.message : String(insertError))
+            : undefined,
+        },
+        { status: 500 }
+      );
+    }
+
+    // 4. RECHERCHE IMAGE (OPTIONNELLE) : Après l'insertion, lancer la recherche d'image
+    // Cette étape est NON-BLOQUANTE et se fait en arrière-plan
+    // Si elle échoue ou timeout, ce n'est pas grave : le rapport texte reste dans la base
+    const imageSearchPromise = (async () => {
+      try {
+        const imageSearchQueries = [
+          report.title,
+          trimmedKeyword,
+          report.products?.[0] || trimmedKeyword,
+        ].filter(Boolean) as string[];
+
+        console.log('[API] 🔍 Recherche d\'image (optionnelle) pour:', imageSearchQueries);
+
+        let imageUrl: string | null = null;
+        
+        // Essayer chaque requête jusqu'à trouver une image
+        for (const searchQuery of imageSearchQueries) {
+          if (!searchQuery) continue;
+          
+          try {
+            imageUrl = await serperService.searchImage(searchQuery);
+            if (imageUrl) {
+              console.log('[API] ✅ Image trouvée avec la requête:', searchQuery, '→', imageUrl);
+              break;
+            }
+          } catch (searchError) {
+            console.warn('[API] ⚠️ Erreur lors de la recherche d\'image pour:', searchQuery, searchError);
+            // Continuer avec le terme suivant
+          }
+        }
+
+        // 5. MISE À JOUR : Si une image est trouvée, faire un UPDATE sur la ligne créée
+        if (imageUrl && reportId) {
+          console.log('[API] 📸 Mise à jour du rapport avec l\'image trouvée:', imageUrl);
+          
+          try {
+            const success = await updateReportImage(reportId, imageUrl);
+            
+            if (success) {
+              console.log('[API] ✅ Image mise à jour avec succès dans Supabase');
+            } else {
+              console.warn('[API] ⚠️ Échec de la mise à jour de l\'image dans Supabase');
+            }
+          } catch (updateError) {
+            console.error('[API] ❌ Erreur lors de la mise à jour de l\'image:', updateError);
+            // Ne pas bloquer, l'image sera cherchée plus tard via le fallback
+          }
+        } else if (!imageUrl) {
+          console.log('[API] ⚠️ Aucune image trouvée après tous les essais');
+        }
+      } catch (error) {
+        console.error('[API] ❌ Erreur globale lors de la recherche d\'image (optionnelle):', error);
+        // Ne pas bloquer, l'image sera cherchée plus tard via le fallback
+        // Le rapport texte reste dans la base même si l'image échoue
+      }
+    })();
+
+    // Ne pas attendre la recherche d'image, on répond immédiatement
+    // La recherche continuera en arrière-plan et ne bloquera pas la réponse
+    imageSearchPromise.catch((error) => {
+      console.error('[API] Erreur non gérée dans la recherche d\'image asynchrone:', error);
+      // Même en cas d'erreur, le rapport texte reste sauvegardé
     });
 
+    // Retourner le rapport sans attendre l'image
+    // L'image sera ajoutée plus tard si elle est trouvée
     return NextResponse.json({
       success: true,
       report: {
-        ...reportWithImage,
+        ...report,
         keyword: trimmedKeyword,
         createdAt: now,
-        imageUrl: reportWithImage.imageUrl, // S'assurer que imageUrl est inclus
+        imageUrl: null, // L'image sera ajoutée en arrière-plan si trouvée
       },
       cached: false,
     });

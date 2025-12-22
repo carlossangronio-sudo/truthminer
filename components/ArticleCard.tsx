@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 type ArticleCardProps = {
@@ -11,6 +12,8 @@ type ArticleCardProps = {
   createdAt: string;
   category?: string;
   imageUrl?: string;
+  // Pour le fallback : si imageUrl est vide, on cherche avec ces termes
+  searchTerms?: string[];
 };
 
 function getConfidenceColor(score: number): string {
@@ -27,8 +30,53 @@ export default function ArticleCard({
   choice,
   createdAt,
   category,
-  imageUrl,
+  imageUrl: initialImageUrl,
+  searchTerms = [],
 }: ArticleCardProps) {
+  const [imageUrl, setImageUrl] = useState<string | null | undefined>(initialImageUrl);
+  const [isLoadingImage, setIsLoadingImage] = useState(false);
+
+  // Fallback : si pas d'image, chercher une image au vol
+  useEffect(() => {
+    if (!imageUrl && searchTerms.length > 0 && !isLoadingImage) {
+      setIsLoadingImage(true);
+      
+      // Essayer chaque terme de recherche jusqu'à trouver une image
+      const searchImage = async () => {
+        for (const term of searchTerms) {
+          if (!term) continue;
+          
+          try {
+            const response = await fetch(`/api/search-image?q=${encodeURIComponent(term)}`);
+            
+            if (!response.ok) {
+              console.warn(`[ArticleCard] Erreur HTTP ${response.status} pour "${term}"`);
+              // Continuer avec le terme suivant
+              continue;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.imageUrl) {
+              setImageUrl(data.imageUrl);
+              setIsLoadingImage(false);
+              return; // Image trouvée, on arrête
+            } else if (data.error) {
+              console.warn(`[ArticleCard] Erreur API pour "${term}":`, data.error);
+            }
+          } catch (error) {
+            console.warn(`[ArticleCard] Erreur lors de la recherche d'image pour "${term}":`, error);
+            // Continuer avec le terme suivant
+          }
+        }
+        
+        setIsLoadingImage(false);
+      };
+      
+      searchImage();
+    }
+  }, [imageUrl, searchTerms, isLoadingImage]);
+
   return (
     <Link
       href={`/report/${slug}`}
@@ -46,25 +94,33 @@ export default function ArticleCard({
               console.warn('Erreur de chargement d\'image:', imageUrl);
               // Masquer l'image si elle ne charge pas
               (e.target as HTMLImageElement).style.display = 'none';
+              setImageUrl(null);
             }}
           />
         </div>
       ) : (
-        // Placeholder si pas d'image
+        // Placeholder si pas d'image (avec indicateur de chargement si en cours)
         <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
-          <svg
-            className="w-16 h-16 text-gray-400 dark:text-slate-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
+          {isLoadingImage ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-2 border-gray-400 dark:border-slate-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs text-gray-500 dark:text-slate-500">Chargement...</span>
+            </div>
+          ) : (
+            <svg
+              className="w-16 h-16 text-gray-400 dark:text-slate-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          )}
         </div>
       )}
       <div className="p-5 md:p-6">

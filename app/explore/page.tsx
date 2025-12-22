@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import ArticleCard from '@/components/ArticleCard';
 
 type ReportCard = {
   id: string;
@@ -154,84 +155,18 @@ export default function ExplorePage() {
         {!isLoading && !error && filteredReports.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredReports.map((report) => (
-              <Link
+              <ArticleCard
                 key={report.id}
-                href={`/report/${report.slug}`}
-                className="group block rounded-2xl bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
-              >
-                {/* Image miniature en haut de la carte */}
-                {report.imageUrl ? (
-                  <div className="relative w-full h-48 overflow-hidden bg-gray-100 dark:bg-slate-800">
-                    <img
-                      src={report.imageUrl}
-                      alt={report.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        console.warn('Erreur de chargement d\'image:', report.imageUrl);
-                        // Masquer l'image si elle ne charge pas
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ) : (
-                  // Placeholder si pas d'image
-                  <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
-                    <svg
-                      className="w-16 h-16 text-gray-400 dark:text-slate-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                )}
-                <div className="p-5 md:p-6">
-                  {/* En-tête avec catégorie et score */}
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 uppercase tracking-[0.1em]">
-                      {report.category || 'Services'}
-                    </span>
-                    <div
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${getConfidenceColor(
-                        report.score
-                      )}`}
-                    >
-                      {report.score}%
-                    </div>
-                  </div>
-
-                  {/* Titre */}
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-50 mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {report.title}
-                  </h3>
-
-                  {/* Résumé (choice) */}
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4">
-                    {report.choice || 'Analyse basée sur les discussions Reddit.'}
-                  </p>
-
-                  {/* Footer avec date */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-800">
-                    <span className="text-xs text-gray-500 dark:text-gray-500">
-                      {new Date(report.createdAt).toLocaleDateString('fr-FR', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
-                      Lire l&apos;analyse →
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                id={report.id}
+                title={report.title}
+                slug={report.slug}
+                score={report.score}
+                choice={report.choice}
+                createdAt={report.createdAt}
+                category={report.category}
+                imageUrl={report.imageUrl}
+                searchTerms={[report.title, report.productName].filter(Boolean)} // Fallback : chercher avec le titre et le nom du produit
+              />
             ))}
           </div>
         )}
