@@ -79,8 +79,7 @@ export default async function ReportPage({ params }: PageProps) {
     : JSON.parse(supabaseReport.content || '{}');
 
   // Formater le rapport dans le format attendu par le composant
-  // PRIORITÉ : Utiliser image_url de Supabase en premier (colonne de la table reports)
-  // Puis fallback vers content.imageUrl si image_url n'est pas dans la table
+  // MÊME LOGIQUE QUE LA BIBLIOTHÈQUE : Utiliser image_url de Supabase en premier, puis fallback
   const imageUrl = supabaseReport.image_url || content.imageUrl || content.image_url || null;
   
   const report = {
@@ -95,7 +94,7 @@ export default async function ReportPage({ params }: PageProps) {
     createdAt: supabaseReport.created_at,
     amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query,
     amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason,
-    imageUrl: imageUrl, // Utiliser image_url de Supabase en priorité
+    imageUrl: imageUrl, // Même logique que app/api/reports/all/route.ts : row.image_url || content.imageUrl || null
   };
 
   return (
@@ -123,9 +122,10 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Image principale du produit avec placeholder élégant */}
+        {/* MÊME LOGIQUE QUE LA BIBLIOTHÈQUE : Passer imageUrl tel quel (peut être null/undefined) */}
         <div className="mb-10">
           <ReportImage 
-            imageUrl={report.imageUrl || undefined} 
+            imageUrl={report.imageUrl} 
             title={report.title}
             className="mb-10"
           />
