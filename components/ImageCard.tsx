@@ -34,7 +34,7 @@ function TruthMinerPlaceholder({ height = 'h-48', size = 'small' }: { height?: s
             />
           </svg>
         </div>
-        <span className={`${textSize} font-semibold tracking-wider">TRUTHMINER</span>
+          <span className={`${textSize} font-semibold tracking-wider`}>TRUTHMINER</span>
       </div>
     </div>
   );
