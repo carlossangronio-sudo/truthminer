@@ -154,13 +154,14 @@ export async function POST(request: NextRequest) {
 
         // 5. MISE À JOUR : Si une image est trouvée, faire un UPDATE sur la ligne créée
         if (imageUrl && reportId) {
+          console.log('[API] 📸 Tentative d\'insertion image_url:', imageUrl);
           console.log('[API] 📸 Mise à jour du rapport avec l\'image trouvée:', imageUrl);
           
           try {
             const success = await updateReportImage(reportId, imageUrl);
             
             if (success) {
-              console.log('[API] ✅ Image mise à jour avec succès dans Supabase');
+              console.log('[API] ✅ Image mise à jour avec succès dans Supabase (image_url:', imageUrl, ')');
             } else {
               console.warn('[API] ⚠️ Échec de la mise à jour de l\'image dans Supabase');
             }

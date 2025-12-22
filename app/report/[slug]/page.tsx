@@ -126,7 +126,7 @@ export default async function ReportPage({ params }: PageProps) {
           </p>
         </div>
 
-        {/* Image principale du produit */}
+        {/* Image principale du produit - Toujours afficher un placeholder si pas d'image */}
         {report.image_url ? (
           <img 
             src={report.image_url} 
@@ -134,10 +134,16 @@ export default async function ReportPage({ params }: PageProps) {
             className="w-full h-auto rounded-lg mb-6"
             onError={(e) => {
               console.error('[ReportPage] Erreur chargement image:', report.image_url);
-              (e.target as HTMLImageElement).style.display = 'none';
+              // Si l'image échoue, remplacer par le placeholder
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              // Afficher le placeholder à la place
+              const placeholder = target.nextElementSibling as HTMLElement;
+              if (placeholder) placeholder.style.display = 'flex';
             }}
           />
-        ) : (
+        ) : null}
+        {(!report.image_url) && (
           <div className="w-full h-64 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 dark:from-blue-600 dark:via-indigo-700 dark:to-purple-800 rounded-lg mb-6 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2 text-white">
               <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">

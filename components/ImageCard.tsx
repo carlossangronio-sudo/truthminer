@@ -44,12 +44,8 @@ export default function ImageCard({ imageUrl, title, className = '', height = 'h
   const [imageError, setImageError] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // DEBUG: Log pour vérifier les images
-  if (imageUrl) {
-    console.log('[ImageCard] Tentative d\'affichage image:', imageUrl.substring(0, 50) + '...');
-  }
-
-  // Afficher le placeholder UNIQUEMENT si pas d'image_url ou si erreur réelle
+  // Afficher le placeholder SYSTÉMATIQUEMENT si pas d'image_url ou si erreur réelle
+  // Plus de carrés vides : on affiche toujours quelque chose
   if (!imageUrl || imageError) {
     return (
       <div className={className}>
