@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
     const searchKeyword = extractMainKeyword(trimmedKeyword);
     const normalizedProductName = normalizeKeyword(searchKeyword);
     
+    // 🚨 LOG DE CONTRÔLE : Avertissement avant consommation de crédits
+    console.log('🚨 CONSOMMATION CRÉDIT : Appel API Serper initié pour le sujet:', trimmedKeyword);
+    
     console.log('[API] 🔍 Requête originale:', trimmedKeyword);
     console.log('[API] 🔍 Mot-clé extrait pour recherche:', searchKeyword);
     console.log('[API] 🔍 Mot-clé normalisé:', normalizedProductName);
@@ -65,11 +68,14 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[API] ⚠️ Aucun rapport existant trouvé - génération d\'un nouveau rapport (consommation de crédits)');
+    console.log('🚨 CONSOMMATION CRÉDIT : Appel API Serper pour recherche Reddit:', searchKeyword);
 
     // 2. Sinon, on génère un nouveau rapport avec Serper + OpenAI
     // Utiliser le mot-clé extrait pour la recherche (plus précis)
     const serperService = new SerperService();
     const redditResults = await serperService.searchReddit(searchKeyword);
+    
+    console.log('🚨 CONSOMMATION CRÉDIT : Appel API OpenAI pour génération rapport:', trimmedKeyword);
 
     if (redditResults.length === 0) {
       return NextResponse.json(

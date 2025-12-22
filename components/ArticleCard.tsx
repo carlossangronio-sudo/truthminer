@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import ImageCard from './ImageCard';
 
@@ -34,49 +34,9 @@ export default function ArticleCard({
   imageUrl: initialImageUrl,
   searchTerms = [],
 }: ArticleCardProps) {
-  const [imageUrl, setImageUrl] = useState<string | null | undefined>(initialImageUrl);
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
-
-  // Fallback : si pas d'image, chercher une image au vol
-  useEffect(() => {
-    if (!imageUrl && searchTerms.length > 0 && !isLoadingImage) {
-      setIsLoadingImage(true);
-      
-      // Essayer chaque terme de recherche jusqu'à trouver une image
-      const searchImage = async () => {
-        for (const term of searchTerms) {
-          if (!term) continue;
-          
-          try {
-            const response = await fetch(`/api/search-image?q=${encodeURIComponent(term)}`);
-            
-            if (!response.ok) {
-              console.warn(`[ArticleCard] Erreur HTTP ${response.status} pour "${term}"`);
-              // Continuer avec le terme suivant
-              continue;
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.imageUrl) {
-              setImageUrl(data.imageUrl);
-              setIsLoadingImage(false);
-              return; // Image trouvée, on arrête
-            } else if (data.error) {
-              console.warn(`[ArticleCard] Erreur API pour "${term}":`, data.error);
-            }
-          } catch (error) {
-            console.warn(`[ArticleCard] Erreur lors de la recherche d'image pour "${term}":`, error);
-            // Continuer avec le terme suivant
-          }
-        }
-        
-        setIsLoadingImage(false);
-      };
-      
-      searchImage();
-    }
-  }, [imageUrl, searchTerms, isLoadingImage]);
+  // ⚠️ RECHERCHE D'IMAGE DÉSACTIVÉE : Les images sont maintenant gérées uniquement dans generate-report
+  // pour éviter la fuite de crédits API. Les images doivent être fournies via imageUrl depuis Supabase.
+  const [imageUrl] = useState<string | null | undefined>(initialImageUrl);
 
   return (
     <Link
