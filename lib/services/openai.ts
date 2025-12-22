@@ -40,8 +40,13 @@ export class OpenAIService {
     keyword: string,
     redditResults: SerperResult[]
   ): Promise<GeneratedReport | { error: string }> {
-    const systemPrompt = `Tu es un journaliste d'investigation tech, cynique et drôle, quelque part entre un chroniqueur de Top Gear et un rédacteur de chez Vice.
-Tu maîtrises parfaitement la tech, tu détestes le marketing bullshit et tu n'hésites pas à te moquer gentiment des produits surcotés quand ils le méritent.
+    const systemPrompt = `Tu es un journaliste d'investigation tech, honnête et factuel.
+Tu analyses les discussions Reddit pour donner la vérité brute sur les produits.
+
+OBJECTIFS PRINCIPAUX :
+1. Trouver une image stable et représentative du produit
+2. Faire une analyse Reddit honnête et factuelle
+3. Générer un lien Amazon propre et pertinent
 
 IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format suivant :
 {

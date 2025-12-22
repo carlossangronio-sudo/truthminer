@@ -8,7 +8,6 @@ import Navbar from '@/components/Navbar';
 import ArticleCard from '@/components/ArticleCard';
 import ShareButtons from '@/components/ShareButtons';
 import ReportImage from '@/components/ReportImage';
-import Link from 'next/link';
 
 type ClientReport = {
   title: string;
@@ -50,105 +49,51 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<ClientReport | null>(null);
-  
-  // Données pour le magazine
-  const [latestReport, setLatestReport] = useState<ReportCard | null>(null);
-  const [scamsReports, setScamsReports] = useState<ReportCard[]>([]);
-  const [topReports, setTopReports] = useState<ReportCard[]>([]);
-  const [techReports, setTechReports] = useState<ReportCard[]>([]);
-  const [gamingReports, setGamingReports] = useState<ReportCard[]>([]);
-  const [servicesReports, setServicesReports] = useState<ReportCard[]>([]);
-  const [diversReports, setDiversReports] = useState<ReportCard[]>([]);
-  const [allReports, setAllReports] = useState<ReportCard[]>([]);
-  const [isLoadingMagazine, setIsLoadingMagazine] = useState(true);
+  const [recentReports, setRecentReports] = useState<ReportCard[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(true);
   
   const reportRef = useRef<HTMLDivElement>(null);
 
-  // Charger les données du magazine
+  // Charger les analyses récentes
   useEffect(() => {
-    const loadMagazineData = async () => {
-      setIsLoadingMagazine(true);
+    const loadRecent = async () => {
+      setIsLoadingRecent(true);
       try {
-        // Charger le dernier rapport pour la section Hero
-        const latestRes = await fetch('/api/reports/recent?limit=1');
-        const latestData = await latestRes.json();
-        if (latestRes.ok && latestData.items && latestData.items.length > 0) {
-          const latest = latestData.items[0];
-          setLatestReport({
-            id: latest.id,
-            title: latest.title,
-            slug: latest.slug || latest.id,
-            score: latest.score,
-            choice: latest.choice,
-            createdAt: latest.createdAt,
-            category: latest.report?.category,
-            imageUrl: latest.report?.imageUrl,
-            productName: latest.productName,
-          });
-        }
-
-        // Charger les rapports par catégorie et TOUS les rapports
-        const [techRes, gamingRes, servicesRes, diversRes, allRes] = await Promise.all([
-          fetch('/api/reports/by-category?category=Électronique&limit=4'),
-          fetch('/api/reports/by-category?category=Gaming&limit=4'),
-          fetch('/api/reports/by-category?category=Services&limit=4'),
-          fetch('/api/reports/by-category?category=Divers&limit=4'),
-          fetch('/api/reports/all'), // Récupérer TOUS les rapports (sans limite)
-        ]);
-
-        const [techData, gamingData, servicesData, diversData, allData] = await Promise.all([
-          techRes.json(),
-          gamingRes.json(),
-          gamingRes.json(), // Gaming utilise la même catégorie pour l'instant
-          servicesRes.json(),
-          diversRes.json(),
-          allRes.json(),
-        ]);
-
-        if (techRes.ok) setTechReports(techData.reports || []);
-        if (gamingRes.ok) setGamingReports(gamingData.reports || []);
-        if (servicesRes.ok) setServicesReports(servicesData.reports || []);
-        if (diversRes.ok) setDiversReports(diversData.reports || []);
-
-        // Scams : rapports avec score faible (< 40) mais > 0
-        if (allRes.ok && allData.reports) {
-          // NETTOYAGE STRICT : Filtrer les rapports valides (score > 0) et supprimer les doublons
-          const validReports = allData.reports.filter((r: ReportCard) => r.score > 0);
+        const res = await fetch('/api/reports/all');
+        const data = await res.json();
+        
+        if (res.ok && data.reports) {
+          // Filtrer : score > 0 et supprimer les doublons
+          const validReports = data.reports.filter((r: ReportCard) => r.score > 0);
           
-          // Supprimer les doublons évidents basés sur le titre normalisé
+          // Supprimer les doublons basés sur le titre normalisé
           const seenTitles = new Set<string>();
           const uniqueReports = validReports.filter((r: ReportCard) => {
             const normalizedTitle = r.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ');
             if (seenTitles.has(normalizedTitle)) {
-              return false; // Doublon détecté
+              return false;
             }
             seenTitles.add(normalizedTitle);
             return true;
           });
           
-          // Stocker TOUS les rapports valides pour la section "Archives"
-          setAllReports(uniqueReports);
+          // Trier par date (plus récent en premier)
+          uniqueReports.sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA;
+          });
           
-          // Scams : rapports avec score faible (< 40)
-          const scams = uniqueReports
-            .filter((r: ReportCard) => r.score < 40)
-            .slice(0, 4);
-          setScamsReports(scams);
-
-          // Tops : rapports avec score élevé (>= 80)
-          const tops = uniqueReports
-            .filter((r: ReportCard) => r.score >= 80)
-            .slice(0, 4);
-          setTopReports(tops);
+          setRecentReports(uniqueReports);
         }
       } catch (e) {
-        console.error('Erreur lors du chargement des données du magazine:', e);
+        console.error('Erreur lors du chargement des analyses récentes:', e);
       } finally {
-        setIsLoadingMagazine(false);
+        setIsLoadingRecent(false);
       }
     };
 
-    loadMagazineData();
+    loadRecent();
   }, []);
 
   // Restaurer le rapport depuis localStorage si présent
@@ -199,8 +144,7 @@ export default function Home() {
       }
 
       if (data.cached && data.report) {
-        // SYSTÈME DE CACHE : Si le rapport existe déjà, rediriger vers la page de détail
-        // Évite de consommer des crédits OpenAI/Serper pour un rapport déjà existant
+        // Si le rapport existe déjà, rediriger vers la page de détail
         const slug = data.report.slug || data.report.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || data.report.keyword?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
         if (slug) {
           window.location.href = `/report/${slug}`;
@@ -230,70 +174,13 @@ export default function Home() {
     <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
       <Navbar />
       
-      {/* Section Hero - À la Une */}
-      {latestReport && !report && (
-        <section className="relative w-full h-[70vh] min-h-[600px] overflow-hidden">
-          {latestReport.imageUrl ? (
-            <div className="absolute inset-0">
-              <img
-                src={latestReport.imageUrl}
-                alt={latestReport.title}
-                className="w-full h-full object-cover"
-                style={{ filter: 'brightness(0.4)' }}
-              />
-            </div>
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-          
-          <div className="relative z-10 container mx-auto px-4 md:px-6 h-full flex items-end pb-16">
-            <div className="max-w-4xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/90 backdrop-blur-sm rounded-full text-white text-xs font-semibold mb-4">
-                <span>À LA UNE</span>
-              </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight">
-                {latestReport.title}
-              </h1>
-              <p className="text-xl md:text-2xl text-white/90 mb-6 line-clamp-2">
-                {latestReport.choice}
-              </p>
-              <div className="flex items-center gap-4 mb-6">
-                <div className={`px-4 py-2 rounded-full text-sm font-bold ${
-                  latestReport.score >= 80
-                    ? 'bg-emerald-500 text-white'
-                    : latestReport.score >= 60
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-red-500 text-white'
-                }`}>
-                  Score: {latestReport.score}%
-                </div>
-                <span className="text-white/80 text-sm">
-                  {new Date(latestReport.createdAt).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </span>
-              </div>
-              <Link
-                href={`/report/${latestReport.slug}`}
-                className="inline-flex items-center px-6 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Lire l'analyse complète →
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Barre de Recherche Centrale */}
+      {/* Barre de Recherche */}
       <section className="relative py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Vérifiez la vérité sur n'importe quel produit
-            </h2>
+            </h1>
             <p className="text-xl text-white/80 mb-8">
               L'IA analyse des milliers de discussions Reddit pour vous donner la vérité brute
             </p>
@@ -438,6 +325,16 @@ export default function Home() {
             </div>
           </section>
 
+          {/* Lien Amazon */}
+          {report.amazonSearchQuery && (
+            <section className="mb-8">
+              <AffiliateLink
+                searchQuery={report.amazonSearchQuery}
+                recommendationReason={report.amazonRecommendationReason || 'Produit recommandé par la communauté Reddit'}
+              />
+            </section>
+          )}
+
           {/* Boutons de partage */}
           <ShareButtons 
             title={report.title} 
@@ -447,237 +344,41 @@ export default function Home() {
         </div>
       )}
 
-      {/* Sections Magazine */}
+      {/* Section Analyses Récentes */}
       {!report && (
-        <div className="container mx-auto px-4 md:px-6 py-12 space-y-16">
-          {/* Derniers Scams Détectés */}
-          {scamsReports.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  🚨 Derniers Scams Détectés
-                </h2>
-                <Link
-                  href="/explore"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                >
-                  Voir tout →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {scamsReports.map((report) => (
-                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                    <ArticleCard
-                      id={report.id}
-                      title={report.title}
-                      slug={report.slug}
-                      score={report.score}
-                      choice={report.choice}
-                      createdAt={report.createdAt}
-                      category={report.category}
-                      imageUrl={report.imageUrl}
-                      searchTerms={[report.title]}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Les Tops du Moment */}
-          {topReports.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ⭐ Les Tops du Moment
-                </h2>
-                <Link
-                  href="/explore"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                >
-                  Voir tout →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {topReports.map((report) => (
-                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                    <ArticleCard
-                      id={report.id}
-                      title={report.title}
-                      slug={report.slug}
-                      score={report.score}
-                      choice={report.choice}
-                      createdAt={report.createdAt}
-                      category={report.category}
-                      imageUrl={report.imageUrl}
-                      searchTerms={[report.title]}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Grille de Catégories */}
-          <section>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-              Par Catégorie
-            </h2>
-            
-            {/* Tech */}
-            {techReports.length > 0 && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">💻 Tech</h3>
-                  <Link href="/explore?category=Électronique" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                    Voir tout →
-                  </Link>
+        <div className="container mx-auto px-4 md:px-6 py-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            📚 Analyses Récentes
+          </h2>
+          
+          {isLoadingRecent ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="h-64 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+              ))}
+            </div>
+          ) : recentReports.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {recentReports.map((report) => (
+                <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                  <ArticleCard
+                    id={report.id}
+                    title={report.title}
+                    slug={report.slug}
+                    score={report.score}
+                    choice={report.choice}
+                    createdAt={report.createdAt}
+                    category={report.category}
+                    imageUrl={report.imageUrl}
+                    searchTerms={[report.title]}
+                  />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {techReports.map((report) => (
-                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                      <ArticleCard
-                        id={report.id}
-                        title={report.title}
-                        slug={report.slug}
-                        score={report.score}
-                        choice={report.choice}
-                        createdAt={report.createdAt}
-                        category={report.category}
-                        imageUrl={report.imageUrl}
-                        searchTerms={[report.title]}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Gaming */}
-            {gamingReports.length > 0 && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">🎮 Gaming</h3>
-                  <Link href="/explore?category=Gaming" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                    Voir tout →
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {gamingReports.map((report) => (
-                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                      <ArticleCard
-                        id={report.id}
-                        title={report.title}
-                        slug={report.slug}
-                        score={report.score}
-                        choice={report.choice}
-                        createdAt={report.createdAt}
-                        category={report.category}
-                        imageUrl={report.imageUrl}
-                        searchTerms={[report.title]}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Services */}
-            {servicesReports.length > 0 && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">🔧 Services</h3>
-                  <Link href="/explore?category=Services" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                    Voir tout →
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {servicesReports.map((report) => (
-                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                      <ArticleCard
-                        id={report.id}
-                        title={report.title}
-                        slug={report.slug}
-                        score={report.score}
-                        choice={report.choice}
-                        createdAt={report.createdAt}
-                        category={report.category}
-                        imageUrl={report.imageUrl}
-                        searchTerms={[report.title]}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Divers */}
-            {diversReports.length > 0 && (
-              <div className="mb-12">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">📦 Divers</h3>
-                  <Link href="/explore?category=Divers" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                    Voir tout →
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {diversReports.map((report) => (
-                    <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                      <ArticleCard
-                        id={report.id}
-                        title={report.title}
-                        slug={report.slug}
-                        score={report.score}
-                        choice={report.choice}
-                        createdAt={report.createdAt}
-                        category={report.category}
-                        imageUrl={report.imageUrl}
-                        searchTerms={[report.title]}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* Section Archives - Toutes les Analyses */}
-          {allReports.length > 0 && (
-            <section className="mt-16 pt-12 border-t border-gray-200 dark:border-slate-800">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    📚 Archives
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Toutes les analyses générées par TruthMiner ({allReports.length} rapports)
-                  </p>
-                </div>
-                <Link
-                  href="/explore"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                >
-                  Explorer tout →
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {allReports.map((report) => (
-                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                    <ArticleCard
-                      id={report.id}
-                      title={report.title}
-                      slug={report.slug}
-                      score={report.score}
-                      choice={report.choice}
-                      createdAt={report.createdAt}
-                      category={report.category}
-                      imageUrl={report.imageUrl}
-                      searchTerms={[report.title]}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <p>Aucune analyse disponible pour le moment.</p>
+            </div>
           )}
         </div>
       )}
