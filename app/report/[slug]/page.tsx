@@ -124,17 +124,15 @@ export default async function ReportPage({ params }: PageProps) {
         </div>
 
         {/* Image principale du produit */}
-        {report.image_url ? (
-          <img 
-            src={report.image_url} 
-            alt={report.title} 
-            className="w-full max-h-[500px] object-cover rounded-xl mb-8 shadow-2xl"
-          />
-        ) : (
-          <div className="w-full h-[300px] bg-slate-800 rounded-xl mb-8 flex items-center justify-center">
-            <img src="/placeholder-truthminer.png" alt="TruthMiner Placeholder" className="w-24 h-24 opacity-50" />
-          </div>
-        )}
+        <div className="w-full mb-8">
+          {report.image_url ? (
+            <img src={report.image_url} alt="" className="w-full h-auto rounded-xl shadow-lg" />
+          ) : (
+            <div className="w-full h-64 bg-slate-800 rounded-xl flex items-center justify-center text-slate-500">
+              Image non disponible
+            </div>
+          )}
+        </div>
 
         <div className="space-y-8 md:space-y-10 animate-fade-in">
           {/* Score de confiance TruthMiner */}
