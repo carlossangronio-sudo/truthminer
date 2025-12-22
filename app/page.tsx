@@ -640,6 +640,45 @@ export default function Home() {
               </div>
             )}
           </section>
+
+          {/* Section Archives - Toutes les Analyses */}
+          {allReports.length > 0 && (
+            <section className="mt-16 pt-12 border-t border-gray-200 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    📚 Archives
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Toutes les analyses générées par TruthMiner ({allReports.length} rapports)
+                  </p>
+                </div>
+                <Link
+                  href="/explore"
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Explorer tout →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {allReports.map((report) => (
+                  <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                    <ArticleCard
+                      id={report.id}
+                      title={report.title}
+                      slug={report.slug}
+                      score={report.score}
+                      choice={report.choice}
+                      createdAt={report.createdAt}
+                      category={report.category}
+                      imageUrl={report.imageUrl}
+                      searchTerms={[report.title]}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </main>
