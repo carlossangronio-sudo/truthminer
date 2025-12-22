@@ -61,6 +61,14 @@ export class SerperService {
         }
       );
 
+      // Capturer les crédits Serper depuis les headers
+      const creditsHeader = response.headers['x-serper-credits'] || response.headers['X-Serper-Credits'];
+      if (creditsHeader) {
+        const credits = parseInt(creditsHeader, 10);
+        console.log('[Serper] 💳 Crédits restants:', credits);
+        // TODO: Stocker les crédits dans Supabase ou un cache
+      }
+
       return response.data.organic.map((item) => ({
         title: item.title,
         link: item.link,
