@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar';
 import ArticleCard from '@/components/ArticleCard';
 import ShareButtons from '@/components/ShareButtons';
 import ReportImage from '@/components/ReportImage';
+import SimilarReports from '@/components/SimilarReports';
 
 type ClientReport = {
   title: string;
@@ -327,47 +328,51 @@ export default function Home() {
             slug={report.slug} 
             score={report.confidenceScore}
           />
+
+          {/* D'autres analyses */}
+          <SimilarReports 
+            currentSlug={report.slug}
+            currentCategory={undefined}
+          />
         </div>
       )}
 
-      {/* Section Tous les Rapports */}
-      {!report && (
-        <div className="container mx-auto px-4 md:px-6 py-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-            📚 Toutes les Analyses
-          </h2>
-          
-          {isLoadingReports ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="h-64 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
-              ))}
-            </div>
-          ) : allReports.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {allReports.map((report) => (
-                <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
-                  <ArticleCard
-                    id={report.id}
-                    title={report.title}
-                    slug={report.slug}
-                    score={report.score}
-                    choice={report.choice}
-                    createdAt={report.createdAt}
-                    category={report.category}
-                    imageUrl={report.imageUrl}
-                    searchTerms={[report.title]}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <p>Aucune analyse disponible pour le moment.</p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Section Tous les Rapports - Toujours affichée */}
+      <div className="container mx-auto px-4 md:px-6 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          📚 Toutes les Analyses
+        </h2>
+        
+        {isLoadingReports ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="h-64 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+            ))}
+          </div>
+        ) : allReports.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {allReports.map((report) => (
+              <div key={report.id} className="transform hover:scale-105 transition-transform duration-300">
+                <ArticleCard
+                  id={report.id}
+                  title={report.title}
+                  slug={report.slug}
+                  score={report.score}
+                  choice={report.choice}
+                  createdAt={report.createdAt}
+                  category={report.category}
+                  imageUrl={report.imageUrl}
+                  searchTerms={[report.title]}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            <p>Aucune analyse disponible pour le moment.</p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
