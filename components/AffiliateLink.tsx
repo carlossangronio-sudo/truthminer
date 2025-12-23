@@ -19,19 +19,15 @@ export default function AffiliateLink({
   // ID d'affiliation Amazon : tminer-21
   const affiliateId = 'tminer-21';
   
-  // Utiliser amazonSearchQuery si disponible, sinon productName, sinon fallback
+  // Priorité : amazonSearchQuery (modèle précis) > productName (nom général) > fallback
+  // Cela garantit qu'Amazon propose toujours des produits, même si le modèle précis n'est pas trouvé
   const searchQuery = amazonSearchQuery || productName || 'produit';
   
-  // Construction de l'URL Amazon avec :
-  // - recherche par nom précis
-  // - filtre 4★ et plus (p_72:419126031) si la requête est suffisamment spécifique (plus d'un mot)
-  // - tag d'affiliation
-  const baseUrl = `https://www.amazon.fr/s?k=${encodeURIComponent(searchQuery)}`;
-  const hasMultipleWords = searchQuery.trim().split(/\s+/).length > 1;
-  const ratingFilter = '&rh=p_72%3A419126031'; // 4 étoiles et plus
-  const amazonUrl = hasMultipleWords
-    ? `${baseUrl}${ratingFilter}&tag=${affiliateId}`
-    : `${baseUrl}&tag=${affiliateId}`;
+  // Construction de l'URL Amazon simplifiée et sécurisée :
+  // - Pas de filtres complexes (évite les "0 résultat")
+  // - Requête encodée avec encodeURIComponent pour gérer accents/espaces
+  // - Tag d'affiliation placé directement après k= pour qu'Amazon le lise avant toute redirection
+  const amazonUrl = `https://www.amazon.fr/s?k=${encodeURIComponent(searchQuery)}&tag=${affiliateId}`;
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
