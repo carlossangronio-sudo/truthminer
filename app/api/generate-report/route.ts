@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           keyword: trimmedKeyword,
           createdAt: existing.created_at,
           confidenceScore: existing.score,
-          imageUrl: (existing as any).url_image || existingContent.imageUrl || null,
+          imageUrl: existing.image_url || existingContent.imageUrl || null,
         },
         cached: true,
         redirect: `/report/${existingContent.slug || normalizedProductName}`,
@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Sauvegarder le rapport dans Supabase en incluant l'image si trouvée
-    console.log('[API] 💾 Sauvegarde dans Supabase avec url_image si disponible...');
+    console.log('[API] 💾 Sauvegarde dans Supabase avec image_url si disponible...');
     console.log('[API] URL IMAGE RÉCUPÉRÉE:', imageUrl);
-    console.log('[API] TENTATIVE INSERTION DANS COLONNE url_image');
+    console.log('[API] TENTATIVE INSERTION DANS COLONNE image_url');
     
     let reportId: string | null = null;
     try {
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         createdAt: now,
       });
       
-      console.log('[API] ✅ Rapport sauvegardé avec succès dans Supabase (ID:', reportId, ', url_image:', imageUrl, ')');
+      console.log('[API] ✅ Rapport sauvegardé avec succès dans Supabase (ID:', reportId, ', image_url:', imageUrl, ')');
     } catch (insertError) {
       // Erreur critique : on ne peut pas continuer sans sauvegarder
       console.error('[API] ❌ ERREUR CRITIQUE lors de l\'insertion Supabase:', insertError);

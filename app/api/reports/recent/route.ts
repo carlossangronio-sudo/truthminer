@@ -23,10 +23,10 @@ export async function GET(request: NextRequest) {
         title: content.title || content.keyword || row.product_name,
         choice: content.choice || '',
         createdAt: row.created_at,
-        // MÊME LOGIQUE QUE app/api/reports/all/route.ts : row.url_image || content.imageUrl || null
+        // MÊME LOGIQUE QUE app/api/reports/all/route.ts : row.image_url || content.imageUrl || null
         report: {
           ...content,
-          imageUrl: (row as any).url_image || content.imageUrl || null,
+          imageUrl: row.image_url || content.imageUrl || null,
         },
       };
     });

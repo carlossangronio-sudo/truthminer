@@ -84,28 +84,31 @@ export default async function AdminSecretDashboard() {
   const apiStatus = await checkAPIStatus();
   const dailyStats = calculateDailyStats(allReports);
 
-  const formattedRecentReports = recentReports.map((report) => {
-    const content = typeof report.content === 'object' 
-      ? report.content 
-      : JSON.parse(report.content || '{}');
-    
-    return {
-      id: report.id,
-      title: content.title || report.product_name,
-      score: report.score,
-      date: new Date(report.created_at).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      createdAt: report.created_at,
-      sessionId: generateSessionId(report.id),
-      country: 'FR',
-      hasImage: !!(report as any).url_image,
-    };
-  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const formattedRecentReports = recentReports
+    .map((report) => {
+      const content =
+        typeof report.content === 'object'
+          ? report.content
+          : JSON.parse(report.content || '{}');
+
+      return {
+        id: report.id,
+        title: content.title || report.product_name,
+        score: report.score,
+        date: new Date(report.created_at).toLocaleDateString('fr-FR', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        createdAt: report.created_at,
+        sessionId: generateSessionId(report.id),
+        country: 'FR',
+        hasImage: !!report.image_url,
+      };
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const totalReports = allReports.length;
   const avgScore = recentReports.length > 0
