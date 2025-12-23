@@ -103,7 +103,7 @@ export default async function AdminSecretDashboard() {
       createdAt: report.created_at,
       sessionId: generateSessionId(report.id),
       country: 'FR',
-      hasImage: !!report.image_url,
+      hasImage: !!(report as any).url_image,
     };
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 

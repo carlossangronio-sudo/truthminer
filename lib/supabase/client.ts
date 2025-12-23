@@ -20,7 +20,7 @@ type SupabaseReportRow = {
   score: number;
   content: any;
   category?: string;
-  image_url?: string;
+  url_image?: string;
   created_at: string;
 };
 
@@ -81,7 +81,7 @@ export async function insertReport(row: {
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
 
-  // Vérification des colonnes : product_name, score, content, category, image_url, created_at
+  // Vérification des colonnes : product_name, score, content, category, url_image, created_at
   const payload: any = {
     product_name: row.normalizedProductName,
     score: row.score,
@@ -96,7 +96,7 @@ export async function insertReport(row: {
 
   // Ajouter l'image si elle existe
   if (row.imageUrl) {
-    payload.image_url = row.imageUrl;
+    payload.url_image = row.imageUrl;
   }
 
   console.log('[Supabase] Payload d\'insertion:', JSON.stringify(payload, null, 2));
@@ -200,7 +200,7 @@ export async function updateReportCategory(
 }
 
 /**
- * Met à jour l'image_url d'un rapport dans Supabase
+ * Met à jour url_image d'un rapport dans Supabase
  */
 export async function updateReportImage(
   reportId: string,
@@ -225,7 +225,7 @@ export async function updateReportImage(
         'Content-Type': 'application/json',
         Prefer: 'return=minimal',
       },
-      body: JSON.stringify({ image_url: imageUrl }),
+      body: JSON.stringify({ url_image: imageUrl }),
     });
 
     if (!res.ok) {

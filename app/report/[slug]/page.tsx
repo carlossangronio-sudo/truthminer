@@ -118,7 +118,7 @@ export default async function ReportPage({ params }: PageProps) {
       createdAt: supabaseReport.created_at || new Date().toISOString(),
       amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query || null,
       amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason || null,
-      image_url: supabaseReport.image_url || null, // Utiliser uniquement image_url de Supabase
+      image_url: (supabaseReport as any).url_image || null, // Utiliser uniquement url_image de Supabase
     };
 
     return (
@@ -148,7 +148,7 @@ export default async function ReportPage({ params }: PageProps) {
           {/* Image principale du produit - Utiliser ImageCard pour le fallback automatique */}
           <div className="mb-6">
             <ImageCard
-              imageUrl={report.image_url || undefined}
+              imageUrl={(report as any).url_image || undefined}
               title={report.title}
               height="h-64 md:h-96"
               className="rounded-lg"

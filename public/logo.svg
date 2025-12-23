@@ -1,0 +1,19 @@
+<svg
+  viewBox= 0 0 32 32
+  xmlns=http://www.w3.org/2000/svg
+  fill=none
+  stroke=#e5e7eb
+  stroke-width=1.7
+  stroke-linecap=round
+  stroke-linejoin=round
+>
+  <!-- Cristal / diamant principal -->
+  <path d=M16 3 L26.5 13.5 L16 29 L5.5 13.5 Z />
+  <!-- Facette intérieure du cristal -->
+  <path d=M16 7 L22.5 13.5 L16 24 L9.5 13.5 Z />
+
+  <!-- Loupe (cercle) -->
+  <circle cx=19 cy=19 r=4.2 />
+  <!-- Manche de la loupe -->
+  <line x1=21.8 y1=21.8 x2=25.5 y2=25.5 />
+</svg>

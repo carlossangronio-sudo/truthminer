@@ -179,10 +179,10 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Vérifiez la vérité sur n'importe quel produit
+              Vérifiez la vérité brute sur n&apos;importe quel sujet
             </h1>
             <p className="text-xl text-white/80 mb-8">
-              L'IA analyse des milliers de discussions Reddit pour vous donner la vérité brute
+              Ne perdez plus des heures sur les forums. TruthMiner synthétise le Web pour vous sur n&apos;importe quel sujet.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
@@ -191,7 +191,7 @@ export default function Home() {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                placeholder="Ex: Meilleure souris gaming, iPhone 15, etc."
+                placeholder="Ex: IA générative, impôts freelance, meilleure souris gaming, etc."
                 className="flex-1 px-6 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
               />
               <button
@@ -199,7 +199,7 @@ export default function Home() {
                 disabled={isLoading || !keyword.trim()}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                {isLoading ? 'Analyse en cours...' : 'Générer avec l\'IA'}
+                {isLoading ? 'Analyse en cours...' : 'Lancer une analyse'}
               </button>
             </div>
 
@@ -330,7 +330,10 @@ export default function Home() {
             <section className="mb-8">
               <AffiliateLink
                 amazonSearchQuery={report.amazonSearchQuery}
-                recommendationReason={report.amazonRecommendationReason || 'Produit recommandé par la communauté Reddit'}
+                recommendationReason={
+                  report.amazonRecommendationReason ||
+                  'Recommandation issue de la communauté Reddit'
+                }
               />
             </section>
           )}
