@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
-import { Search, Users, ShoppingBag } from 'lucide-react';
+import { Search, Users, ShoppingBag, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'À propos',
@@ -99,10 +100,27 @@ export default function AboutPage() {
           </section>
 
           {/* Contact */}
-          <section className="rounded-2xl bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 p-6 md:p-8">
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
-              Pour toute question, vous pouvez nous contacter via nos réseaux sociaux ou le formulaire de support prochainement disponible.
-            </p>
+          <section className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 md:p-8 dark:bg-slate-900/80 dark:border-slate-800">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-4">
+                  Contact
+                </h2>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                  Pour toute demande de partenariat ou question, contactez-nous à l&apos;adresse :
+                </p>
+                <Link
+                  href="mailto:contact@tminer.io"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  contact@tminer.io
+                </Link>
+              </div>
+            </div>
           </section>
         </div>
 
