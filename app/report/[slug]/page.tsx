@@ -97,9 +97,7 @@ export default async function ReportPage({ params }: PageProps) {
   
   // DEBUG : Log l'URL de l'image
   if (report.image_url) {
-    console.log('[ReportPage] Image URL trouvée:', report.image_url);
   } else {
-    console.log('[ReportPage] Aucune image URL trouvée pour:', report.title);
   }
 
   return (
@@ -133,7 +131,6 @@ export default async function ReportPage({ params }: PageProps) {
             alt={report.title} 
             className="w-full h-auto rounded-lg mb-6"
             onError={(e) => {
-              console.error('[ReportPage] Erreur chargement image:', report.image_url);
               // Si l'image échoue, remplacer par le placeholder
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';

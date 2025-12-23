@@ -16,16 +16,15 @@ export default function AffiliateLink({
   recommendationReason,
   className = '' 
 }: AffiliateLinkProps) {
-  // Récupération de l'ID d'affiliation Amazon depuis les variables d'environnement publiques
-  // À configurer dans .env avec NEXT_PUBLIC_AMAZON_AFFILIATE_ID=votre-id-20
-  const affiliateId = process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_ID || '';
+  // ID d'affiliation Amazon : tminer-21
+  const affiliateId = 'tminer-21';
   
   // Utiliser amazonSearchQuery si disponible, sinon productName, sinon fallback
   const searchQuery = amazonSearchQuery || productName || 'produit';
   
-  // Construction de l'URL Amazon avec le tag d'affiliation si disponible
+  // Construction de l'URL Amazon avec le tag d'affiliation
   const baseUrl = `https://www.amazon.fr/s?k=${encodeURIComponent(searchQuery)}`;
-  const amazonUrl = affiliateId ? `${baseUrl}&tag=${affiliateId}` : baseUrl;
+  const amazonUrl = `${baseUrl}&tag=${affiliateId}`;
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>

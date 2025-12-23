@@ -3,6 +3,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
+import Footer from "@/components/Footer";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
 
@@ -72,8 +73,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className={`${inter.className} antialiased flex flex-col min-h-screen`}>
+        <ThemeProvider>
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

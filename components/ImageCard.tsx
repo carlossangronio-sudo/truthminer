@@ -69,11 +69,9 @@ export default function ImageCard({ imageUrl, title, className = '', height = 'h
         unoptimized={true}
         loading="lazy"
         onLoad={() => {
-          console.log('[ImageCard] Image chargée avec succès:', imageUrl.substring(0, 50) + '...');
           setHasLoaded(true);
         }}
         onError={(e) => {
-          console.error('[ImageCard] Erreur chargement image:', imageUrl);
           setImageError(true);
         }}
       />

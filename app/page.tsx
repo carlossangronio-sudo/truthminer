@@ -69,9 +69,7 @@ export default function Home() {
           const formatted = data.reports.map((item: any) => {
             // DEBUG: Log pour vérifier les images
             if (item.imageUrl) {
-              console.log('[Home] Image trouvée pour', item.title, ':', item.imageUrl);
             } else {
-              console.log('[Home] Pas d\'image pour', item.title);
             }
             return {
               id: item.id,
