@@ -9,6 +9,7 @@ import ArticleCard from '@/components/ArticleCard';
 import ShareButtons from '@/components/ShareButtons';
 import ReportImage from '@/components/ReportImage';
 import SimilarReports from '@/components/SimilarReports';
+import Newsletter from '@/components/Newsletter';
 import Link from 'next/link';
 
 type ClientReport = {
@@ -388,6 +389,11 @@ export default function Home() {
             <p>Aucune analyse disponible pour le moment.</p>
           </div>
         )}
+      </div>
+
+      {/* Newsletter / capture email */}
+      <div className="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
+        <Newsletter className="mt-4" />
       </div>
     </main>
   );
