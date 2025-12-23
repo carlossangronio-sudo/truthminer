@@ -1,3 +1,14 @@
+# Installation de la table subscribers dans Supabase
+
+## Étapes à suivre
+
+1. **Ouvre le SQL Editor** dans ton projet Supabase
+2. **Copie-colle le code SQL** ci-dessous
+3. **Exécute le script**
+
+## Code SQL à exécuter
+
+```sql
 -- Crée la table subscribers pour capturer les emails de newsletter
 DO $$
 BEGIN
@@ -29,11 +40,19 @@ END $$;
 -- Désactiver RLS (Row Level Security) pour permettre l'insertion publique
 -- Les visiteurs doivent pouvoir s'inscrire sans être connectés
 ALTER TABLE public.subscribers DISABLE ROW LEVEL SECURITY;
+```
 
--- Alternative : Si tu préfères garder RLS activé, utilise cette politique publique :
--- CREATE POLICY "Allow public insert on subscribers" ON public.subscribers
---     FOR INSERT
---     TO anon, authenticated
---     WITH CHECK (true);
+## Structure de la table
 
+La table `subscribers` aura les colonnes suivantes :
+- `id` : UUID (clé primaire, généré automatiquement)
+- `email` : TEXT (unique, obligatoire)
+- `created_at` : TIMESTAMPTZ (timestamp avec fuseau horaire, généré automatiquement)
+
+## Vérification
+
+Après avoir exécuté le script, vérifie que :
+1. La table `subscribers` existe dans l'onglet "Table Editor" de Supabase
+2. Les 3 colonnes sont présentes (id, email, created_at)
+3. RLS est désactivé (tu peux tester en essayant d'insérer un email via l'interface web)
 

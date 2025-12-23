@@ -55,11 +55,7 @@ export default function Newsletter({ className = '' }: NewsletterProps) {
       }
 
       setStatus('success');
-      setMessage(
-        data?.alreadySubscribed
-          ? 'Vous êtes déjà abonné(e) à TruthMiner.'
-          : "Merci, vous êtes bien abonné(e) à TruthMiner !"
-      );
+      setMessage('Merci !');
       setEmail('');
     } catch (error) {
       console.error('[Newsletter] Erreur lors de la requête /api/subscribe :', error);
