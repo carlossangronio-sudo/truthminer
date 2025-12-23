@@ -24,11 +24,14 @@ export default function AffiliateLink({
   
   // Construction de l'URL Amazon avec :
   // - recherche par nom précis
-  // - filtre 4★ et plus (p_72:419126031)
+  // - filtre 4★ et plus (p_72:419126031) si la requête est suffisamment spécifique (plus d'un mot)
   // - tag d'affiliation
   const baseUrl = `https://www.amazon.fr/s?k=${encodeURIComponent(searchQuery)}`;
+  const hasMultipleWords = searchQuery.trim().split(/\s+/).length > 1;
   const ratingFilter = '&rh=p_72%3A419126031'; // 4 étoiles et plus
-  const amazonUrl = `${baseUrl}${ratingFilter}&tag=${affiliateId}`;
+  const amazonUrl = hasMultipleWords
+    ? `${baseUrl}${ratingFilter}&tag=${affiliateId}`
+    : `${baseUrl}&tag=${affiliateId}`;
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
