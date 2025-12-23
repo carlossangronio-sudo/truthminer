@@ -110,15 +110,17 @@ export default async function ReportPage({ params }: PageProps) {
       choice: content.choice || 'Non identifié',
       defects: Array.isArray(content.defects) ? content.defects : [],
       article: content.article || '',
-      products: Array.isArray(content.products) 
-        ? content.products.filter((p: any): p is string => typeof p === 'string') 
+      products: Array.isArray(content.products)
+        ? content.products.filter((p: any): p is string => typeof p === 'string')
         : [],
       userProfiles: content.userProfiles || '',
       confidenceScore: supabaseReport.score || 50,
       createdAt: supabaseReport.created_at || new Date().toISOString(),
       amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query || null,
-      amazonRecommendationReason: content.amazonRecommendationReason || content.amazon_recommendation_reason || null,
+      amazonRecommendationReason:
+        content.amazonRecommendationReason || content.amazon_recommendation_reason || null,
       image_url: supabaseReport.image_url || null, // Utiliser uniquement image_url de Supabase
+      productName: supabaseReport.product_name || null,
     };
 
     return (
@@ -299,8 +301,8 @@ export default async function ReportPage({ params }: PageProps) {
               </section>
             )}
 
-            {/* Lien d'affiliation Amazon (bouton unique, seulement si un produit précis est identifié) */}
-            {report.amazonSearchQuery && (
+            {/* Lien d'affiliation Amazon (bouton unique, avec fallback) */}
+            {(report.amazonSearchQuery || report.productName) && (
               <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                   Vérifier les prix
@@ -316,7 +318,9 @@ export default async function ReportPage({ params }: PageProps) {
                     />
                   )}
                   <AffiliateLink
-                    amazonSearchQuery={report.amazonSearchQuery}
+                    amazonSearchQuery={
+                      report.amazonSearchQuery || report.productName || undefined
+                    }
                     recommendationReason={report.amazonRecommendationReason || undefined}
                     className="w-full sm:w-auto"
                   />
