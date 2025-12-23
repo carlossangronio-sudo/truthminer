@@ -110,13 +110,12 @@ Instructions détaillées :
 4. "article" : Article complet en Markdown avec TOUTES les sections listées ci-dessus. Utilise des titres clairs, des listes à puces pour les arguments, et mets en **gras** les concepts et caractéristiques clés. Si une information n'est pas mentionnée dans les discussions, écris "Non précisé sur Reddit" au lieu d'inventer.
 5. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
 6. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
+   - Tu dois extraire le **nom EXACT du modèle de produit le plus recommandé** (pas une catégorie générique)
+   - Exemple : au lieu de "aspirateur", utilise "Roborock S8" si c'est le modèle précis cité par Reddit
+   - Exemple : au lieu de "souris gaming", utilise "Logitech G Pro X Superlight" si c'est le modèle recommandé
    - Si le mot-clé est flou (ex: "Maison", "Tesla", "Gaming"), identifie l'objet PRÉCIS dont parle l'analyse
-   - Exemple : "Maison" -> "Domotique HomeKit" si l'analyse parle de domotique
-   - Exemple : "Tesla" -> "Batterie externe haute capacité" si l'analyse parle d'autonomie/batterie
-   - Exemple : "Gaming" -> "Souris gaming Logitech G Pro" si l'analyse parle de souris
-   - Utilise le nom exact du produit recommandé par Reddit si disponible
-   - Si aucun produit physique n'est pertinent (service, logiciel), utilise une catégorie générale pertinente (ex: "VPN", "Logiciel de montage vidéo")
-   - La requête doit être en français et optimisée pour Amazon.fr
+   - Si aucun produit physique précis n'est pertinent (service, logiciel), utilise une catégorie générale pertinente (ex: "VPN", "Logiciel de montage vidéo")
+   - La requête doit être en français et optimisée pour Amazon.fr, en reprenant **le nom de modèle complet** tel qu'il apparaît dans les discussions
 7. "amazonRecommendationReason" : EXPLICATION COURTE (1 phrase maximum) de pourquoi ce lien Amazon est proposé :
    - Exemple : "Nous avons sélectionné ce modèle car c'est la référence citée par les utilisateurs Reddit"
    - Exemple : "Basé sur votre intérêt pour l'autonomie Tesla, voici l'accessoire de charge le plus recommandé"

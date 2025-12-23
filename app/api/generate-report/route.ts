@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
 
     // 4. Sauvegarder le rapport dans Supabase en incluant l'image si trouvée
     console.log('[API] 💾 Sauvegarde dans Supabase avec image_url si disponible...');
-    console.log('[API] URL IMAGE RÉCUPÉRÉE:', imageUrl);
-    console.log('[API] TENTATIVE INSERTION DANS COLONNE image_url');
+    console.log('[DEBUG] URL d\'image à insérer :', imageUrl);
+    console.log('[DEBUG] Clé utilisée pour Supabase :', 'image_url');
     
     let reportId: string | null = null;
     try {

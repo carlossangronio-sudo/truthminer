@@ -252,6 +252,58 @@ export async function updateReportImage(
   }
 }
 
+/**
+ * Met à jour le contenu JSON complet d'un rapport dans Supabase
+ */
+export async function updateReportContent(
+  reportId: string,
+  content: any
+): Promise<boolean> {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Supabase] ❌ Supabase non configuré pour updateReportContent');
+    return false;
+  }
+
+  console.log('[Supabase] updateReportContent →', { reportId });
+
+  try {
+    const url = new URL(`/rest/v1/reports`, supabaseUrl);
+    url.searchParams.set('id', `eq.${reportId}`);
+
+    const res = await fetch(url.toString(), {
+      method: 'PATCH',
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[Supabase] ❌ Erreur HTTP lors de la mise à jour du contenu:', {
+        status: res.status,
+        statusText: res.statusText,
+        error: errorText,
+        reportId,
+      });
+      return false;
+    }
+
+    console.log('[Supabase] ✅ Contenu mis à jour avec succès pour le rapport:', reportId);
+    return true;
+  } catch (error) {
+    console.error('[Supabase] ❌ Exception lors de la mise à jour du contenu:', error);
+    if (error instanceof Error) {
+      console.error('[Supabase] Message d\'erreur:', error.message);
+      console.error('[Supabase] Stack trace:', error.stack);
+    }
+    return false;
+  }
+}
+
 export async function getRecentReports(
   limit = 6
 ): Promise<SupabaseReportRow[]> {

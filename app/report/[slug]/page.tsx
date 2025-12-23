@@ -299,25 +299,20 @@ export default async function ReportPage({ params }: PageProps) {
               </section>
             )}
 
-            {/* Liens d'affiliation */}
+            {/* Lien d'affiliation Amazon (bouton unique) */}
             {(report.amazonSearchQuery || (report.products && report.products.length > 0)) && (
               <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                   Vérifier les prix
                 </h2>
                 <div className="space-y-3">
-                  {report.amazonSearchQuery ? (
-                    <AffiliateLink
-                      amazonSearchQuery={report.amazonSearchQuery}
-                      recommendationReason={report.amazonRecommendationReason || undefined}
-                    />
-                  ) : (
-                    (Array.from(new Set(report.products)) as string[]).map((product: string, index: number) => (
-                      <div key={index}>
-                        <AffiliateLink productName={product} />
-                      </div>
-                    ))
-                  )}
+                  <AffiliateLink
+                    amazonSearchQuery={
+                      report.amazonSearchQuery ||
+                      (report.products && report.products.length > 0 ? report.products[0] : undefined)
+                    }
+                    recommendationReason={report.amazonRecommendationReason || undefined}
+                  />
                 </div>
               </section>
             )}

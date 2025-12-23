@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Analytics } from "@vercel/analytics/react";
 import Footer from "@/components/Footer";
+import AnalyticsWrapper from "@/components/AnalyticsWrapper";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
 
@@ -91,7 +91,7 @@ export default function RootLayout({
           <div className="flex-1">{children}</div>
           <Footer />
         </ThemeProvider>
-        <Analytics />
+        <AnalyticsWrapper />
       </body>
     </html>
   );

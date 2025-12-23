@@ -22,9 +22,13 @@ export default function AffiliateLink({
   // Utiliser amazonSearchQuery si disponible, sinon productName, sinon fallback
   const searchQuery = amazonSearchQuery || productName || 'produit';
   
-  // Construction de l'URL Amazon avec le tag d'affiliation
+  // Construction de l'URL Amazon avec :
+  // - recherche par nom précis
+  // - filtre 4★ et plus (p_72:419126031)
+  // - tag d'affiliation
   const baseUrl = `https://www.amazon.fr/s?k=${encodeURIComponent(searchQuery)}`;
-  const amazonUrl = `${baseUrl}&tag=${affiliateId}`;
+  const ratingFilter = '&rh=p_72%3A419126031'; // 4 étoiles et plus
+  const amazonUrl = `${baseUrl}${ratingFilter}&tag=${affiliateId}`;
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
@@ -47,7 +51,7 @@ export default function AffiliateLink({
             clipRule="evenodd"
           />
         </svg>
-        Vérifier le prix sur Amazon
+        Voir le meilleur choix sur Amazon
       </a>
       {recommendationReason && (
         <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed">

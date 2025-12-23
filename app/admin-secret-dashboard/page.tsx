@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getAllReports, getRecentReports } from '@/lib/supabase/client';
 import RegenerateImageButton from '@/components/RegenerateImageButton';
+import { SerperService } from '@/lib/services/serper';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,7 @@ async function checkAPIStatus() {
   const results = {
     openai: false,
     serper: false,
+    serperCredits: null as number | null,
   };
 
   // Vérifier OpenAI (simple ping)
@@ -46,10 +48,13 @@ async function checkAPIStatus() {
   // Vérifier Serper
   try {
     if (process.env.SERPER_API_KEY) {
+      const serperService = new SerperService();
       results.serper = true;
+      results.serperCredits = await serperService.getAccountCredits();
     }
   } catch {
     results.serper = false;
+    results.serperCredits = null;
   }
 
   return results;
@@ -189,10 +194,10 @@ export default async function AdminSecretDashboard() {
             </div>
           </div>
 
-          {/* Status API */}
+          {/* Statut & Crédits API */}
           <div className="bg-slate-900 rounded-xl shadow-lg p-6 border border-slate-800">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-400 text-sm font-medium">Status API</span>
+              <span className="text-slate-400 text-sm font-medium">Statut & Crédits API</span>
               <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -201,12 +206,22 @@ export default async function AdminSecretDashboard() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${apiStatus.openai ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm text-slate-300">OpenAI</span>
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    apiStatus.openai ? 'bg-emerald-500' : 'bg-red-500'
+                  }`}
+                ></div>
+                <span className="text-sm text-slate-300">
+                  {apiStatus.openai ? 'OpenAI : clé configurée' : 'OpenAI : non configuré'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${apiStatus.serper ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm text-slate-300">Serper</span>
+                <span className="text-sm text-slate-300">
+                  {apiStatus.serper
+                    ? `Serper : ${apiStatus.serperCredits ?? 'N/A'} crédits`
+                    : 'Serper : indisponible'}
+                </span>
               </div>
             </div>
           </div>

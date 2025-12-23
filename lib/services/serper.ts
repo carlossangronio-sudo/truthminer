@@ -29,6 +29,7 @@ export interface SerperImageResponse {
 export class SerperService {
   private apiKey: string;
   private baseUrl = 'https://google.serper.dev/search';
+  private accountUrl = 'https://google.serper.dev/account';
 
   constructor() {
     const apiKey = process.env.SERPER_API_KEY;
@@ -36,6 +37,36 @@ export class SerperService {
       throw new Error('SERPER_API_KEY is not defined in environment variables');
     }
     this.apiKey = apiKey;
+  }
+
+  /**
+   * Récupère les crédits restants sur le compte Serper
+   */
+  async getAccountCredits(): Promise<number | null> {
+    try {
+      const response = await axios.get(this.accountUrl, {
+        headers: {
+          'X-API-KEY': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const credits =
+        (response.data && (response.data as any).credits) !== undefined
+          ? Number((response.data as any).credits)
+          : null;
+
+      if (credits !== null && !Number.isNaN(credits)) {
+        console.log('[Serper] 💳 Solde de crédits (account):', credits);
+        return credits;
+      }
+
+      console.warn('[Serper] ⚠️ Impossible de lire le champ "credits" dans la réponse account:', response.data);
+      return null;
+    } catch (error) {
+      console.error('[Serper] ❌ Erreur lors de la récupération du compte Serper:', error);
+      return null;
+    }
   }
 
   /**
