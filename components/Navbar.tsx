@@ -12,7 +12,7 @@ export default function Navbar() {
             TruthMiner
           </span>
           <span className="hidden text-xs text-gray-500 md:inline dark:text-gray-400">
-            L&apos;IA qui n&apos;a pas sa langue dans sa poche.
+            AI-Powered Truth Mining
           </span>
         </Link>
         <div className="flex items-center gap-2 md:gap-3">

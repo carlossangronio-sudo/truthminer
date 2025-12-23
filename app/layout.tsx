@@ -15,11 +15,22 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
+    default: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     template: "%s | TruthMiner",
   },
-  description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
-  keywords: ["TruthMiner", "avis Reddit", "vérité produits", "analyse Reddit", "comparaison honnête", "test produits", "avis utilisateurs", "vérité brute"],
+  description:
+    "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
+  keywords: [
+    "TruthMiner",
+    "avis Reddit",
+    "vérité Reddit",
+    "analyse Reddit",
+    "tendances Reddit",
+    "opinions collectives",
+    "analyse produits",
+    "actualités",
+    "tendances de société",
+  ],
   authors: [{ name: "TruthMiner" }],
   creator: "TruthMiner",
   publisher: "TruthMiner",
@@ -33,8 +44,9 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: siteUrl,
     siteName: "TruthMiner",
-    title: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
-    description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
+    title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
+    description:
+      "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: [
       {
         url: `${siteUrl}/og-image.png`,
@@ -46,8 +58,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
-    description: "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur n'importe quel produit. Ne vous faites plus avoir.",
+    title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
+    description:
+      "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: [`${siteUrl}/og-image.png`],
   },
   robots: {

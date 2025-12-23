@@ -20,7 +20,7 @@ type SupabaseReportRow = {
   score: number;
   content: any;
   category?: string;
-  image_url?: string;
+  image_url: string | null;
   created_at: string;
 };
 

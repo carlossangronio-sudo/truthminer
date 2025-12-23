@@ -89,7 +89,7 @@ export default function ExplorePage() {
             Explorer les Analyses
           </h1>
           <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
-            Découvrez tous les produits analysés par TruthMiner, basés sur les discussions Reddit.
+            Découvrez toutes les analyses générées par TruthMiner à partir des discussions Reddit.
           </p>
         </div>
 

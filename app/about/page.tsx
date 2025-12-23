@@ -16,7 +16,7 @@ export default function AboutPage() {
         {/* Header */}
         <div className="mb-10 pb-6 border-b border-gray-200 dark:border-slate-800">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-50 mb-4">
-            Bienvenue sur TruthMiner — La vérité derrière les produits, extraite par l&apos;IA.
+            Bienvenue sur TruthMiner — La vérité brute de Reddit sur les produits, l&apos;actualité et les tendances de société.
           </h1>
         </div>
 
@@ -33,7 +33,7 @@ export default function AboutPage() {
                   Notre Mission
                 </h2>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  À l&apos;ère de la surconsommation et des avis sponsorisés, il est devenu difficile de savoir si un produit vaut vraiment son prix. Chez TruthMiner, nous croyons que la meilleure source d&apos;information reste la communauté. Notre mission est de &apos;miner&apos; la vérité en analysant des milliers de retours d&apos;utilisateurs réels, principalement issus de plateformes comme Reddit, pour vous offrir une synthèse honnête et impartiale.
+                  TruthMiner utilise l&apos;IA pour filtrer le bruit et extraire la synthèse des discussions Reddit sur les produits, l&apos;actualité et les tendances de société.
                 </p>
               </div>
             </div>

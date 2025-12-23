@@ -1,6 +1,6 @@
 # TruthMiner
 
-Application web pour générer des articles de comparaison de produits ultra-honnêtes en analysant les discussions Reddit.
+Application web pour générer des analyses ultra-honnêtes (produits, actualité, tendances de société) en synthétisant les discussions Reddit.
 
 ## Stack Technique
 
