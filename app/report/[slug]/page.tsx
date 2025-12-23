@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import Navbar from '@/components/Navbar';
 import SimilarReports from '@/components/SimilarReports';
 import ImageCard from '@/components/ImageCard';
+import Newsletter from '@/components/Newsletter';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -360,6 +361,9 @@ export default async function ReportPage({ params }: PageProps) {
               currentSlug={report.slug}
               currentCategory={content.category || undefined}
             />
+
+            {/* Newsletter / capture email */}
+            <Newsletter className="mt-4" />
           </div>
         </div>
       </main>
