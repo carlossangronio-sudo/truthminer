@@ -299,19 +299,26 @@ export default async function ReportPage({ params }: PageProps) {
               </section>
             )}
 
-            {/* Lien d'affiliation Amazon (bouton unique) */}
-            {(report.amazonSearchQuery || (report.products && report.products.length > 0)) && (
+            {/* Lien d'affiliation Amazon (bouton unique, seulement si un produit précis est identifié) */}
+            {report.amazonSearchQuery && (
               <section className="rounded-2xl bg-gray-50 border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in-delay-5 dark:bg-slate-900/80 dark:border-slate-800">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">
                   Vérifier les prix
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-3 flex flex-col items-center">
+                  {/* Image produit spécifique (si disponible) au-dessus du bouton */}
+                  {report.image_url && (
+                    <img
+                      src={report.image_url}
+                      alt={report.title}
+                      className="mb-3 max-h-52 w-auto rounded-xl object-contain shadow-sm"
+                      loading="lazy"
+                    />
+                  )}
                   <AffiliateLink
-                    amazonSearchQuery={
-                      report.amazonSearchQuery ||
-                      (report.products && report.products.length > 0 ? report.products[0] : undefined)
-                    }
+                    amazonSearchQuery={report.amazonSearchQuery}
                     recommendationReason={report.amazonRecommendationReason || undefined}
+                    className="w-full sm:w-auto"
                   />
                 </div>
               </section>
