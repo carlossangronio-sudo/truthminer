@@ -179,7 +179,7 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Vérifiez la vérité brute sur n&apos;importe quel sujet
+              Vérifiez la vérité brute sur n'importe quel sujet
             </h1>
             <p className="text-xl text-white/80 mb-8">
               Ne perdez plus des heures sur les forums. TruthMiner synthétise le Web pour vous sur n&apos;importe quel sujet.

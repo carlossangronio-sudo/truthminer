@@ -1,12 +1,13 @@
--- Add image_url column to reports table if it doesn't exist
+-- Add url_image column to reports table if it doesn't exist (legacy name image_url may exist)
 DO $$ BEGIN
-    ALTER TABLE reports ADD COLUMN image_url TEXT;
+    ALTER TABLE reports ADD COLUMN url_image TEXT;
 EXCEPTION
-    WHEN duplicate_column THEN RAISE NOTICE 'column image_url already exists in reports.';
+    WHEN duplicate_column THEN RAISE NOTICE 'column url_image already exists in reports.';
 END $$;
 
--- Create an index on the image_url column for faster queries (optional)
--- CREATE INDEX IF NOT EXISTS idx_reports_image_url ON reports (image_url) WHERE image_url IS NOT NULL;
+-- Create an index on the url_image column for faster queries (optional)
+-- CREATE INDEX IF NOT EXISTS idx_reports_url_image ON reports (url_image) WHERE url_image IS NOT NULL;
+
 
 
 
