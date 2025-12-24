@@ -31,7 +31,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
           title: 'Rapport introuvable',
           description: 'Le rapport demandé n\'a pas été trouvé.',
-          images: [`${siteUrl}/og-image.png`],
+          images: [
+            {
+              url: `${siteUrl}/og-image.png`,
+              width: 1200,
+              height: 630,
+            },
+          ],
         },
         twitter: {
           card: 'summary_large_image',
@@ -73,20 +79,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : reportSummary;
 
     // Déterminer l'image OG : url_image en priorité, sinon fallback vers /og-image.png
-    // Utiliser une URL absolue pour garantir l'affichage sur WhatsApp/Facebook/Twitter
+    // Utiliser une URL absolue HTTPS pour garantir l'affichage sur WhatsApp/Facebook/Twitter
     let ogImageUrl: string;
     if (reportImage) {
-      // Si l'image est déjà une URL absolue, l'utiliser directement
+      // Si l'image est déjà une URL absolue
       if (reportImage.startsWith('http://') || reportImage.startsWith('https://')) {
-        ogImageUrl = reportImage;
+        // Forcer HTTPS pour Facebook (convertir http:// en https://)
+        ogImageUrl = reportImage.startsWith('http://')
+          ? reportImage.replace('http://', 'https://')
+          : reportImage;
       } else {
-        // Sinon, construire une URL absolue
+        // Sinon, construire une URL absolue HTTPS
         ogImageUrl = reportImage.startsWith('/') 
           ? `${siteUrl}${reportImage}`
           : `${siteUrl}/${reportImage}`;
       }
     } else {
-      // Fallback vers l'image par défaut
+      // Fallback vers l'image par défaut (toujours HTTPS)
       ogImageUrl = `${siteUrl}/og-image.png`;
     }
 
@@ -102,8 +111,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         images: [
           {
             url: ogImageUrl,
-            width: 1200,
-            height: 630,
+            width: 1200, // Explicitement défini pour Facebook
+            height: 630, // Explicitement défini pour Facebook
             alt: reportTitle,
           },
         ],
@@ -127,7 +136,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       openGraph: {
         title: 'Rapport introuvable',
         description: 'Une erreur est survenue lors du chargement du rapport.',
-        images: [`${siteUrl}/og-image.png`],
+        images: [
+          {
+            url: `${siteUrl}/og-image.png`,
+            width: 1200,
+            height: 630,
+          },
+        ],
       },
       twitter: {
         card: 'summary_large_image',

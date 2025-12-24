@@ -63,6 +63,9 @@ export const metadata: Metadata = {
       "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: ["/og-image.png"], // URL relative, sera résolue via metadataBase
   },
+  facebook: {
+    appId: "966242223397117",
+  },
   robots: {
     index: true,
     follow: true,
