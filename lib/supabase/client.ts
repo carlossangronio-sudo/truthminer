@@ -145,7 +145,9 @@ export async function insertReport(row: {
     score: row.score,
     content: row.content,
     created_at: row.createdAt,
-    updated_at: row.createdAt, // Initialiser updated_at avec created_at
+    // updated_at : initialiser seulement si la valeur est fournie (la colonne doit exister dans Supabase avec DEFAULT)
+    // Si la colonne n'existe pas, Supabase l'ignorera automatiquement
+    updated_at: row.createdAt,
   };
 
   // Ajouter la catégorie si elle existe
