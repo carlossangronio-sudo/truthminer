@@ -131,7 +131,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         images: [rawImage],
       },
       alternates: {
-        canonical: url,
+        canonical: url, // URL canonique absolue pour éviter le contenu dupliqué (Google)
+        // S'assurer que l'URL canonique est toujours absolue et HTTPS
       },
     };
   } catch (error) {

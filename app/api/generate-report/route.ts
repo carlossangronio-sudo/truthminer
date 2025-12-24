@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
 import { getCachedReport, getReportByTitle, insertReport } from '@/lib/supabase/client';
-import { extractMainKeyword, normalizeKeyword } from '@/lib/utils/keyword-extractor';
+import { extractMainKeyword, normalizeKeyword, generateSlug } from '@/lib/utils/keyword-extractor';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,19 +40,29 @@ export async function POST(request: NextRequest) {
     console.log('[API] 🔍 Mot-clé extrait pour recherche:', searchKeyword);
     console.log('[API] 🔍 Mot-clé normalisé:', normalizedProductName);
 
-    // 1. SYSTÈME DE CACHE ANTI-DOUBLONS : Vérifier EXACTEMENT le même nom dans Supabase
+    // 1. SYSTÈME DE CACHE ANTI-DOUBLONS RENFORCÉ : Vérifier si un rapport existe déjà
     // Avant de consommer des crédits OpenAI/Serper, on vérifie si un rapport identique existe
+    // La normalisation gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13'
+    // 
+    // IMPORTANT : Cette vérification est CRITIQUE pour éviter le contenu dupliqué Google
+    // Si plusieurs utilisateurs demandent la même chose, on redirige vers le rapport existant
     console.log('[API] 🔍 Vérification cache anti-doublons pour:', normalizedProductName);
+    
+    // Vérification 1 : Par product_name normalisé (le plus rapide)
     const existing = await getCachedReport(normalizedProductName);
 
     if (existing) {
-      console.log('[API] ✅ Rapport existant trouvé (cache hit) - redirection vers le rapport existant');
+      console.log('[API] ✅ Rapport existant trouvé par product_name (cache hit) - redirection vers le rapport existant');
       const existingContent = typeof existing.content === 'object'
         ? existing.content
         : JSON.parse(existing.content || '{}');
       
+      // Extraire le slug du rapport existant
+      const existingSlug = existingContent.slug || generateSlug(existingContent.title || normalizedProductName);
+      
       // Retourner le rapport existant avec un flag cached=true
       // Le frontend redirigera automatiquement vers /report/[slug]
+      // Cela évite le contenu dupliqué pour Google
       return NextResponse.json({
         success: true,
         report: {
@@ -63,8 +73,36 @@ export async function POST(request: NextRequest) {
           imageUrl: existing.image_url || existingContent.imageUrl || null,
         },
         cached: true,
-        redirect: `/report/${existingContent.slug || normalizedProductName}`,
+        redirect: `/report/${existingSlug}`,
       });
+    }
+
+    // Vérification 2 : Par slug potentiel (avant génération)
+    // Si le slug généré à partir du mot-clé existe déjà, on redirige
+    const potentialSlug = generateSlug(searchKeyword);
+    if (potentialSlug) {
+      const { getReportBySlug } = await import('@/lib/supabase/client');
+      const existingBySlug = await getReportBySlug(potentialSlug);
+      
+      if (existingBySlug) {
+        console.log('[API] ✅ Rapport existant trouvé par slug (cache hit) - redirection vers le rapport existant');
+        const existingContent = typeof existingBySlug.content === 'object'
+          ? existingBySlug.content
+          : JSON.parse(existingBySlug.content || '{}');
+        
+        return NextResponse.json({
+          success: true,
+          report: {
+            ...existingContent,
+            keyword: trimmedKeyword,
+            createdAt: existingBySlug.created_at,
+            confidenceScore: existingBySlug.score,
+            imageUrl: existingBySlug.image_url || existingContent.imageUrl || null,
+          },
+          cached: true,
+          redirect: `/report/${potentialSlug}`,
+        });
+      }
     }
 
     console.log('[API] ⚠️ Aucun rapport existant trouvé par product_name - génération d\'un nouveau rapport (consommation de crédits)');
@@ -88,8 +126,9 @@ export async function POST(request: NextRequest) {
     // Passer le mot-clé original pour l'affichage, mais utiliser searchKeyword pour la recherche
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
 
-    // 2.5. SÉCURITÉ ANTI-DOUBLONS PAR TITRE : Vérifier si un rapport avec le même titre existe déjà
+    // 2.5. SÉCURITÉ ANTI-DOUBLONS PAR TITRE ET SLUG : Vérifier si un rapport avec le même titre ou slug existe déjà
     // Cela évite de créer des doublons si le titre généré par OpenAI correspond à un rapport existant
+    // IMPORTANT : Cette vérification est CRITIQUE pour éviter le contenu dupliqué Google
     if (report.title) {
       console.log('[API] 🔍 Vérification anti-doublons par titre pour:', report.title);
       const existingByTitle = await getReportByTitle(report.title);
@@ -99,6 +138,8 @@ export async function POST(request: NextRequest) {
         const existingContent = typeof existingByTitle.content === 'object'
           ? existingByTitle.content
           : JSON.parse(existingByTitle.content || '{}');
+        
+        const existingSlug = existingContent.slug || generateSlug(existingByTitle.product_name);
         
         return NextResponse.json({
           success: true,
@@ -110,8 +151,35 @@ export async function POST(request: NextRequest) {
             imageUrl: existingByTitle.image_url || existingContent.imageUrl || null,
           },
           cached: true,
-          redirect: `/report/${existingContent.slug || normalizeKeyword(existingByTitle.product_name)}`,
+          redirect: `/report/${existingSlug}`,
         });
+      }
+      
+      // Vérification supplémentaire par slug généré depuis le titre
+      const reportSlug = report.slug || generateSlug(report.title);
+      if (reportSlug) {
+        const { getReportBySlug } = await import('@/lib/supabase/client');
+        const existingBySlug = await getReportBySlug(reportSlug);
+        
+        if (existingBySlug) {
+          console.log('[API] ✅ Rapport existant trouvé par slug généré (cache hit) - redirection vers le rapport existant');
+          const existingContent = typeof existingBySlug.content === 'object'
+            ? existingBySlug.content
+            : JSON.parse(existingBySlug.content || '{}');
+          
+          return NextResponse.json({
+            success: true,
+            report: {
+              ...existingContent,
+              keyword: trimmedKeyword,
+              createdAt: existingBySlug.created_at,
+              confidenceScore: existingBySlug.score,
+              imageUrl: existingBySlug.image_url || existingContent.imageUrl || null,
+            },
+            cached: true,
+            redirect: `/report/${reportSlug}`,
+          });
+        }
       }
     }
 

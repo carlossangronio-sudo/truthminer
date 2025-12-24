@@ -73,15 +73,50 @@ export function extractMainKeyword(fullQuery: string): string {
 }
 
 /**
- * Nettoie et normalise un mot-clé pour la recherche
+ * Nettoie et normalise un mot-clé pour la recherche anti-duplication
+ * Gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13'
+ * Supprime les accents, normalise les espaces, uniformise la casse
+ * 
+ * Cette fonction est CRITIQUE pour éviter le contenu dupliqué Google :
+ * - Normalise toutes les variations de casse (majuscules/minuscules)
+ * - Supprime les accents pour unifier les caractères
+ * - Normalise les espaces multiples et la ponctuation
+ * - Permet de détecter que 'iphone 13' = 'iPhone 13' = 'IPHONE 13'
  */
 export function normalizeKeyword(keyword: string): string {
+  if (!keyword || typeof keyword !== 'string') {
+    return '';
+  }
+  
   return keyword
     .trim()
     .toLowerCase()
+    // Normaliser les accents (é -> e, à -> a, etc.)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    // Normaliser les espaces multiples en un seul espace
     .replace(/\s+/g, ' ')
+    // Supprimer la ponctuation sauf tirets et espaces
     .replace(/[^\w\s-]/g, '')
+    // Supprimer les espaces en début/fin
     .trim();
+}
+
+/**
+ * Génère un slug normalisé à partir d'un titre ou mot-clé
+ * Utilisé pour créer des URLs cohérentes et détecter les doublons
+ */
+export function generateSlug(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 

@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: siteUrl,
+    canonical: siteUrl, // URL canonique absolue pour la page d'accueil
   },
   icons: {
     icon: [

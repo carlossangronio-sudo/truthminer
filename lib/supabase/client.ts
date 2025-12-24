@@ -51,6 +51,11 @@ type SupabaseReportRow = {
   updated_at?: string;
 };
 
+/**
+ * Récupère un rapport en cache en normalisant le nom du produit
+ * Recherche insensible à la casse et aux variations (ex: 'iphone 13' = 'iPhone 13')
+ * Évite le contenu dupliqué pour Google
+ */
 export async function getCachedReport(
   normalizedProductName: string
 ): Promise<SupabaseReportRow | null> {
@@ -58,6 +63,7 @@ export async function getCachedReport(
 
   console.log('[Supabase] getCachedReport →', { normalizedProductName });
 
+  // Recherche exacte d'abord (plus rapide)
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('product_name', `eq.${normalizedProductName}`);
@@ -77,8 +83,36 @@ export async function getCachedReport(
   }
 
   const data = (await res.json()) as SupabaseReportRow[] | null;
-  if (!data || data.length === 0) return null;
-  return data[0];
+  
+  // Si trouvé avec recherche exacte, retourner
+  if (data && data.length > 0) {
+    return data[0];
+  }
+
+  // Sinon, recherche flexible : récupérer les rapports récents et comparer les noms normalisés
+  // (Supabase ne supporte pas nativement les recherches insensibles à la casse avec ilike sur toutes les colonnes)
+  // IMPORTANT : Utiliser la même normalisation que dans keyword-extractor pour éviter les doublons
+  console.log('[Supabase] Recherche exacte infructueuse, recherche flexible...');
+  const allReports = await getAllReports(undefined, 100); // Limiter à 100 pour performance
+  
+  // Importer la fonction de normalisation pour cohérence
+  const { normalizeKeyword } = await import('@/lib/utils/keyword-extractor');
+  
+  // Normaliser le nom recherché pour comparaison (même logique que dans generate-report)
+  const searchNormalized = normalizeKeyword(normalizedProductName);
+  
+  for (const report of allReports) {
+    // Normaliser le nom du rapport avec la même fonction
+    const reportNormalized = normalizeKeyword(report.product_name);
+    // Comparaison flexible : même contenu après normalisation
+    // Cela détecte : 'iphone 13' = 'iPhone 13' = 'IPHONE 13'
+    if (reportNormalized === searchNormalized) {
+      console.log('[Supabase] ✅ Rapport trouvé avec recherche flexible:', report.product_name);
+      return report;
+    }
+  }
+
+  return null;
 }
 
 /**
