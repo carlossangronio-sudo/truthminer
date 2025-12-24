@@ -10,6 +10,7 @@ import ShareButtons from '@/components/ShareButtons';
 import ReportImage from '@/components/ReportImage';
 import SimilarReports from '@/components/SimilarReports';
 import Newsletter from '@/components/Newsletter';
+import FeaturesSection from '@/components/FeaturesSection';
 import Link from 'next/link';
 
 type ClientReport = {
@@ -175,6 +176,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Section Features - Explication de la méthode */}
+      {!report && <FeaturesSection />}
 
       {/* Section Rapport Généré */}
       {report && (
