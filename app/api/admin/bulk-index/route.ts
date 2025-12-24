@@ -20,10 +20,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
 export async function POST(request: NextRequest) {
   try {
     // Vérification d'authentification
-    const authHeader = request.headers.get('authorization');
+    const authHeader = request.headers.get('authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
     const secretKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
 
-    if (authHeader !== `Bearer ${secretKey}`) {
+    if (!token || token !== secretKey) {
       return NextResponse.json(
         { error: 'Non autorisé. Utilisez Authorization: Bearer <secret-key>' },
         { status: 401 }
