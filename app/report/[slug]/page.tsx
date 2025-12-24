@@ -64,6 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const reportSlug = (content as any).slug || slug;
     
     // Utiliser url_image (colonne ajoutée manuellement) en priorité, sinon image_url, sinon null
+    // IMPORTANT: url_image est déjà une URL en ligne et valide, on l'utilise directement
     const reportImage = supabaseReport.url_image || supabaseReport.image_url || null;
 
     const url = `${siteUrl}/report/${reportSlug}`;
@@ -78,18 +79,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `${reportSummary.substring(0, 197)}...`
       : reportSummary;
 
-    // Déterminer l'image OG : url_image en priorité, sinon fallback vers /og-image.png
+    // Déterminer l'image OG : url_image en priorité (déjà en ligne et valide), sinon fallback vers /og-image.png
     // Utiliser une URL absolue HTTPS pour garantir l'affichage sur WhatsApp/Facebook/Twitter
     let ogImageUrl: string;
     if (reportImage) {
-      // Si l'image est déjà une URL absolue
-      if (reportImage.startsWith('http://') || reportImage.startsWith('https://')) {
-        // Forcer HTTPS pour Facebook (convertir http:// en https://)
+      // Si url_image est présent, c'est déjà une URL en ligne valide, on l'utilise directement
+      if (supabaseReport.url_image) {
+        // url_image est déjà une URL complète et valide, l'utiliser telle quelle
+        // Mais s'assurer qu'elle est en HTTPS pour Facebook
+        ogImageUrl = supabaseReport.url_image.startsWith('http://')
+          ? supabaseReport.url_image.replace('http://', 'https://')
+          : supabaseReport.url_image;
+      } else if (reportImage.startsWith('http://') || reportImage.startsWith('https://')) {
+        // image_url est une URL absolue
         ogImageUrl = reportImage.startsWith('http://')
           ? reportImage.replace('http://', 'https://')
           : reportImage;
       } else {
-        // Sinon, construire une URL absolue HTTPS
+        // image_url est relative, construire une URL absolue HTTPS
         ogImageUrl = reportImage.startsWith('/') 
           ? `${siteUrl}${reportImage}`
           : `${siteUrl}/${reportImage}`;
