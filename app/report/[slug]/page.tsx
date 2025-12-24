@@ -119,8 +119,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     };
   } catch (error) {
+    console.error('[generateMetadata] Erreur:', error);
+    // Retourner des métadonnées par défaut en cas d'erreur
     return {
       title: 'Rapport introuvable',
+      description: 'Une erreur est survenue lors du chargement du rapport.',
+      openGraph: {
+        title: 'Rapport introuvable',
+        description: 'Une erreur est survenue lors du chargement du rapport.',
+        images: [`${siteUrl}/og-image.png`],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Rapport introuvable',
+        description: 'Une erreur est survenue lors du chargement du rapport.',
+        images: [`${siteUrl}/og-image.png`],
+      },
     };
   }
 }
