@@ -5,7 +5,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Footer from "@/components/Footer";
 import AnalyticsWrapper from "@/components/AnalyticsWrapper";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
+// URL canonique du site utilisée pour metadataBase et les liens absolus
+const siteUrl = "https://tminer.io";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,7 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  // IMPORTANT : metadataBase doit être défini explicitement avec l'URL canonique
+  // pour que Next.js résolve correctement les chemins relatifs (ex: /og-image.png)
+  metadataBase: new URL("https://tminer.io"),
   title: {
     default: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     template: "%s | TruthMiner",
@@ -49,11 +52,12 @@ export const metadata: Metadata = {
       "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: [
       {
-        url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // URL absolue HTTPS, sans slash final
+        // Laisser une URL RELATIVE : Next.js la convertira en URL absolue via metadataBase
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
-        type: 'image/png', // Type explicite pour Facebook
+        type: "image/png",
       },
     ],
   },
@@ -62,7 +66,8 @@ export const metadata: Metadata = {
     title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     description:
       "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
-    images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // URL absolue HTTPS, sans slash final
+    // Garder un chemin relatif pour laisser metadataBase faire le travail
+    images: ["/og-image.png"],
   },
   facebook: {
     appId: "966242223397117",
@@ -80,6 +85,15 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: siteUrl,
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 

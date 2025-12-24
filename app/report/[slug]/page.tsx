@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           description: 'Le rapport demandé n\'a pas été trouvé.',
           images: [
             {
-              url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // Supprimer le slash final
+              // Image de secours : chemin RELATIF, résolu via metadataBase
+              url: '/og-image.png',
               width: 1200,
               height: 630,
               type: 'image/png',
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           card: 'summary_large_image',
           title: 'Rapport introuvable',
           description: 'Le rapport demandé n\'a pas été trouvé.',
-          images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // Supprimer le slash final
+          images: ['/og-image.png'],
         },
       };
     }
@@ -65,29 +66,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const reportSlug = (content as any).slug || slug;
     
     // PRIORITÉ EXCLUSIVE : Utiliser url_image si elle existe (colonne manuelle, URL en ligne valide)
-    // Sinon, fallback vers og-image.png (image par défaut)
-    let ogImageUrl: string;
-    
-    if (supabaseReport.url_image) {
-      // url_image est EXCLUSIVEMENT utilisée si elle existe
-      // C'est une URL en ligne valide, on l'utilise directement
-      let cleanUrl = supabaseReport.url_image.trim();
-      
-      // Forcer HTTPS pour Facebook
-      if (cleanUrl.startsWith('http://')) {
-        cleanUrl = cleanUrl.replace('http://', 'https://');
-      }
-      
-      // Supprimer le slash final si présent (Facebook n'aime pas)
-      if (cleanUrl.endsWith('/')) {
-        cleanUrl = cleanUrl.slice(0, -1);
-      }
-      
-      ogImageUrl = cleanUrl;
-    } else {
-      // Fallback vers l'image par défaut (toujours HTTPS, sans slash final)
-      ogImageUrl = `${siteUrl}/og-image.png`;
+    // Sinon, fallback vers /og-image.png (image par défaut, chemin relatif)
+    // On laisse Next.js transformer les chemins relatifs en URLs absolues via metadataBase.
+    let imagePath = supabaseReport.url_image?.trim() || '/og-image.png';
+
+    // Forcer HTTPS si l'URL commence par http:// (cas des URLs complètes)
+    if (imagePath.startsWith('http://')) {
+      imagePath = imagePath.replace('http://', 'https://');
     }
+
+    // Nettoyer un éventuel slash final inutile
+    if (imagePath.length > 1 && imagePath.endsWith('/')) {
+      imagePath = imagePath.slice(0, -1);
+    }
+
+    // DEBUG TECHNIQUE : log temporaire pour vérifier l'URL réellement envoyée à Facebook/Twitter
+    console.log('OG Image URL:', imagePath);
     
     const url = `${siteUrl}/report/${reportSlug}`;
     
@@ -112,7 +106,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'article',
         images: [
           {
-            url: ogImageUrl.replace(/\/$/, ''), // Supprimer le slash final pour éviter les erreurs Facebook
+            // IMPORTANT :
+            // - Si imagePath commence par '/', Next.js utilisera metadataBase pour en faire une URL absolue.
+            // - Si imagePath est déjà une URL complète (https://...), elle sera utilisée telle quelle.
+            url: imagePath,
             width: 1200, // Explicitement défini pour Facebook
             height: 630, // Explicitement défini pour Facebook
             alt: reportTitle,
@@ -124,7 +121,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: 'summary_large_image',
         title: reportTitle,
         description: ogDescription,
-          images: [ogImageUrl.replace(/\/$/, '')], // Supprimer le slash final pour éviter les erreurs Twitter
+        // Même logique que pour OpenGraph : chemin relatif ou URL complète
+        images: [imagePath],
       },
       alternates: {
         canonical: url,
@@ -141,7 +139,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: 'Une erreur est survenue lors du chargement du rapport.',
         images: [
           {
-            url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // Supprimer le slash final
+            // Image de secours : chemin RELATIF, résolu via metadataBase
+            url: '/og-image.png',
             width: 1200,
             height: 630,
             type: 'image/png',
@@ -152,7 +151,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: 'summary_large_image',
         title: 'Rapport introuvable',
         description: 'Une erreur est survenue lors du chargement du rapport.',
-        images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // Supprimer le slash final
+        images: ['/og-image.png'],
       },
     };
   }
