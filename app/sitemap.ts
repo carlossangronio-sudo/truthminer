@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { getAllReports } from '@/lib/supabase/client';
 
-// Re-générer le sitemap toutes les heures (3600s) côté Vercel
-export const revalidate = 3600;
+// Forcer la génération dynamique à chaque requête (pas de cache)
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tminer.io';
 

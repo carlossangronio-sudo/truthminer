@@ -12,7 +12,7 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-# Sitemap (à créer plus tard si nécessaire)
-# Sitemap: https://tminer.io/sitemap.xml
+# Sitemap dynamique
+Sitemap: https://tminer.io/sitemap.xml
 
 
