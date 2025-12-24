@@ -24,8 +24,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const supabaseReport = await getReportBySlug(slug);
 
     if (!supabaseReport) {
+      // Retourner des métadonnées par défaut si le rapport n'est pas trouvé
       return {
         title: 'Rapport introuvable',
+        description: 'Le rapport demandé n\'a pas été trouvé.',
+        openGraph: {
+          title: 'Rapport introuvable',
+          description: 'Le rapport demandé n\'a pas été trouvé.',
+          images: [`${siteUrl}/og-image.png`],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: 'Rapport introuvable',
+          description: 'Le rapport demandé n\'a pas été trouvé.',
+          images: [`${siteUrl}/og-image.png`],
+        },
       };
     }
 
@@ -39,43 +52,49 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       content = {};
     }
 
-    const report = {
-      title: (content as any).title || supabaseReport.product_name || 'Rapport',
-      choice: (content as any).choice || 'Non spécifié',
-      slug: (content as any).slug || slug,
-      image_url: supabaseReport.image_url || null,
-    };
+    // Extraire le title et summary depuis le contenu
+    const reportTitle = (content as any).title || supabaseReport.product_name || 'Rapport';
+    const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur TruthMiner';
+    const reportSlug = (content as any).slug || slug;
+    
+    // Utiliser url_image (colonne ajoutée manuellement) en priorité, sinon image_url, sinon null
+    const reportImage = supabaseReport.url_image || supabaseReport.image_url || null;
 
-    const url = `${siteUrl}/report/${slug}`;
+    const url = `${siteUrl}/report/${reportSlug}`;
     
     // Description optimisée pour SEO (150-160 caractères)
-    const seoDescription = report.choice.length > 150 
-      ? `${report.choice.substring(0, 147)}...`
-      : report.choice;
+    const seoDescription = reportSummary.length > 150 
+      ? `${reportSummary.substring(0, 147)}...`
+      : reportSummary;
     
     // Description pour OG (200 caractères max)
-    const ogDescription = report.choice.length > 200
-      ? `${report.choice.substring(0, 197)}...`
-      : report.choice;
+    const ogDescription = reportSummary.length > 200
+      ? `${reportSummary.substring(0, 197)}...`
+      : reportSummary;
 
-    // Construire l'URL de l'image OG dynamique
-    const ogImageParams = new URLSearchParams({
-      title: report.title,
-      description: ogDescription,
-    });
-    
-    // Ajouter l'image du produit si disponible
-    if (report.image_url) {
-      ogImageParams.set('image', report.image_url);
+    // Déterminer l'image OG : url_image en priorité, sinon fallback vers /og-image.png
+    // Utiliser une URL absolue pour garantir l'affichage sur WhatsApp/Facebook/Twitter
+    let ogImageUrl: string;
+    if (reportImage) {
+      // Si l'image est déjà une URL absolue, l'utiliser directement
+      if (reportImage.startsWith('http://') || reportImage.startsWith('https://')) {
+        ogImageUrl = reportImage;
+      } else {
+        // Sinon, construire une URL absolue
+        ogImageUrl = reportImage.startsWith('/') 
+          ? `${siteUrl}${reportImage}`
+          : `${siteUrl}/${reportImage}`;
+      }
+    } else {
+      // Fallback vers l'image par défaut
+      ogImageUrl = `${siteUrl}/og-image.png`;
     }
-    
-    const ogImageUrl = `${siteUrl}/api/og?${ogImageParams.toString()}`;
 
     return {
-      title: report.title,
+      title: reportTitle,
       description: seoDescription,
       openGraph: {
-        title: report.title,
+        title: reportTitle,
         description: ogDescription,
         url,
         siteName: 'TruthMiner',
@@ -85,13 +104,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             url: ogImageUrl,
             width: 1200,
             height: 630,
-            alt: report.title,
+            alt: reportTitle,
           },
         ],
       },
       twitter: {
         card: 'summary_large_image',
-        title: report.title,
+        title: reportTitle,
         description: ogDescription,
         images: [ogImageUrl],
       },

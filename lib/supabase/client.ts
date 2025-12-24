@@ -21,6 +21,7 @@ type SupabaseReportRow = {
   content: any;
   category?: string;
   image_url: string | null;
+  url_image?: string | null; // Colonne ajoutée manuellement pour les images OG
   created_at: string;
   updated_at?: string;
 };
