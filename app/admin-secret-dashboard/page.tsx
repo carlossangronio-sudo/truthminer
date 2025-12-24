@@ -85,10 +85,11 @@ function calculateDailyStats(reports: any[]) {
 }
 
 interface AdminPageProps {
-  searchParams?: { key?: string };
+  searchParams: Promise<{ key?: string }> | { key?: string };
 }
 
-export default async function AdminSecretDashboard({ searchParams }: AdminPageProps = {}) {
+export default async function AdminSecretDashboard(props: AdminPageProps) {
+  const searchParams = await Promise.resolve(props.searchParams);
   const adminKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
   const providedKey = searchParams?.key;
 
