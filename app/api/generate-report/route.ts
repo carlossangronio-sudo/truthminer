@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
-import { getCachedReport, insertReport } from '@/lib/supabase/client';
+import { getCachedReport, getReportByTitle, insertReport } from '@/lib/supabase/client';
 import { extractMainKeyword, normalizeKeyword } from '@/lib/utils/keyword-extractor';
 
 export const dynamic = 'force-dynamic';
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log('[API] ⚠️ Aucun rapport existant trouvé - génération d\'un nouveau rapport (consommation de crédits)');
+    console.log('[API] ⚠️ Aucun rapport existant trouvé par product_name - génération d\'un nouveau rapport (consommation de crédits)');
     console.log('🚨 CONSOMMATION CRÉDIT : Appel API Serper pour recherche Reddit:', searchKeyword);
 
     // 2. Sinon, on génère un nouveau rapport avec Serper + OpenAI
@@ -87,6 +87,33 @@ export async function POST(request: NextRequest) {
     const openaiService = new OpenAIService();
     // Passer le mot-clé original pour l'affichage, mais utiliser searchKeyword pour la recherche
     const report = await openaiService.generateReport(trimmedKeyword, redditResults);
+
+    // 2.5. SÉCURITÉ ANTI-DOUBLONS PAR TITRE : Vérifier si un rapport avec le même titre existe déjà
+    // Cela évite de créer des doublons si le titre généré par OpenAI correspond à un rapport existant
+    if (report.title) {
+      console.log('[API] 🔍 Vérification anti-doublons par titre pour:', report.title);
+      const existingByTitle = await getReportByTitle(report.title);
+      
+      if (existingByTitle) {
+        console.log('[API] ✅ Rapport existant trouvé par titre (cache hit) - redirection vers le rapport existant');
+        const existingContent = typeof existingByTitle.content === 'object'
+          ? existingByTitle.content
+          : JSON.parse(existingByTitle.content || '{}');
+        
+        return NextResponse.json({
+          success: true,
+          report: {
+            ...existingContent,
+            keyword: trimmedKeyword,
+            createdAt: existingByTitle.created_at,
+            confidenceScore: existingByTitle.score,
+            imageUrl: existingByTitle.image_url || existingContent.imageUrl || null,
+          },
+          cached: true,
+          redirect: `/report/${existingContent.slug || normalizeKeyword(existingByTitle.product_name)}`,
+        });
+      }
+    }
 
     const now = new Date().toISOString();
 

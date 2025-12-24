@@ -132,7 +132,7 @@ export class SerperService {
         'https://google.serper.dev/images',
         {
           q: query,
-          num: 10, // Récupérer 10 images pour avoir plus de choix
+          num: 1, // Optimisation : ne chercher qu'une seule image pour économiser les crédits
         },
         {
           headers: {

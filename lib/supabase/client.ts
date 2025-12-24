@@ -56,6 +56,63 @@ export async function getCachedReport(
   return data[0] ?? null;
 }
 
+/**
+ * Vérifie si un rapport avec le même titre existe déjà dans Supabase
+ * @param title - Le titre du rapport à vérifier
+ * @returns Le rapport existant s'il existe, null sinon
+ */
+export async function getReportByTitle(title: string): Promise<SupabaseReportRow | null> {
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+
+  console.log('[Supabase] getReportByTitle →', { supabaseUrl, title });
+
+  // Récupérer tous les rapports et chercher dans le contenu JSON
+  const url = new URL('/rest/v1/reports', supabaseUrl);
+  url.searchParams.set('select', '*');
+  url.searchParams.set('order', 'created_at.desc');
+  url.searchParams.set('limit', '50'); // Limiter pour performance
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    console.warn('Erreur Supabase (getReportByTitle):', await res.text());
+    return null;
+  }
+
+  const reports = (await res.json()) as SupabaseReportRow[];
+  
+  // Normaliser le titre recherché
+  const normalizedTitle = title.toLowerCase().trim();
+  
+  // Chercher un rapport avec le même titre dans le contenu JSON
+  for (const report of reports) {
+    try {
+      const content = typeof report.content === 'object'
+        ? report.content
+        : JSON.parse(report.content || '{}');
+      
+      const reportTitle = (content.title || '').toLowerCase().trim();
+      
+      if (reportTitle === normalizedTitle) {
+        console.log('[Supabase] ✅ Rapport trouvé par titre:', title);
+        return report;
+      }
+    } catch (e) {
+      console.warn('[Supabase] Erreur lors du parsing du contenu pour le rapport:', report.id, e);
+      continue;
+    }
+  }
+
+  console.log('[Supabase] Aucun rapport trouvé pour le titre:', title);
+  return null;
+}
+
 export async function insertReport(row: {
   normalizedProductName: string;
   score: number;
