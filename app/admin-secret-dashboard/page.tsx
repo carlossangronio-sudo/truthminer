@@ -134,7 +134,7 @@ export default async function AdminSecretDashboard() {
               TruthMiner - Monitoring & Analytics
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <a
               href="/admin/subscribers"
               className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
