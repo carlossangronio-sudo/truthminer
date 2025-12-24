@@ -4,16 +4,22 @@ import { SerperResult } from './serper';
 export interface GeneratedReport {
   title: string;
   slug: string;
-  choice: string; // Choix de la communauté
-  defects: string[]; // Défauts rédhibitoires avec citations Reddit
-  article: string; // Article en Markdown
+  choice: string; // Choix de la communauté (mappé depuis consensus + punchline pour compatibilité)
+  defects: string[]; // Défauts rédhibitoires avec citations Reddit (mappé depuis cons[] pour compatibilité)
+  article: string; // Article en Markdown (construit depuis les nouveaux champs pour compatibilité)
   products: string[]; // Liste des produits mentionnés
-  userProfiles?: string; // Section "Est-ce fait pour vous ?"
+  userProfiles?: string; // Section "Est-ce fait pour vous ?" (mappé depuis recommendations[] pour compatibilité)
   confidenceScore?: number; // Score de confiance TruthMiner (0-100)
   category?: string; // Catégorie du produit (Électronique, Cosmétiques, Alimentation, Services)
   amazonSearchQuery?: string; // Requête de recherche Amazon optimisée et précise
   amazonRecommendationReason?: string; // Raison pour laquelle ce lien Amazon est proposé
   imageUrl?: string; // URL de l'image principale du produit
+  // Nouveaux champs du format JSON strict (pour compatibilité future avec ReportDisplay.jsx)
+  consensus?: string; // Le verdict principal de la communauté Reddit
+  pros?: string[]; // Points forts avec citations Reddit uniques
+  cons?: string[]; // Points faibles avec citations Reddit uniques
+  punchline?: string; // Punchline mémorable et critique
+  recommendations?: string[]; // Recommandations ciblées par profil
 }
 
 /**
@@ -48,19 +54,20 @@ OBJECTIFS PRINCIPAUX :
 2. Générer un lien Amazon propre et pertinent
 3. Identifier le produit principal pour la recherche d'image
 
-IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format suivant :
+IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STRICT suivant :
 {
-  "title": "Titre de l'article",
-  "choice": "Le produit le plus recommandé par la communauté avec explications détaillées",
-  "defects": ["Défaut 1 avec citation Reddit", "Défaut 2 avec citation Reddit"],
-  "article": "Article complet en Markdown avec introduction, sections, conclusion/verdict final",
+  "title": "Titre percutant et descriptif",
+  "consensus": "Le verdict principal de la communauté Reddit en 1-2 phrases tranchantes. Si c'est une mauvaise affaire, dis-le clairement dès le début.",
+  "pros": ["Point fort 1 avec citation Reddit unique", "Point fort 2 avec citation Reddit unique"],
+  "cons": ["Point faible 1 avec citation Reddit unique", "Point faible 2 avec citation Reddit unique"],
+  "punchline": "Une punchline mémorable et critique qui résume l'essence du verdict (ex: 'Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile.')",
+  "recommendations": ["Pour [profil] : OUI/NON - [explication courte]", "Pour [profil] : OUI/NON - [explication courte]"],
   "products": ["Nom du produit 1", "Nom du produit 2"],
-  "userProfiles": "Section 'Est-ce fait pour vous ?' avec profils d'utilisateurs",
-  "confidenceScore": 0-100 (score de confiance TruthMiner basé sur les avis Reddit),
-  "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services" (une seule catégorie, celle qui correspond le mieux au produit analysé),
+  "confidenceScore": 0-100,
+  "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services",
   "amazonSearchQuery": "Requête de recherche Amazon optimisée et précise",
   "amazonRecommendationReason": "Explication courte (1 phrase) de pourquoi ce lien Amazon est proposé",
-  "imageUrl": "URL de l'image principale du produit (sera remplie automatiquement par une recherche Google Images, tu peux mettre null ou une URL par défaut si tu n'en as pas)"
+  "imageUrl": null
 }
 
 RÈGLES DE VÉRIFICATION TECHNIQUE :
@@ -69,66 +76,57 @@ RÈGLES DE VÉRIFICATION TECHNIQUE :
 - Vérifie les spécifications techniques mentionnées dans les discussions Reddit avant de les citer
 - Si tu n'es pas sûr d'une caractéristique technique, indique-le clairement plutôt que d'inventer
 
-TON ET STYLE :
+TON ET STYLE - CRITIQUE ET TRANCHANT :
 - Ton : journaliste d'investigation tech **cynique, drôle et tranchant**, mais toujours factuel
 - Tu peux être moqueur avec les produits ratés, mais jamais avec les utilisateurs
+- **PRIORITÉ AU VERDICT** : Si le produit est une "mauvaise affaire en 2025", c'est l'élément CENTRAL du rapport, pas caché à la fin
+- Le champ "consensus" doit IMMÉDIATEMENT donner le verdict : "Mauvaise affaire", "Excellent choix", "Mitigé", etc.
 - Utilise des expressions tranchées : "Le consensus Reddit est sans appel", "Ce que le marketing vous cache", "La vérité que personne ne vous dit"
 - Sois direct et sans langue de bois : "Non, ce n'est pas fait pour vous si...", "Si vous cherchez X, passez votre chemin"
-- Utilise des formules percutantes : "Le verdict est tombé", "La communauté a tranché", "Voici ce qu'on ne vous dit pas"
-- Tu peux glisser des punchlines bien senties, dans le style :
-  - "Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile."
-  - "Le jeu qui a brisé plus de familles que les problèmes d'héritage."
+- La "punchline" doit être percutante et résumer l'essence critique du verdict
 
-STRUCTURE DE L'ARTICLE (Markdown) :
-1. Introduction (2 à 3 phrases maximum) qui résume l'ambiance générale sur Reddit : plutôt enthousiaste, mitigée, ou franchement négative. Donne le ton immédiatement.
-2. Points forts / Choix de la communauté :
-   - Détaille pourquoi ce produit ressort comme favori
-   - Donne des exemples concrets tirés des discussions (autonomie, confort, qualité d'image, simplicité, etc.)
-3. Points faibles / Pourquoi vous allez vouloir le jeter par la fenêtre :
-   - Liste les vrais problèmes rencontrés par les utilisateurs
-   - Utilise un vocabulaire coloré mais précis (sans exagérer les faits)
-   - Pour chaque point, illustre avec au moins un exemple précis venu d'un commentaire Reddit (sans inventer)
-4. Est-ce fait pour vous ? :
-   - Crée plusieurs profils ("Pour les créateurs de contenu : OUI", "Pour ceux qui cherchent un écran de cinéma portable : NON", etc.)
-   - Explique en une ou deux phrases POURQUOI c'est adapté ou non à chaque profil
-5. Verdict final :
-   - Conclus par un verdict clair sous la forme : "Achetez-le si..." et "Fuyez si..."
-   - Le ton doit rester factuel mais assumé (journaliste d'investigation qui tranche)
-   - Ajoute au moins **une punchline mémorable** au début ou à la fin de l'article (dans le style des exemples fournis ci-dessus)
+STRUCTURE ÉPURÉE - PAS DE SOUS-TITRES REDONDANTS :
+- Évite les titres redondants comme "Points forts" ET "Ce que la communauté apprécie" - choisis UN seul titre court et percutant
+- Utilise des titres directs : "Points forts", "Points faibles", "Verdict", "Recommandations"
+- Pas de sous-sections inutiles - va droit au but
 
-CITATIONS REDDIT OBLIGATOIRES :
-- Chaque défaut dans "defects" DOIT inclure au moins une citation anonymisée d'un membre Reddit
-- Tu privilégies les commentaires les plus drôles, les plus virulents ou les plus parlants, tant qu'ils sont factuels
-- Format : "Défaut : [citation] - Un utilisateur Reddit"
-- Exemple : "Surchauffe après 30 minutes : 'Mon unité devient brûlante au bout de 30 min' - Un utilisateur Reddit"
+CITATIONS REDDIT - ZÉRO RÉPÉTITION (RÈGLE ABSOLUE) :
+- **INTERDICTION STRICTE** : Tu ne peux JAMAIS utiliser la même citation Reddit deux fois dans un même rapport
+- Chaque citation doit être UNIQUE et utilisée UNE SEULE FOIS
+- Si tu as déjà utilisé une citation dans "pros", tu ne peux PAS la réutiliser dans "cons" ou ailleurs
+- Format pour chaque élément de "pros" et "cons" : "Description : '[citation exacte et unique]' - Un utilisateur Reddit"
+- Exemple pros : "Autonomie exceptionnelle : 'J'ai tenu 3 jours sans recharger' - Un utilisateur Reddit"
+- Exemple cons : "Surchauffe rapide : 'Mon unité devient brûlante au bout de 30 min' - Un utilisateur Reddit"
 - Les citations doivent être extraites des extraits fournis, pas inventées
+- Si tu manques de citations uniques, utilise des citations différentes pour chaque point, même si elles parlent du même sujet
 
-Instructions détaillées :
-1. "title" : Un titre accrocheur, percutant et descriptif
-2. "choice" : Identifie le "Choix de la communauté" avec un ton de journaliste d'investigation : explique pourquoi ce choix est crédible (ou ses limites)
-3. "defects" : Chaque défaut DOIT inclure une citation Reddit anonymisée. Format : "Description du défaut : '[citation exacte]' - Un utilisateur Reddit". Utilise des listes à puces Markdown (-) et mets les termes importants en **gras**.
-4. "article" : Article complet en Markdown avec TOUTES les sections listées ci-dessus. Utilise des titres clairs, des listes à puces pour les arguments, et mets en **gras** les concepts et caractéristiques clés. Si une information n'est pas mentionnée dans les discussions, écris "Non précisé sur Reddit" au lieu d'inventer.
-5. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
-6. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
+Instructions détaillées pour le format JSON STRICT :
+1. "title" : Un titre accrocheur, percutant et descriptif (ex: "La Poste et Colissimo : Quand le passage du facteur devient un casse-tête")
+2. "consensus" : Le verdict principal en 1-2 phrases. Si c'est une mauvaise affaire, dis-le clairement. Exemple : "Le consensus Reddit est sans appel : La Poste et Colissimo sont une mauvaise affaire en 2025. Les avis de passage systématiques et les colis introuvables transforment chaque livraison en parcours du combattant."
+3. "pros" : Tableau de points forts, CHACUN avec une citation Reddit UNIQUE. Format : "Point fort : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-3 points forts si disponibles.
+4. "cons" : Tableau de points faibles, CHACUN avec une citation Reddit UNIQUE. Format : "Point faible : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-4 points faibles si disponibles.
+5. "punchline" : Une punchline mémorable et critique qui résume l'essence du verdict. Exemple : "Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile."
+6. "recommendations" : Tableau de recommandations ciblées. Format : "Pour [profil] : OUI/NON - [explication courte]". Minimum 3-4 recommandations.
+7. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
+8. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
    - Tu dois extraire le **nom EXACT du modèle de produit le plus recommandé** (pas une catégorie générique)
    - Exemple : au lieu de "aspirateur", utilise "Roborock S8" si c'est le modèle précis cité par Reddit
    - Exemple : au lieu de "souris gaming", utilise "Logitech G Pro X Superlight" si c'est le modèle recommandé
    - Si le mot-clé est flou (ex: "Maison", "Tesla", "Gaming"), identifie l'objet PRÉCIS dont parle l'analyse
    - Si aucun produit physique précis n'est pertinent (service, logiciel), utilise une catégorie générale pertinente (ex: "VPN", "Logiciel de montage vidéo")
    - La requête doit être en français et optimisée pour Amazon.fr, en reprenant **le nom de modèle complet** tel qu'il apparaît dans les discussions
-7. "amazonRecommendationReason" : EXPLICATION COURTE (1 phrase maximum) de pourquoi ce lien Amazon est proposé :
+9. "amazonRecommendationReason" : EXPLICATION COURTE (1 phrase maximum) de pourquoi ce lien Amazon est proposé :
    - Exemple : "Nous avons sélectionné ce modèle car c'est la référence citée par les utilisateurs Reddit"
    - Exemple : "Basé sur votre intérêt pour l'autonomie Tesla, voici l'accessoire de charge le plus recommandé"
    - Exemple : "Ce produit correspond au choix de la communauté Reddit pour cette catégorie"
    - Si c'est un service/logiciel : "Redirection vers la catégorie générale la plus pertinente sur Amazon"
-6. "userProfiles" : Section "Est-ce fait pour vous ?" avec au moins 3-4 profils d'utilisateurs. Format : "Pour [profil] : OUI/NON - [explication]"
-7. "confidenceScore" : Un entier entre 0 et 100 qui reflète le niveau de confiance global de la communauté Reddit vis-à-vis du produit :
+10. "confidenceScore" : Un entier entre 0 et 100 qui reflète le niveau de confiance global de la communauté Reddit vis-à-vis du produit :
    - 80-100 : avis très positifs et cohérents
    - 60-79 : plutôt positif mais avec des réserves
    - 40-59 : mitigé
    - 0-39 : majoritairement négatif
    Ce score doit être basé UNIQUEMENT sur le ton et la proportion des commentaires positifs / neutres / négatifs dans les discussions fournies, sans rien inventer.
-8. "category" : Attribue UNE SEULE catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services". Choisis celle qui correspond le mieux au produit analysé en te basant sur le mot-clé ET le contenu des discussions Reddit :
+11. "category" : Attribue UNE SEULE catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services". Choisis celle qui correspond le mieux au produit analysé en te basant sur le mot-clé ET le contenu des discussions Reddit :
    
    **"Électronique"** : Tous les produits physiques technologiques et électroniques
    - Matériel informatique : ordinateurs, laptops, tablettes, smartphones, écrans, moniteurs, imprimantes
@@ -161,17 +159,17 @@ Instructions détaillées :
    
    **RÈGLE IMPORTANTE** : Si le produit est un OBJET PHYSIQUE que tu peux toucher, c'est "Électronique" ou "Cosmétiques" ou "Alimentation". Si c'est un SERVICE ou LOGICIEL, c'est "Services".
 
-Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes. Ne crée aucune information technique ou avis qui ne soit pas présent dans les extraits fournis.`;
+Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des citations exactes et UNIQUES. Ne crée aucune information technique ou avis qui ne soit pas présent dans les extraits fournis.`;
 
-    const userPrompt = `Analyse ces discussions Reddit sur "${keyword}" et génère un article de comparaison ultra-honnête au format JSON.
+    const userPrompt = `Analyse ces discussions Reddit sur "${keyword}" et génère un rapport ultra-honnête au format JSON STRICT.
 
-RAPPEL CRITIQUE :
+RAPPELS CRITIQUES :
 - Tu ne dois RIEN inventer : si une information n'apparaît pas dans les extraits, tu indiques clairement qu'elle est "Non précisée sur Reddit"
 - Vérifie les spécifications techniques (Smart vs AR, écran vs pas d'écran, etc.)
-- Utilise un ton tranché et sans compromis
-- Extrais des citations Reddit réelles pour chaque défaut
-- Utilise des listes à puces Markdown (-) pour les arguments clés et mets les éléments importants en **gras**
-- Inclus la section "Est-ce fait pour vous ?" avec des profils d'utilisateurs
+- Utilise un ton tranché et sans compromis - si c'est une mauvaise affaire, dis-le clairement dans "consensus"
+- **ZÉRO RÉPÉTITION** : Chaque citation Reddit doit être UNIQUE et utilisée UNE SEULE FOIS dans tout le rapport
+- Extrais des citations Reddit réelles et différentes pour chaque élément de "pros" et "cons"
+- Structure épurée : pas de sous-titres redondants, va droit au but
 
 Discussions Reddit à analyser :
 
@@ -186,7 +184,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choice, defects (tableau avec citations), article (Markdown complet), products (tableau), userProfiles (texte), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus, pros (tableau avec citations UNIQUES), cons (tableau avec citations UNIQUES), punchline, recommendations (tableau), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -228,19 +226,70 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs : title, choi
         ? parsed.category 
         : OpenAIService.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
 
+      // Mapper le nouveau format JSON strict vers l'ancien format pour compatibilité
+      // Nouveau format : consensus, pros[], cons[], punchline, recommendations[]
+      // Ancien format : choice, defects[], article, userProfiles
+      
+      const consensus = parsed.consensus || parsed.choice || 'Non identifié';
+      const pros = Array.isArray(parsed.pros) ? parsed.pros : [];
+      const cons = Array.isArray(parsed.cons) ? parsed.cons : [];
+      const punchline = parsed.punchline || '';
+      const recommendations = Array.isArray(parsed.recommendations) ? parsed.recommendations : [];
+      
+      // Construire "choice" (ancien format) à partir de consensus + punchline si disponible
+      const choice = punchline 
+        ? `${consensus} ${punchline}`.trim()
+        : consensus;
+      
+      // Construire "defects" (ancien format) à partir de cons[]
+      const defects = cons;
+      
+      // Construire "article" (ancien format) à partir des nouveaux champs
+      // Structure épurée sans sous-titres redondants
+      const articleParts = [
+        `## ${parsed.title || keyword}`,
+        '',
+        consensus,
+        '',
+        punchline ? `> ${punchline}` : '',
+        '',
+        '## Points forts',
+        '',
+        ...pros.map((pro: string) => `- ${pro}`),
+        '',
+        '## Points faibles',
+        '',
+        ...cons.map((con: string) => `- ${con}`),
+        '',
+        '## Recommandations',
+        '',
+        ...recommendations.map((rec: string) => `- ${rec}`),
+      ];
+      
+      const article = articleParts.join('\n');
+      
+      // Construire "userProfiles" (ancien format) à partir de recommendations[]
+      const userProfiles = recommendations.join('\n\n');
+
       const report = {
         title: parsed.title || keyword,
         slug, // IMPORTANT : Le slug doit être inclus dans le rapport
-        choice: parsed.choice || 'Non identifié',
-        defects: Array.isArray(parsed.defects) ? parsed.defects : [],
-        article: parsed.article || '',
+        choice, // Mappé depuis consensus + punchline
+        defects, // Mappé depuis cons[]
+        article, // Construit depuis les nouveaux champs
         products: Array.isArray(parsed.products) ? parsed.products : [],
-        userProfiles: parsed.userProfiles || '',
+        userProfiles, // Mappé depuis recommendations[]
         confidenceScore,
         category,
         amazonSearchQuery: parsed.amazonSearchQuery || parsed.amazon_search_query || keyword,
         amazonRecommendationReason: parsed.amazonRecommendationReason || parsed.amazon_recommendation_reason || 'Produit recommandé par la communauté Reddit',
         imageUrl: parsed.imageUrl || parsed.image_url || null,
+        // Stocker aussi les nouveaux champs pour compatibilité future
+        consensus: parsed.consensus,
+        pros: parsed.pros,
+        cons: parsed.cons,
+        punchline: parsed.punchline,
+        recommendations: parsed.recommendations,
       };
 
       console.log('[OpenAI] Rapport généré avec slug:', report.slug);
