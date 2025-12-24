@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import Navbar from '@/components/Navbar';
 import SimilarReports from '@/components/SimilarReports';
 import ImageCard from '@/components/ImageCard';
+import ReportFreshnessChecker from '@/components/ReportFreshnessChecker';
 import Newsletter from '@/components/Newsletter';
 
 interface PageProps {
@@ -106,6 +107,7 @@ export default async function ReportPage({ params }: PageProps) {
 
     // Formater le rapport avec des valeurs par défaut sécurisées
     const report = {
+      id: supabaseReport.id,
       title: content.title || supabaseReport.product_name || 'Rapport',
       slug: content.slug || slug,
       choice: content.choice || 'Non identifié',
@@ -117,6 +119,7 @@ export default async function ReportPage({ params }: PageProps) {
       userProfiles: content.userProfiles || '',
       confidenceScore: supabaseReport.score || 50,
       createdAt: supabaseReport.created_at || new Date().toISOString(),
+      updatedAt: supabaseReport.updated_at || supabaseReport.created_at || new Date().toISOString(),
       amazonSearchQuery: content.amazonSearchQuery || content.amazon_search_query || null,
       amazonRecommendationReason:
         content.amazonRecommendationReason || content.amazon_recommendation_reason || null,
@@ -127,6 +130,8 @@ export default async function ReportPage({ params }: PageProps) {
     return (
       <main className="min-h-screen bg-[#f9f9fb] text-gray-900 dark:bg-slate-950 dark:text-slate-50">
         <Navbar />
+        {/* Vérification automatique de fraîcheur (30 jours) */}
+        <ReportFreshnessChecker reportId={report.id} updatedAt={report.updatedAt} />
         <div className="container mx-auto px-4 md:px-6 py-8 md:py-12 max-w-4xl">
           {/* Header */}
           <div className="mb-10 pb-6 border-b border-gray-200 dark:border-slate-800">

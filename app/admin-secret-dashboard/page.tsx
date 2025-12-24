@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getAllReports, getRecentReports } from '@/lib/supabase/client';
 import RegenerateImageButton from '@/components/RegenerateImageButton';
+import UpdateReportButton from '@/components/UpdateReportButton';
 import { SerperService } from '@/lib/services/serper';
 
 export const dynamic = 'force-dynamic';
@@ -296,7 +297,10 @@ export default async function AdminSecretDashboard() {
                       )}
                     </td>
                     <td className="p-4 text-center">
-                      <RegenerateImageButton reportId={report.id} />
+                      <div className="flex flex-col items-center gap-2">
+                        <UpdateReportButton reportId={report.id} reportTitle={report.title} />
+                        <RegenerateImageButton reportId={report.id} />
+                      </div>
                     </td>
                     <td className="p-4 text-right">
                       <div className="text-sm text-slate-400">{report.date}</div>

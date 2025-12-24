@@ -22,6 +22,7 @@ type SupabaseReportRow = {
   category?: string;
   image_url: string | null;
   created_at: string;
+  updated_at?: string;
 };
 
 export async function getCachedReport(
@@ -138,12 +139,13 @@ export async function insertReport(row: {
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
 
-  // Vérification des colonnes : product_name, score, content, category, image_url, created_at
+  // Vérification des colonnes : product_name, score, content, category, image_url, created_at, updated_at
   const payload: any = {
     product_name: row.normalizedProductName,
     score: row.score,
     content: row.content,
     created_at: row.createdAt,
+    updated_at: row.createdAt, // Initialiser updated_at avec created_at
   };
 
   // Ajouter la catégorie si elle existe
@@ -353,6 +355,134 @@ export async function updateReportContent(
     return true;
   } catch (error) {
     console.error('[Supabase] ❌ Exception lors de la mise à jour du contenu:', error);
+    if (error instanceof Error) {
+      console.error('[Supabase] Message d\'erreur:', error.message);
+      console.error('[Supabase] Stack trace:', error.stack);
+    }
+    return false;
+  }
+}
+
+/**
+ * Récupère un rapport par son ID
+ */
+export async function getReportById(reportId: string): Promise<SupabaseReportRow | null> {
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+
+  console.log('[Supabase] getReportById →', { supabaseUrl, reportId });
+
+  const url = new URL('/rest/v1/reports', supabaseUrl);
+  url.searchParams.set('select', '*');
+  url.searchParams.set('id', `eq.${reportId}`);
+  url.searchParams.set('limit', '1');
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    console.warn('Erreur Supabase (getReportById):', await res.text());
+    return null;
+  }
+
+  const data = (await res.json()) as SupabaseReportRow[];
+  return data[0] ?? null;
+}
+
+/**
+ * Met à jour un rapport existant en préservant l'image existante (sauf si forceUpdateImage est true)
+ * @param reportId - ID du rapport à mettre à jour
+ * @param updates - Données à mettre à jour
+ * @param forceUpdateImage - Si true, remplace l'image même si elle existe déjà
+ */
+export async function updateReport(
+  reportId: string,
+  updates: {
+    score?: number;
+    content?: any;
+    category?: string;
+    imageUrl?: string | null;
+    forceUpdateImage?: boolean;
+  }
+): Promise<boolean> {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Supabase] ❌ Supabase non configuré pour updateReport');
+    return false;
+  }
+
+  console.log('[Supabase] updateReport →', { reportId, updates });
+
+  try {
+    // Récupérer le rapport existant pour préserver l'image
+    const existingReport = await getReportById(reportId);
+    if (!existingReport) {
+      console.error('[Supabase] ❌ Rapport non trouvé:', reportId);
+      return false;
+    }
+
+    const payload: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Mettre à jour le score si fourni
+    if (updates.score !== undefined) {
+      payload.score = updates.score;
+    }
+
+    // Mettre à jour le contenu si fourni
+    if (updates.content !== undefined) {
+      payload.content = updates.content;
+    }
+
+    // Mettre à jour la catégorie si fournie
+    if (updates.category !== undefined) {
+      payload.category = updates.category;
+    }
+
+    // Gestion de l'image : préserver l'image existante sauf si forceUpdateImage est true
+    if (updates.forceUpdateImage && updates.imageUrl !== undefined) {
+      // Forcer la mise à jour de l'image
+      payload.image_url = updates.imageUrl;
+    } else if (updates.imageUrl !== undefined && !existingReport.image_url) {
+      // Mettre à jour l'image seulement si elle n'existe pas déjà
+      payload.image_url = updates.imageUrl;
+    }
+    // Sinon, on ne touche pas à l'image (préservation)
+
+    const url = new URL(`/rest/v1/reports`, supabaseUrl);
+    url.searchParams.set('id', `eq.${reportId}`);
+
+    const res = await fetch(url.toString(), {
+      method: 'PATCH',
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('[Supabase] ❌ Erreur HTTP lors de la mise à jour du rapport:', {
+        status: res.status,
+        statusText: res.statusText,
+        error: errorText,
+        reportId,
+        payload,
+      });
+      return false;
+    }
+
+    console.log('[Supabase] ✅ Rapport mis à jour avec succès:', reportId);
+    return true;
+  } catch (error) {
+    console.error('[Supabase] ❌ Exception lors de la mise à jour du rapport:', error);
     if (error instanceof Error) {
       console.error('[Supabase] Message d\'erreur:', error.message);
       console.error('[Supabase] Stack trace:', error.stack);
