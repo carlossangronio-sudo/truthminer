@@ -12,6 +12,27 @@ interface Subscriber {
   created_at: string;
 }
 
+const SUBSCRIBERS_TIMEOUT_MS = 8000;
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  timeoutMs: number = SUBSCRIBERS_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 async function getSubscribers(): Promise<Subscriber[]> {
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('[Subscribers] Supabase non configuré');
@@ -23,7 +44,7 @@ async function getSubscribers(): Promise<Subscriber[]> {
     url.searchParams.set('select', 'id,email,created_at');
     url.searchParams.set('order', 'created_at.desc');
 
-    const res = await fetch(url.toString(), {
+    const res = await fetchWithTimeout(url.toString(), {
       headers: {
         apikey: supabaseAnonKey,
         Authorization: `Bearer ${supabaseAnonKey}`,
@@ -45,7 +66,24 @@ async function getSubscribers(): Promise<Subscriber[]> {
 }
 
 export default async function SubscribersPage() {
-  // Vérification basique de sécurité (peut être améliorée avec une vraie authentification)
+  // Protection simple via clé d'admin dans l'URL (même logique que le dashboard admin)
+  const adminKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
+  const url = new URL(typeof window === 'undefined' ? '' : window.location.href);
+  const providedKey = url.searchParams.get('key');
+
+  if (!providedKey || providedKey !== adminKey) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-gray-100 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <h1 className="text-2xl font-semibold">Accès refusé</h1>
+          <p className="text-sm text-slate-400">
+            Cette page est réservée à l&apos;administrateur. Fournissez une clé valide pour y accéder.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   const subscribers = await getSubscribers();
 
   return (

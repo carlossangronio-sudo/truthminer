@@ -1,6 +1,9 @@
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+// Timeout par défaut (en millisecondes) pour tous les appels Supabase
+const SUPABASE_TIMEOUT_MS = 8000;
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
     'Supabase non configuré : NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY manquant.'
@@ -11,6 +14,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.log(`Connexion Supabase OK : Projet ${host}`);
   } catch {
     console.log('Connexion Supabase OK : URL Supabase chargée');
+  }
+}
+
+/**
+ * Wrapper fetch avec timeout pour éviter de rester bloqué si Supabase est lent.
+ */
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  timeoutMs: number = SUPABASE_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(id);
   }
 }
 
@@ -31,17 +56,14 @@ export async function getCachedReport(
 ): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
-  console.log('[Supabase] getCachedReport →', {
-    supabaseUrl,
-    normalizedProductName,
-  });
+  console.log('[Supabase] getCachedReport →', { normalizedProductName });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('product_name', `eq.${normalizedProductName}`);
   url.searchParams.set('limit', '1');
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -54,8 +76,9 @@ export async function getCachedReport(
     return null;
   }
 
-  const data = (await res.json()) as SupabaseReportRow[];
-  return data[0] ?? null;
+  const data = (await res.json()) as SupabaseReportRow[] | null;
+  if (!data || data.length === 0) return null;
+  return data[0];
 }
 
 /**
@@ -66,7 +89,7 @@ export async function getCachedReport(
 export async function getReportByTitle(title: string): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
-  console.log('[Supabase] getReportByTitle →', { supabaseUrl, title });
+  console.log('[Supabase] getReportByTitle →', { title });
 
   // Récupérer tous les rapports et chercher dans le contenu JSON
   const url = new URL('/rest/v1/reports', supabaseUrl);
@@ -74,7 +97,7 @@ export async function getReportByTitle(title: string): Promise<SupabaseReportRow
   url.searchParams.set('order', 'created_at.desc');
   url.searchParams.set('limit', '50'); // Limiter pour performance
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -87,7 +110,8 @@ export async function getReportByTitle(title: string): Promise<SupabaseReportRow
     return null;
   }
 
-  const reports = (await res.json()) as SupabaseReportRow[];
+  const reports = (await res.json()) as SupabaseReportRow[] | null;
+  if (!reports) return null;
   
   // Normaliser le titre recherché
   const normalizedTitle = title.toLowerCase().trim();
@@ -130,11 +154,10 @@ export async function insertReport(row: {
   }
 
   console.log('[Supabase] insertReport →', {
-    supabaseUrl,
     product_name: row.normalizedProductName,
     score: row.score,
     category: row.category,
-    imageUrl: row.imageUrl,
+    hasImage: !!row.imageUrl,
     created_at: row.createdAt,
   });
 
@@ -164,7 +187,7 @@ export async function insertReport(row: {
   console.log('[Supabase] Payload d\'insertion:', JSON.stringify(payload, null, 2));
 
   try {
-    const res = await fetch(url.toString(), {
+    const res = await fetchWithTimeout(url.toString(), {
       method: 'POST',
       headers: {
         apikey: supabaseAnonKey,
@@ -205,7 +228,7 @@ export async function insertReport(row: {
     }
 
     // Récupérer l'ID du rapport créé
-    const data = await res.json();
+    const data = (await res.json()) as any[] | null;
     const reportId = Array.isArray(data) && data.length > 0 ? data[0].id : null;
     
     if (reportId) {
@@ -241,7 +264,7 @@ export async function updateReportCategory(
   const url = new URL(`/rest/v1/reports`, supabaseUrl);
   url.searchParams.set('id', `eq.${reportId}`);
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     method: 'PATCH',
     headers: {
       apikey: supabaseAnonKey,
@@ -273,13 +296,16 @@ export async function updateReportImage(
     return false;
   }
 
-  console.log('[Supabase] updateReportImage →', { reportId, imageUrl });
+  console.log('[Supabase] updateReportImage →', {
+    reportId,
+    hasImageUrl: !!imageUrl,
+  });
 
   try {
     const url = new URL(`/rest/v1/reports`, supabaseUrl);
     url.searchParams.set('id', `eq.${reportId}`);
 
-    const res = await fetch(url.toString(), {
+    const res = await fetchWithTimeout(url.toString(), {
       method: 'PATCH',
       headers: {
         apikey: supabaseAnonKey,
@@ -329,7 +355,7 @@ export async function updateReportContent(
   console.log('[Supabase] updateReportContent →', { reportId });
 
   try {
-    const url = new URL(`/rest/v1/reports`, supabaseUrl);
+  const url = new URL(`/rest/v1/reports`, supabaseUrl);
     url.searchParams.set('id', `eq.${reportId}`);
 
     const res = await fetch(url.toString(), {
@@ -372,14 +398,14 @@ export async function updateReportContent(
 export async function getReportById(reportId: string): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
-  console.log('[Supabase] getReportById →', { supabaseUrl, reportId });
+  console.log('[Supabase] getReportById →', { reportId });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
   url.searchParams.set('id', `eq.${reportId}`);
   url.searchParams.set('limit', '1');
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -392,8 +418,9 @@ export async function getReportById(reportId: string): Promise<SupabaseReportRow
     return null;
   }
 
-  const data = (await res.json()) as SupabaseReportRow[];
-  return data[0] ?? null;
+  const data = (await res.json()) as SupabaseReportRow[] | null;
+  if (!data || data.length === 0) return null;
+  return data[0];
 }
 
 /**
@@ -417,7 +444,13 @@ export async function updateReport(
     return false;
   }
 
-  console.log('[Supabase] updateReport →', { reportId, updates });
+  console.log('[Supabase] updateReport →', {
+    reportId,
+    hasContentUpdate: updates.content !== undefined,
+    hasScoreUpdate: updates.score !== undefined,
+    hasCategoryUpdate: updates.category !== undefined,
+    hasImageUpdate: updates.imageUrl !== undefined,
+  });
 
   try {
     // Récupérer le rapport existant pour préserver l'image
@@ -499,7 +532,7 @@ export async function getRecentReports(
 ): Promise<SupabaseReportRow[]> {
   if (!supabaseUrl || !supabaseAnonKey) return [];
 
-  console.log('[Supabase] getRecentReports →', { supabaseUrl, limit });
+  console.log('[Supabase] getRecentReports →', { limit });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
@@ -507,7 +540,7 @@ export async function getRecentReports(
   url.searchParams.set('score', 'gt.0'); // FILTRE : Exclure les rapports avec score 0%
   url.searchParams.set('limit', String(limit));
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -520,7 +553,8 @@ export async function getRecentReports(
     return [];
   }
 
-  const data = (await res.json()) as SupabaseReportRow[];
+  const data = (await res.json()) as SupabaseReportRow[] | null;
+  if (!data) return [];
   return data;
 }
 
@@ -530,7 +564,7 @@ export async function getAllReports(
 ): Promise<SupabaseReportRow[]> {
   if (!supabaseUrl || !supabaseAnonKey) return [];
 
-  console.log('[Supabase] getAllReports →', { supabaseUrl, category, limit });
+  console.log('[Supabase] getAllReports →', { category, limit });
 
   const url = new URL('/rest/v1/reports', supabaseUrl);
   url.searchParams.set('select', '*');
@@ -547,7 +581,7 @@ export async function getAllReports(
     url.searchParams.set('limit', limit.toString());
   }
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -560,7 +594,8 @@ export async function getAllReports(
     return [];
   }
 
-  const data = (await res.json()) as SupabaseReportRow[];
+  const data = (await res.json()) as SupabaseReportRow[] | null;
+  if (!data) return [];
   
   // FILTRE SUPPLÉMENTAIRE : Supprimer les doublons basés sur product_name
   // (pour éviter les doublons comme "Indigo Park")
@@ -584,7 +619,7 @@ export async function getAllReports(
 export async function getReportBySlug(slug: string): Promise<SupabaseReportRow | null> {
   if (!supabaseUrl || !supabaseAnonKey) return null;
 
-  console.log('[Supabase] getReportBySlug →', { supabaseUrl, slug });
+  console.log('[Supabase] getReportBySlug →', { slug });
 
   // OPTIMISATION 1 : Essayer de deviner le product_name à partir du slug
   // Le slug est souvent basé sur le product_name, donc on peut essayer de le reconstruire
@@ -603,7 +638,7 @@ export async function getReportBySlug(slug: string): Promise<SupabaseReportRow |
   url.searchParams.set('order', 'created_at.desc');
   url.searchParams.set('limit', '50'); // Limiter à 50 rapports récents pour la performance
 
-  const res = await fetch(url.toString(), {
+  const res = await fetchWithTimeout(url.toString(), {
     headers: {
       apikey: supabaseAnonKey,
       Authorization: `Bearer ${supabaseAnonKey}`,
@@ -616,7 +651,8 @@ export async function getReportBySlug(slug: string): Promise<SupabaseReportRow |
     return null;
   }
 
-  const recentReports = (await res.json()) as SupabaseReportRow[];
+  const recentReports = (await res.json()) as SupabaseReportRow[] | null;
+  if (!recentReports) return null;
   
   // 1. Chercher par slug dans le contenu (dans les rapports récents)
   for (const report of recentReports) {

@@ -65,23 +65,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur TruthMiner';
     const reportSlug = (content as any).slug || slug;
     
-    // PRIORITÉ EXCLUSIVE : Utiliser url_image si elle existe (colonne manuelle, URL en ligne valide)
-    // Sinon, fallback vers /og-image.png (image par défaut, chemin relatif)
+    // PRIORITÉ :
+    // 1) url_image (colonne manuelle, URL en ligne valide si présente)
+    // 2) image_url (URL générée automatiquement pour le produit)
+    // 3) /og-image.png (image par défaut, chemin relatif)
+    //
     // On laisse Next.js transformer les chemins relatifs en URLs absolues via metadataBase.
-    let imagePath = supabaseReport.url_image?.trim() || '/og-image.png';
+    let rawImage =
+      (supabaseReport.url_image && supabaseReport.url_image.trim()) ||
+      (supabaseReport.image_url && supabaseReport.image_url.trim()) ||
+      '/og-image.png';
 
     // Forcer HTTPS si l'URL commence par http:// (cas des URLs complètes)
-    if (imagePath.startsWith('http://')) {
-      imagePath = imagePath.replace('http://', 'https://');
+    if (rawImage.startsWith('http://')) {
+      rawImage = rawImage.replace('http://', 'https://');
     }
 
-    // Nettoyer un éventuel slash final inutile
-    if (imagePath.length > 1 && imagePath.endsWith('/')) {
-      imagePath = imagePath.slice(0, -1);
+    // Nettoyer un éventuel slash final inutile (sauf si c'est juste "/")
+    if (rawImage.length > 1 && rawImage.endsWith('/')) {
+      rawImage = rawImage.slice(0, -1);
     }
 
-    // DEBUG TECHNIQUE : log temporaire pour vérifier l'URL réellement envoyée à Facebook/Twitter
-    console.log('OG Image URL:', imagePath);
+    // DEBUG TECHNIQUE (non sensible) : log temporaire pour vérifier l'URL réellement envoyée à Facebook/Twitter
+    console.log('[SEO] OG Image URL générée pour le rapport:', rawImage);
     
     const url = `${siteUrl}/report/${reportSlug}`;
     
@@ -109,7 +115,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             // IMPORTANT :
             // - Si imagePath commence par '/', Next.js utilisera metadataBase pour en faire une URL absolue.
             // - Si imagePath est déjà une URL complète (https://...), elle sera utilisée telle quelle.
-            url: imagePath,
+            url: rawImage,
             width: 1200, // Explicitement défini pour Facebook
             height: 630, // Explicitement défini pour Facebook
             alt: reportTitle,
@@ -122,7 +128,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: reportTitle,
         description: ogDescription,
         // Même logique que pour OpenGraph : chemin relatif ou URL complète
-        images: [imagePath],
+        images: [rawImage],
       },
       alternates: {
         canonical: url,

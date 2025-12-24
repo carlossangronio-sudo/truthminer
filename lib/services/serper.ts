@@ -143,9 +143,8 @@ export class SerperService {
         }
       );
 
-      // Logger la structure complète de la réponse pour déboguer
-      console.log('[Serper] 📦 Structure complète de la réponse:', JSON.stringify(response.data, null, 2).substring(0, 1000));
-      console.log('[Serper] 🔑 Clés de la réponse:', Object.keys(response.data || {}));
+      // Logger uniquement les informations minimales pour éviter d'exposer des données sensibles
+      console.log('[Serper] Réponse reçue pour la recherche d\'image, clés disponibles:', Object.keys(response.data || {}));
       
       // Gérer différentes structures de réponse possibles
       let images: any[] = [];
@@ -174,16 +173,13 @@ export class SerperService {
         }
         
         if (images.length === 0) {
-          console.warn('[Serper] ⚠️ Structure de réponse inattendue. Clés disponibles:', Object.keys(response.data || {}));
-          // Logger un échantillon complet
-          console.log('[Serper] 📄 Échantillon de la réponse:', JSON.stringify(response.data, null, 2).substring(0, 500));
+          console.warn('[Serper] ⚠️ Structure de réponse inattendue pour la recherche d\'image.');
         }
       }
 
       // Parcourir les images pour trouver la première valide
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
-        console.log(`[Serper] 🔎 Analyse de l'image ${i + 1}/${images.length}:`, JSON.stringify(image, null, 2).substring(0, 200));
         
         // Essayer différents champs possibles pour l'URL
         let imageUrl = 

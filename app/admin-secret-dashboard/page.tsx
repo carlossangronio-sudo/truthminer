@@ -84,7 +84,27 @@ function calculateDailyStats(reports: any[]) {
   };
 }
 
-export default async function AdminSecretDashboard() {
+interface AdminPageProps {
+  searchParams?: { key?: string };
+}
+
+export default async function AdminSecretDashboard({ searchParams }: AdminPageProps = {}) {
+  const adminKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
+  const providedKey = searchParams?.key;
+
+  if (!providedKey || providedKey !== adminKey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+        <div className="text-center space-y-3">
+          <h1 className="text-2xl font-semibold">Accès refusé</h1>
+          <p className="text-sm text-slate-400">
+            Cette page est réservée à l&apos;administrateur. Fournissez une clé valide pour y accéder.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const allReports = await getAllReports();
   const recentReports = await getRecentReports(20);
   const apiStatus = await checkAPIStatus();
