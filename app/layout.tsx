@@ -49,10 +49,11 @@ export const metadata: Metadata = {
       "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: [
       {
-        url: `${siteUrl}/og-image.png`, // URL absolue HTTPS pour garantir l'affichage sur Facebook
+        url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // URL absolue HTTPS, sans slash final
         width: 1200,
         height: 630,
         alt: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
+        type: 'image/png', // Type explicite pour Facebook
       },
     ],
   },
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     description:
       "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
-    images: [`${siteUrl}/og-image.png`], // URL absolue HTTPS pour garantir l'affichage sur Twitter
+    images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // URL absolue HTTPS, sans slash final
   },
   facebook: {
     appId: "966242223397117",

@@ -33,9 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           description: 'Le rapport demandé n\'a pas été trouvé.',
           images: [
             {
-              url: `${siteUrl}/og-image.png`,
+              url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // Supprimer le slash final
               width: 1200,
               height: 630,
+              type: 'image/png',
             },
           ],
         },
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           card: 'summary_large_image',
           title: 'Rapport introuvable',
           description: 'Le rapport demandé n\'a pas été trouvé.',
-          images: [`${siteUrl}/og-image.png`],
+          images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // Supprimer le slash final
         },
       };
     }
@@ -63,10 +64,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur TruthMiner';
     const reportSlug = (content as any).slug || slug;
     
-    // Utiliser url_image (colonne ajoutée manuellement) en priorité, sinon image_url, sinon null
-    // IMPORTANT: url_image est déjà une URL en ligne et valide, on l'utilise directement
-    const reportImage = supabaseReport.url_image || supabaseReport.image_url || null;
-
+    // PRIORITÉ EXCLUSIVE : Utiliser url_image si elle existe (colonne manuelle, URL en ligne valide)
+    // Sinon, fallback vers og-image.png (image par défaut)
+    let ogImageUrl: string;
+    
+    if (supabaseReport.url_image) {
+      // url_image est EXCLUSIVEMENT utilisée si elle existe
+      // C'est une URL en ligne valide, on l'utilise directement
+      let cleanUrl = supabaseReport.url_image.trim();
+      
+      // Forcer HTTPS pour Facebook
+      if (cleanUrl.startsWith('http://')) {
+        cleanUrl = cleanUrl.replace('http://', 'https://');
+      }
+      
+      // Supprimer le slash final si présent (Facebook n'aime pas)
+      if (cleanUrl.endsWith('/')) {
+        cleanUrl = cleanUrl.slice(0, -1);
+      }
+      
+      ogImageUrl = cleanUrl;
+    } else {
+      // Fallback vers l'image par défaut (toujours HTTPS, sans slash final)
+      ogImageUrl = `${siteUrl}/og-image.png`;
+    }
+    
     const url = `${siteUrl}/report/${reportSlug}`;
     
     // Description optimisée pour SEO (150-160 caractères)
@@ -79,33 +101,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `${reportSummary.substring(0, 197)}...`
       : reportSummary;
 
-    // Déterminer l'image OG : url_image en priorité (déjà en ligne et valide), sinon fallback vers /og-image.png
-    // Utiliser une URL absolue HTTPS pour garantir l'affichage sur WhatsApp/Facebook/Twitter
-    let ogImageUrl: string;
-    if (reportImage) {
-      // Si url_image est présent, c'est déjà une URL en ligne valide, on l'utilise directement
-      if (supabaseReport.url_image) {
-        // url_image est déjà une URL complète et valide, l'utiliser telle quelle
-        // Mais s'assurer qu'elle est en HTTPS pour Facebook
-        ogImageUrl = supabaseReport.url_image.startsWith('http://')
-          ? supabaseReport.url_image.replace('http://', 'https://')
-          : supabaseReport.url_image;
-      } else if (reportImage.startsWith('http://') || reportImage.startsWith('https://')) {
-        // image_url est une URL absolue
-        ogImageUrl = reportImage.startsWith('http://')
-          ? reportImage.replace('http://', 'https://')
-          : reportImage;
-      } else {
-        // image_url est relative, construire une URL absolue HTTPS
-        ogImageUrl = reportImage.startsWith('/') 
-          ? `${siteUrl}${reportImage}`
-          : `${siteUrl}/${reportImage}`;
-      }
-    } else {
-      // Fallback vers l'image par défaut (toujours HTTPS)
-      ogImageUrl = `${siteUrl}/og-image.png`;
-    }
-
     return {
       title: reportTitle,
       description: seoDescription,
@@ -117,10 +112,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         type: 'article',
         images: [
           {
-            url: ogImageUrl,
+            url: ogImageUrl.replace(/\/$/, ''), // Supprimer le slash final pour éviter les erreurs Facebook
             width: 1200, // Explicitement défini pour Facebook
             height: 630, // Explicitement défini pour Facebook
             alt: reportTitle,
+            type: 'image/png', // Type explicite pour Facebook
           },
         ],
       },
@@ -128,7 +124,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: 'summary_large_image',
         title: reportTitle,
         description: ogDescription,
-        images: [ogImageUrl],
+          images: [ogImageUrl.replace(/\/$/, '')], // Supprimer le slash final pour éviter les erreurs Twitter
       },
       alternates: {
         canonical: url,
@@ -145,9 +141,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description: 'Une erreur est survenue lors du chargement du rapport.',
         images: [
           {
-            url: `${siteUrl}/og-image.png`,
+            url: `${siteUrl}/og-image.png`.replace(/\/$/, ''), // Supprimer le slash final
             width: 1200,
             height: 630,
+            type: 'image/png',
           },
         ],
       },
@@ -155,7 +152,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         card: 'summary_large_image',
         title: 'Rapport introuvable',
         description: 'Une erreur est survenue lors du chargement du rapport.',
-        images: [`${siteUrl}/og-image.png`],
+        images: [`${siteUrl}/og-image.png`.replace(/\/$/, '')], // Supprimer le slash final
       },
     };
   }
