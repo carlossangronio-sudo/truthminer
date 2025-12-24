@@ -43,22 +43,46 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: (content as any).title || supabaseReport.product_name || 'Rapport',
       choice: (content as any).choice || 'Non spécifié',
       slug: (content as any).slug || slug,
+      image_url: supabaseReport.image_url || null,
     };
 
     const url = `${siteUrl}/report/${slug}`;
+    
+    // Description optimisée pour SEO (150-160 caractères)
+    const seoDescription = report.choice.length > 150 
+      ? `${report.choice.substring(0, 147)}...`
+      : report.choice;
+    
+    // Description pour OG (200 caractères max)
+    const ogDescription = report.choice.length > 200
+      ? `${report.choice.substring(0, 197)}...`
+      : report.choice;
+
+    // Construire l'URL de l'image OG dynamique
+    const ogImageParams = new URLSearchParams({
+      title: report.title,
+      description: ogDescription,
+    });
+    
+    // Ajouter l'image du produit si disponible
+    if (report.image_url) {
+      ogImageParams.set('image', report.image_url);
+    }
+    
+    const ogImageUrl = `${siteUrl}/api/og?${ogImageParams.toString()}`;
 
     return {
       title: report.title,
-      description: `Découvrez le choix de la communauté Reddit : ${report.choice.substring(0, 150)}...`,
+      description: seoDescription,
       openGraph: {
         title: report.title,
-        description: report.choice.substring(0, 200),
+        description: ogDescription,
         url,
         siteName: 'TruthMiner',
         type: 'article',
         images: [
           {
-            url: `${siteUrl}/og-image.png`,
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: report.title,
@@ -68,7 +92,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       twitter: {
         card: 'summary_large_image',
         title: report.title,
-        description: report.choice.substring(0, 200),
+        description: ogDescription,
+        images: [ogImageUrl],
       },
       alternates: {
         canonical: url,
