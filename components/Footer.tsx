@@ -88,9 +88,17 @@ export default async function Footer() {
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider">
               Informations
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-              En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.
-            </p>
+            <div className="space-y-2">
+              <Link
+                href="/mentions-legales"
+                className="block text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+              >
+                Mentions légales
+              </Link>
+              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mt-4">
+                En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.
+              </p>
+            </div>
           </div>
         </div>
 
