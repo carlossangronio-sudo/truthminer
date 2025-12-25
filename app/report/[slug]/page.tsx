@@ -204,11 +204,13 @@ export default async function ReportPage({ params }: PageProps) {
       url_image: supabaseReport.url_image || null,
       image_url: supabaseReport.url_image || supabaseReport.image_url || null,
       productName: supabaseReport.product_name || null,
-      // Nouveaux champs JSON structurés
+      // Nouveaux champs JSON structurés (alignement avec le nouveau format)
       consensus: content.consensus || content.choice || null,
       pros: Array.isArray(content.pros) ? content.pros : [],
-      cons: Array.isArray(content.cons) ? content.cons : content.defects || [],
+      cons: Array.isArray(content.cons) ? content.cons : (Array.isArray(content.defects) ? content.defects : []),
       punchline: content.punchline || null,
+      final_verdict: content.final_verdict || null,
+      target_audience: content.target_audience || null,
       recommendations: Array.isArray(content.recommendations) ? content.recommendations : [],
     };
 
