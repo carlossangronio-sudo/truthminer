@@ -34,7 +34,12 @@ interface ReportDisplayProps {
     pros?: string[];
     cons?: string[];
     punchline?: string | null;
+    final_verdict?: string | null;
     recommendations?: string[];
+    target_audience?: {
+      yes?: string;
+      no?: string;
+    };
   };
 }
 
@@ -43,8 +48,23 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
   const consensus = report.consensus || report.choice || 'Analyse en cours...';
   const pros = report.pros || [];
   const cons = report.cons || report.defects || [];
-  const punchline = report.punchline || null;
-  const recommendations = report.recommendations || [];
+  const finalVerdict = report.final_verdict || report.punchline || null;
+  const targetAudience = report.target_audience;
+  
+  // Construire recommendations à partir de target_audience si disponible
+  let recommendations: string[] = [];
+  if (targetAudience) {
+    if (targetAudience.yes) {
+      recommendations.push(`✅ ${targetAudience.yes}`);
+    }
+    if (targetAudience.no) {
+      recommendations.push(`❌ ${targetAudience.no}`);
+    }
+  }
+  // Fallback : utiliser recommendations existant si target_audience n'existe pas
+  if (recommendations.length === 0 && report.recommendations) {
+    recommendations = report.recommendations;
+  }
 
   // Compter les signaux analysés (approximation basée sur le score)
   const signalCount = Math.max(50, Math.round(score * 10));

@@ -18,8 +18,13 @@ export interface GeneratedReport {
   consensus?: string; // Le verdict principal de la communauté Reddit
   pros?: string[]; // Points forts avec citations Reddit uniques
   cons?: string[]; // Points faibles avec citations Reddit uniques
-  punchline?: string; // Punchline mémorable et critique
-  recommendations?: string[]; // Recommandations ciblées par profil
+  final_verdict?: string; // Verdict final avec métaphore originale (remplace punchline)
+  target_audience?: { // Profils ciblés (remplace recommendations)
+    yes?: string; // Profil qui adorera ce produit
+    no?: string; // Profil qui sera déçu
+  };
+  recommendations?: string[]; // Ancien format (pour compatibilité)
+  punchline?: string; // Ancien format (pour compatibilité)
 }
 
 /**
@@ -57,11 +62,14 @@ OBJECTIFS PRINCIPAUX :
 IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STRICT suivant :
 {
   "title": "Titre percutant et descriptif",
-  "consensus": "Le verdict principal de la communauté Reddit en 1-2 phrases tranchantes. Si c'est une mauvaise affaire, dis-le clairement dès le début.",
+  "consensus": "Une phrase percutante qui résume l'avis général de la communauté Reddit. Si c'est une mauvaise affaire, dis-le clairement dès le début.",
   "pros": ["Point fort 1 avec citation Reddit unique", "Point fort 2 avec citation Reddit unique"],
-  "cons": ["Point faible 1 avec citation Reddit unique", "Point faible 2 avec citation Reddit unique"],
-  "punchline": "Une punchline mémorable et critique qui résume l'essence du verdict (ex: 'Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile.')",
-  "recommendations": ["Pour [profil] : OUI/NON - [explication courte]", "Pour [profil] : OUI/NON - [explication courte]"],
+  "cons": ["Défaut caché 1 avec citation Reddit unique", "Défaut caché 2 avec citation Reddit unique"],
+  "target_audience": {
+    "yes": "Le profil type qui adorera ce produit (ex: Les sportifs intensifs). Une phrase ultra-courte.",
+    "no": "Le profil type qui sera déçu (ex: Ceux qui cherchent la durabilité). Une phrase ultra-courte."
+  },
+  "final_verdict": "Un paragraphe court et brut, terminant par une métaphore originale (ex: Acheter ça, c'est comme...). NE PAS lister les pros/cons, donner une conclusion globale et émotionnelle.",
   "products": ["Nom du produit 1", "Nom du produit 2"],
   "confidenceScore": 0-100,
   "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services",
@@ -105,8 +113,11 @@ Instructions détaillées pour le format JSON STRICT :
 2. "consensus" : Le verdict principal en 1-2 phrases. Si c'est une mauvaise affaire, dis-le clairement. Exemple : "Le consensus Reddit est sans appel : La Poste et Colissimo sont une mauvaise affaire en 2025. Les avis de passage systématiques et les colis introuvables transforment chaque livraison en parcours du combattant."
 3. "pros" : Tableau de points forts, CHACUN avec une citation Reddit UNIQUE. Format : "Point fort : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-3 points forts si disponibles.
 4. "cons" : Tableau de points faibles, CHACUN avec une citation Reddit UNIQUE. Format : "Point faible : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-4 points faibles si disponibles.
-5. "punchline" : Une punchline mémorable et critique qui résume l'essence du verdict. Exemple : "Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile."
-6. "recommendations" : Tableau de recommandations ciblées. Format : "Pour [profil] : OUI/NON - [explication courte]". Minimum 3-4 recommandations.
+5. "target_audience" : Objet avec deux champs ultra-courts (une phrase chacun) :
+   - "yes" : Le profil type qui adorera ce produit (ex: "Les sportifs intensifs qui cherchent la performance pure.")
+   - "no" : Le profil type qui sera déçu (ex: "Ceux qui cherchent la durabilité à long terme.")
+6. "final_verdict" : Un paragraphe court et brut qui donne une conclusion globale et émotionnelle, terminant par une métaphore originale (ex: "Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile."). 
+   **RÈGLE D'OR** : Le 'final_verdict' ne doit PAS lister les pros/cons déjà mentionnés. Il doit donner une conclusion globale et émotionnelle.
 7. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
 8. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
    - Tu dois extraire le **nom EXACT du modèle de produit le plus recommandé** (pas une catégorie générique)
@@ -170,6 +181,8 @@ RAPPELS CRITIQUES :
 - **ZÉRO RÉPÉTITION** : Chaque citation Reddit doit être UNIQUE et utilisée UNE SEULE FOIS dans tout le rapport
 - Extrais des citations Reddit réelles et différentes pour chaque élément de "pros" et "cons"
 - Structure épurée : pas de sous-titres redondants, va droit au but
+- **RÈGLE D'OR pour final_verdict** : Ne PAS lister les pros/cons déjà mentionnés. Donner une conclusion globale et émotionnelle avec une métaphore originale à la fin
+- **target_audience** : Ultra-court (une phrase par profil), direct et percutant
 
 Discussions Reddit à analyser :
 
@@ -184,7 +197,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus, pros (tableau avec citations UNIQUES), cons (tableau avec citations UNIQUES), punchline, recommendations (tableau), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus, pros (tableau avec citations UNIQUES), cons (tableau avec citations UNIQUES), target_audience (objet avec yes/no), final_verdict (paragraphe court avec métaphore, SANS lister les pros/cons), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -227,18 +240,37 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         : OpenAIService.detectCategoryFromKeyword(keyword); // Détection automatique si l'IA a mal catégorisé
 
       // Mapper le nouveau format JSON strict vers l'ancien format pour compatibilité
-      // Nouveau format : consensus, pros[], cons[], punchline, recommendations[]
+      // Nouveau format : consensus, pros[], cons[], target_audience {yes, no}, final_verdict
       // Ancien format : choice, defects[], article, userProfiles
       
       const consensus = parsed.consensus || parsed.choice || 'Non identifié';
       const pros = Array.isArray(parsed.pros) ? parsed.pros : [];
       const cons = Array.isArray(parsed.cons) ? parsed.cons : [];
-      const punchline = parsed.punchline || '';
-      const recommendations = Array.isArray(parsed.recommendations) ? parsed.recommendations : [];
       
-      // Construire "choice" (ancien format) à partir de consensus + punchline si disponible
-      const choice = punchline 
-        ? `${consensus} ${punchline}`.trim()
+      // Nouveau format : target_audience et final_verdict
+      const targetAudience = parsed.target_audience || {};
+      const finalVerdict = parsed.final_verdict || parsed.punchline || '';
+      
+      // Ancien format (pour compatibilité) : punchline et recommendations
+      const punchline = finalVerdict; // final_verdict remplace punchline
+      const recommendations: string[] = [];
+      
+      // Construire recommendations[] à partir de target_audience pour compatibilité
+      if (targetAudience.yes) {
+        recommendations.push(`Pour ${targetAudience.yes} : OUI`);
+      }
+      if (targetAudience.no) {
+        recommendations.push(`Pour ${targetAudience.no} : NON`);
+      }
+      
+      // Fallback : si recommendations existe déjà (ancien format), l'utiliser
+      if (Array.isArray(parsed.recommendations) && parsed.recommendations.length > 0) {
+        recommendations.push(...parsed.recommendations);
+      }
+      
+      // Construire "choice" (ancien format) à partir de consensus + final_verdict si disponible
+      const choice = finalVerdict 
+        ? `${consensus} ${finalVerdict}`.trim()
         : consensus;
       
       // Construire "defects" (ancien format) à partir de cons[]
@@ -251,7 +283,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         '',
         consensus,
         '',
-        punchline ? `> ${punchline}` : '',
+        finalVerdict ? `> ${finalVerdict}` : '',
         '',
         '## Points forts',
         '',
@@ -261,7 +293,7 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         '',
         ...cons.map((con: string) => `- ${con}`),
         '',
-        '## Recommandations',
+        '## Est-ce fait pour vous ?',
         '',
         ...recommendations.map((rec: string) => `- ${rec}`),
       ];
@@ -288,8 +320,11 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         consensus: parsed.consensus,
         pros: parsed.pros,
         cons: parsed.cons,
-        punchline: parsed.punchline,
-        recommendations: parsed.recommendations,
+        final_verdict: parsed.final_verdict || parsed.punchline,
+        target_audience: parsed.target_audience,
+        // Anciens champs pour compatibilité
+        punchline: parsed.punchline || parsed.final_verdict,
+        recommendations: recommendations.length > 0 ? recommendations : parsed.recommendations,
       };
 
       console.log('[OpenAI] Rapport généré avec slug:', report.slug);
