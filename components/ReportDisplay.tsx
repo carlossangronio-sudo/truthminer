@@ -208,7 +208,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
               <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
                 Analyse Détaillée
               </h2>
-              <div className="prose prose-lg max-w-none markdown-content prose-invert">
+              <div className="prose prose-lg max-w-none markdown-content prose-invert prose-headings:text-white prose-p:text-slate-100 prose-strong:text-white prose-li:text-slate-100 prose-a:text-cyan-400">
                 <ReactMarkdown>{report.article}</ReactMarkdown>
               </div>
             </motion.section>
