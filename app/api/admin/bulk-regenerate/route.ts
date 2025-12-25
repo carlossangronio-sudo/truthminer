@@ -11,7 +11,8 @@ const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024'
 async function handleRegeneration(req: Request) {
   const { searchParams } = new URL(req.url);
   const key = searchParams.get('key');
-  const targetSlug = searchParams.get('slug');
+  const targetId = searchParams.get('id');
+  const targetProductName = searchParams.get('product_name');
 
   // 1. Vérification de sécurité
   if (!key || key !== ADMIN_SECRET_KEY) {
@@ -23,12 +24,17 @@ async function handleRegeneration(req: Request) {
 
   const supabase = createClient();
 
-  // 2. Sélection des rapports (Correction : utilisation de 'image_url' au lieu de 'url_image')
-  // On récupère product_name, image_url et slug pour identifier les rapports
-  let query = supabase.from('reports').select('id, product_name, image_url, slug');
+  // 2. Sélection des rapports (Correction : colonnes réelles de la table reports)
+  // On récupère uniquement les colonnes qui existent : id, product_name, image_url
+  let query = supabase.from('reports').select('id, product_name, image_url');
   
-  if (targetSlug) {
-    query = query.eq('slug', targetSlug);
+  // Filtre par ID si fourni (mode test sur un seul rapport)
+  if (targetId) {
+    query = query.eq('id', targetId);
+  }
+  // Sinon, filtre par product_name si fourni (alternative pour mode test)
+  else if (targetProductName) {
+    query = query.eq('product_name', targetProductName);
   }
 
   const { data: reports, error: fetchError } = await query;
@@ -93,8 +99,8 @@ async function handleRegeneration(req: Request) {
       if (updateError) throw updateError;
       results.success++;
 
-      // Si c'est un test sur un seul slug, on s'arrête là
-      if (targetSlug) break;
+      // Si c'est un test sur un seul rapport, on s'arrête là
+      if (targetId || targetProductName) break;
 
       // Petit délai pour éviter de saturer l'API OpenAI
       await new Promise(r => setTimeout(r, 400));
