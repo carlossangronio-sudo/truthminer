@@ -23,9 +23,8 @@ async function handleRegeneration(req: Request) {
 
   const supabase = createClient();
 
-  // 2. Sélection des rapports (Tous ou un seul via ?slug=...)
-  // On récupère product_name ou title pour être flexible
-  let query = supabase.from('reports').select('id, title, product_name, url_image, slug');
+  // 2. Sélection des rapports (Correction : on retire 'title' qui n'existe pas dans votre table)
+  let query = supabase.from('reports').select('id, product_name, url_image, slug');
   
   if (targetSlug) {
     query = query.eq('slug', targetSlug);
@@ -34,7 +33,10 @@ async function handleRegeneration(req: Request) {
   const { data: reports, error: fetchError } = await query;
 
   if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Erreur Supabase", 
+      details: fetchError.message 
+    }, { status: 500 });
   }
 
   if (!reports || reports.length === 0) {
@@ -44,9 +46,9 @@ async function handleRegeneration(req: Request) {
   const results = { success: 0, failed: 0, total: reports.length, details: [] as any[] };
 
   for (const report of reports) {
+    const productName = report.product_name || "Produit inconnu";
+    
     try {
-      const productName = report.product_name || report.title || "Produit inconnu";
-
       // PROMPT NARRATIF V3 (Évite les redondances)
       const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${productName}.
       
@@ -96,7 +98,7 @@ async function handleRegeneration(req: Request) {
       await new Promise(r => setTimeout(r, 400));
     } catch (err: any) {
       results.failed++;
-      results.details.push({ product: report.title, error: err.message });
+      results.details.push({ product: productName, error: err.message });
     }
   }
 
