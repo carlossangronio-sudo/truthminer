@@ -151,8 +151,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                 className="p-6 bg-slate-900/50 border border-emerald-500/20 rounded-2xl backdrop-blur-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
-                    <CheckCircle className="w-5 h-5 text-emerald-400" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
                   </div>
                   <h3 className="text-xl font-black text-white uppercase tracking-tighter">
                     Points Forts

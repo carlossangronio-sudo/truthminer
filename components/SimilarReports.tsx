@@ -84,15 +84,17 @@ export default function SimilarReports({ currentSlug, currentCategory }: Similar
 
   return (
     <section className="mt-16 pt-12 border-t border-gray-200 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           🔍 D'autres vérités à découvrir
         </h2>
         <Link
           href="/explore"
-          className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium whitespace-nowrap sm:ml-4"
         >
-          Voir toutes les analyses →
+          <span className="hidden sm:inline">Voir toutes les analyses</span>
+          <span className="sm:hidden">Toutes les analyses</span>
+          <span className="hidden sm:inline"> →</span>
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
