@@ -145,7 +145,7 @@ export default function Home() {
                 disabled={isLoading || !keyword.trim()}
                 className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]"
               >
-                {isLoading ? 'Analyse en cours...' : 'Scanner'}
+                {isLoading ? 'Analyse en cours...' : 'Miner'}
               </button>
             </div>
 
@@ -172,13 +172,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section Features - Explication de la méthode */}
-      <FeaturesSection />
-
       {/* Tutorial interactif */}
       <section className="relative py-16 md:py-24">
         <InterfaceTutorial />
       </section>
+
+      {/* Section Features - Explication de la méthode */}
+      <FeaturesSection />
 
       {/* Archives - Rapports récents */}
       {!isLoadingReports && recentReports.length > 0 && (
