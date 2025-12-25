@@ -15,6 +15,7 @@ export async function GET(req: Request) {
 
   // 1. Sécurité
   if (!key || key !== ADMIN_SECRET_KEY) {
+    console.error('[BulkRegenerate] ❌ Clé invalide');
     return NextResponse.json({ 
       error: 'Accès non autorisé' 
     }, { status: 401 });
@@ -25,26 +26,42 @@ export async function GET(req: Request) {
   // --- MODE INDIVIDUEL (Appelé par le navigateur pour 1 rapport) ---
   if (id || productNameParam) {
     try {
+      console.log('[BulkRegenerate] Début traitement - ID:', id, 'Product:', productNameParam);
+      
+      // Étape 1: Récupération du rapport
       let query = supabase.from('reports').select('id, product_name, image_url');
       
       if (id) {
         query = query.eq('id', id);
       } else if (productNameParam) {
-        // Utilisation de eq() pour une correspondance exacte (plus sûr que ilike)
         query = query.eq('product_name', productNameParam);
       }
 
+      console.log('[BulkRegenerate] Exécution requête Supabase...');
       const { data: report, error: fetchError } = await query.maybeSingle();
       
-      if (fetchError || !report) {
-        throw new Error(fetchError?.message || "Rapport non trouvé");
+      if (fetchError) {
+        console.error('[BulkRegenerate] ❌ Erreur Supabase (fetch):', fetchError);
+        return NextResponse.json({ 
+          success: false,
+          error: `Erreur Supabase: ${fetchError.message}`,
+          step: 'fetch'
+        }, { status: 500 });
+      }
+      
+      if (!report) {
+        console.error('[BulkRegenerate] ❌ Rapport non trouvé');
+        return NextResponse.json({ 
+          success: false,
+          error: "Rapport non trouvé",
+          step: 'fetch'
+        }, { status: 404 });
       }
 
       const name = report.product_name || "Produit inconnu";
+      console.log(`[BulkRegenerate] ✅ Rapport trouvé: ${name} (ID: ${report.id})`);
 
-      console.log(`[BulkRegenerate] Traitement: ${name} (ID: ${report.id})`);
-
-      // PROMPT NARRATIF V3 complet (comme dans le code original)
+      // Étape 2: Appel OpenAI
       const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${name}.
       
       STRUCTURE JSON STRICTE :
@@ -63,18 +80,48 @@ export async function GET(req: Request) {
 
       RÈGLES : Pas de répétition. Pas de listes dans deep_analysis. Ton tranchant.`;
 
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-          { role: "system", content: "Expert en analyse de sentiment Reddit. Réponse JSON uniquement." },
-          { role: "user", content: prompt }
-        ],
-        response_format: { type: "json_object" }
-      });
+      console.log('[BulkRegenerate] Appel OpenAI pour:', name);
+      let aiResponse;
+      try {
+        aiResponse = await openai.chat.completions.create({
+          model: "gpt-4-turbo-preview",
+          messages: [
+            { role: "system", content: "Expert en analyse de sentiment Reddit. Réponse JSON uniquement." },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" }
+        });
+        console.log('[BulkRegenerate] ✅ Réponse OpenAI reçue');
+      } catch (openaiError: any) {
+        console.error('[BulkRegenerate] ❌ Erreur OpenAI:', openaiError.message);
+        return NextResponse.json({ 
+          success: false,
+          error: `Erreur OpenAI: ${openaiError.message}`,
+          step: 'openai'
+        }, { status: 500 });
+      }
 
-      const newContent = JSON.parse(aiResponse.choices[0].message.content || '{}');
+      // Étape 3: Parsing du JSON
+      let newContent;
+      try {
+        const content = aiResponse.choices[0]?.message?.content;
+        if (!content) {
+          throw new Error('Réponse OpenAI vide');
+        }
+        console.log('[BulkRegenerate] Parsing JSON (longueur:', content.length, 'caractères)');
+        newContent = JSON.parse(content);
+        console.log('[BulkRegenerate] ✅ JSON parsé avec succès');
+      } catch (parseError: any) {
+        console.error('[BulkRegenerate] ❌ Erreur parsing JSON:', parseError.message);
+        return NextResponse.json({ 
+          success: false,
+          error: `Erreur parsing JSON: ${parseError.message}`,
+          step: 'parse'
+        }, { status: 500 });
+      }
 
-      // MISE À JOUR : On protège image_url (ton travail du 23/12)
+      // Étape 4: Mise à jour Supabase
+      console.log('[BulkRegenerate] Mise à jour Supabase pour:', name);
       const { error: updateError } = await supabase
         .from('reports')
         .update({ 
@@ -83,9 +130,16 @@ export async function GET(req: Request) {
         })
         .eq('id', report.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('[BulkRegenerate] ❌ Erreur Supabase (update):', updateError);
+        return NextResponse.json({ 
+          success: false,
+          error: `Erreur Supabase (update): ${updateError.message}`,
+          step: 'update'
+        }, { status: 500 });
+      }
 
-      console.log(`[BulkRegenerate] ✅ Rapport mis à jour: ${name}`);
+      console.log(`[BulkRegenerate] ✅ Rapport mis à jour avec succès: ${name}`);
 
       return NextResponse.json({ 
         success: true, 
@@ -93,16 +147,16 @@ export async function GET(req: Request) {
         reportId: report.id
       });
     } catch (err: any) {
-      console.error('[BulkRegenerate] ❌ Erreur:', err.message);
+      console.error('[BulkRegenerate] ❌ Erreur inattendue:', err);
       return NextResponse.json({ 
         success: false, 
-        error: err.message 
+        error: err.message || 'Erreur inconnue',
+        step: 'unknown'
       }, { status: 500 });
     }
   }
 
   // --- MODE TABLEAU DE BORD (Si aucun ID n'est fourni) ---
-  // On récupère la liste des IDs pour le navigateur
   const { data: allReports, error: reportsError } = await supabase
     .from('reports')
     .select('id, product_name')
@@ -179,10 +233,16 @@ export async function GET(req: Request) {
             
             for (const r of reports) {
               const item = document.createElement('div');
-              item.className = "flex justify-between items-center border-b border-white/5 py-2 uppercase tracking-widest text-[10px]";
-              item.innerHTML = '<span class="truncate mr-2">' + (r.product_name || 'Sans nom') + '</span><span class="text-yellow-500 shrink-0">⏳ Encours...</span>';
+              item.className = "flex flex-col border-b border-white/5 py-2 uppercase tracking-widest text-[10px]";
+              const nameSpan = document.createElement('span');
+              nameSpan.className = "truncate mb-1";
+              nameSpan.textContent = r.product_name || 'Sans nom';
+              const statusSpan = document.createElement('span');
+              statusSpan.className = "text-yellow-500 shrink-0";
+              statusSpan.innerHTML = "⏳ Encours...";
+              item.appendChild(nameSpan);
+              item.appendChild(statusSpan);
               container.prepend(item);
-              const statusSpan = item.querySelector('span:last-child');
 
               try {
                 const res = await fetch("/api/admin/bulk-regenerate?key=" + encodeURIComponent(key) + "&id=" + encodeURIComponent(r.id));
@@ -194,14 +254,32 @@ export async function GET(req: Request) {
                   success++;
                   successCount.textContent = success;
                 } else {
-                  throw new Error(data.error || 'Erreur inconnue');
+                  // Afficher l'erreur détaillée
+                  const errorText = data.error || 'Erreur inconnue';
+                  const errorStep = data.step ? ' (' + data.step + ')' : '';
+                  statusSpan.className = "text-red-500 shrink-0";
+                  statusSpan.innerHTML = "❌ Erreur" + errorStep;
+                  statusSpan.title = errorText; // Tooltip avec le détail
+                  const errorDetail = document.createElement('div');
+                  errorDetail.className = "text-[9px] text-red-400 mt-1 ml-2 italic";
+                  errorDetail.textContent = errorText;
+                  item.appendChild(errorDetail);
+                  errors++;
+                  errorCount.textContent = errors;
+                  console.error('Erreur pour', r.product_name, ':', errorText, errorStep);
                 }
               } catch (e) {
+                const errorMsg = e.message || 'Erreur réseau';
                 statusSpan.className = "text-red-500 shrink-0";
-                statusSpan.innerHTML = "❌ Erreur";
+                statusSpan.innerHTML = "❌ Erreur réseau";
+                statusSpan.title = errorMsg;
+                const errorDetail = document.createElement('div');
+                errorDetail.className = "text-[9px] text-red-400 mt-1 ml-2 italic";
+                errorDetail.textContent = errorMsg;
+                item.appendChild(errorDetail);
                 errors++;
                 errorCount.textContent = errors;
-                console.error('Erreur pour', r.product_name, ':', e);
+                console.error('Erreur réseau pour', r.product_name, ':', e);
               }
               
               processed++;
