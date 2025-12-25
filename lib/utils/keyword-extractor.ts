@@ -127,6 +127,64 @@ export function normalizeProductName(name: string): string {
 }
 
 /**
+ * Nettoyage chirurgical du nom du produit pour créer un nom canonique
+ * "Vélo pour enfants" -> "velo enfant"
+ * "L'iPhone 17" -> "iphone 17"
+ * "Vélos pour enfants" -> "velo enfant" (gestion du pluriel)
+ * 
+ * Cette fonction est utilisée pour créer une clé de recherche unique qui permet
+ * de détecter les doublons même avec des variations d'articles, pluriels, etc.
+ */
+export function getCanonicalName(name: string): string {
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+  
+  // 1. Passage en minuscule et retrait des accents
+  let clean = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  
+  // 2. Retrait des articles et mots de liaison (Stop words français)
+  const stopWords = [
+    "l'", "le ", "la ", "les ", "un ", "une ", "des ",
+    "pour ", "de ", "du ", "avec ", "dans ", "sur ", "au ", "aux ", "a ", "an ",
+    "the ", "of ", "with ", "in ", "on ", "at "
+  ];
+  
+  stopWords.forEach(word => {
+    // Remplacer les occurrences au début, au milieu ou à la fin
+    const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi');
+    clean = clean.replace(regex, ' ');
+  });
+  
+  // 3. Retrait de la ponctuation et caractères spéciaux
+  clean = clean.replace(/[^\w\s]/gi, '');
+  
+  // 4. Normaliser les espaces multiples
+  clean = clean.replace(/\s+/g, ' ').trim();
+  
+  // 5. Gestion simplifiée du pluriel (retrait du 's' final sur chaque mot de plus de 3 lettres)
+  // Note: On ne le fait que si le mot est long pour éviter de casser "as", "os", etc.
+  clean = clean
+    .split(' ')
+    .map(word => {
+      // Retirer le 's' final seulement si le mot fait plus de 3 caractères
+      // Cela évite de casser des mots courts comme "as", "os", "bus"
+      if (word.length > 3 && word.endsWith('s')) {
+        return word.slice(0, -1);
+      }
+      return word;
+    })
+    .filter(word => word.length > 0) // Filtrer les mots vides
+    .join(' ')
+    .trim();
+  
+  return clean;
+}
+
+/**
  * Génère un slug normalisé à partir d'un titre ou mot-clé
  * Utilisé pour créer des URLs cohérentes et détecter les doublons
  */

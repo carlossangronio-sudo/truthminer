@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
 import { getCachedReport, getReportByTitle, insertReport } from '@/lib/supabase/client';
-import { extractMainKeyword, normalizeKeyword, normalizeProductName, generateSlug } from '@/lib/utils/keyword-extractor';
+import { extractMainKeyword, normalizeKeyword, normalizeProductName, getCanonicalName, generateSlug } from '@/lib/utils/keyword-extractor';
 import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     const searchKeyword = extractMainKeyword(trimmedKeyword);
     const normalizedProductName = normalizeKeyword(searchKeyword);
     
-    // Normalisation avancée pour la détection de doublons (supprime articles et ponctuation)
-    // Exemple: "L'iPhone 17" -> "iphone 17"
-    const cleanQuery = normalizeProductName(searchKeyword);
+    // Nom canonique pour la détection de doublons avancée
+    // Exemple: "Vélo pour enfants" -> "velo enfant", "L'iPhone 17" -> "iphone 17"
+    const canonicalName = getCanonicalName(searchKeyword);
     
     // 🚨 LOG DE CONTRÔLE : Avertissement avant consommation de crédits
     console.log('🚨 CONSOMMATION CRÉDIT : Appel API Serper initié pour le sujet:', trimmedKeyword);
@@ -44,19 +44,52 @@ export async function POST(request: NextRequest) {
     console.log('[API] 🔍 Requête originale:', trimmedKeyword);
     console.log('[API] 🔍 Mot-clé extrait pour recherche:', searchKeyword);
     console.log('[API] 🔍 Mot-clé normalisé:', normalizedProductName);
-    console.log('[API] 🔍 Mot-clé nettoyé (anti-doublon):', cleanQuery);
+    console.log('[API] 🔍 Nom canonique (anti-doublon):', canonicalName);
 
     // 1. SYSTÈME DE CACHE ANTI-DOUBLONS RENFORCÉ : Vérifier si un rapport existe déjà
     // Avant de consommer des crédits OpenAI/Serper, on vérifie si un rapport identique existe
-    // La normalisation gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13' = "L'iPhone 13"
+    // La normalisation gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13' = "L'iPhone 13" = "iPhone 13s"
     // 
     // IMPORTANT : Cette vérification est CRITIQUE pour éviter le contenu dupliqué Google
     // Si plusieurs utilisateurs demandent la même chose, on redirige vers le rapport existant
-    console.log('[API] 🔍 Vérification cache anti-doublons avec ilike pour:', cleanQuery);
-    
-    // Vérification 1 : Recherche avec ilike sur product_name (détection de doublons améliorée)
-    // On utilise ilike pour être insensible à la casse et détecter les variations comme "L'iPhone 17" = "iPhone 17"
     const supabase = createClient();
+    
+    // Vérification 1 : Recherche par normalized_name (méthode la plus précise, si la colonne existe)
+    console.log('[API] 🔍 Vérification cache anti-doublons par normalized_name:', canonicalName);
+    const { data: existingByCanonical, error: canonicalError } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('normalized_name', canonicalName)
+      .maybeSingle();
+    
+    // Si on trouve un rapport avec le nom canonique, on le renvoie directement SANS appeler l'IA
+    if (existingByCanonical && !canonicalError) {
+      console.log(`[API] ✅ Doublon détecté via normalized_name pour "${trimmedKeyword}" (nom canonique: "${canonicalName}"). Renvoi du rapport existant (ID: ${existingByCanonical.id}) - ÉVITE APPEL IA`);
+      const existingContent = typeof existingByCanonical.content === 'object'
+        ? existingByCanonical.content
+        : JSON.parse(existingByCanonical.content || '{}');
+      
+      const existingSlug = existingContent.slug || generateSlug(existingContent.title || existingByCanonical.product_name);
+      
+      return NextResponse.json({
+        success: true,
+        report: {
+          ...existingContent,
+          keyword: trimmedKeyword,
+          createdAt: existingByCanonical.created_at,
+          confidenceScore: existingByCanonical.score,
+          imageUrl: existingByCanonical.image_url || existingByCanonical.url_image || existingContent.imageUrl || null,
+        },
+        cached: true,
+        isDuplicate: true,
+        redirect: `/report/${existingSlug}`,
+      });
+    }
+    
+    // Vérification 2 : Recherche avec ilike sur product_name (fallback si normalized_name n'existe pas encore)
+    // Normalisation avancée pour la détection de doublons (supprime articles et ponctuation)
+    const cleanQuery = normalizeProductName(searchKeyword);
+    console.log('[API] 🔍 Aucun doublon trouvé avec normalized_name, vérification avec ilike pour:', cleanQuery);
     const { data: existingReport, error: searchError } = await supabase
       .from('reports')
       .select('*')
@@ -72,7 +105,6 @@ export async function POST(request: NextRequest) {
       
       const existingSlug = existingContent.slug || generateSlug(existingContent.title || existingReport.product_name);
       
-      // Retourner le rapport existant sans générer de nouveau contenu
       return NextResponse.json({
         success: true,
         report: {
@@ -88,7 +120,7 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // Vérification 2 : Par product_name normalisé (méthode classique, pour compatibilité et cas limites)
+    // Vérification 3 : Par product_name normalisé (méthode classique, pour compatibilité)
     console.log('[API] 🔍 Aucun doublon trouvé avec ilike, vérification avec normalizeKeyword...');
     const existing = await getCachedReport(normalizedProductName);
 
@@ -249,18 +281,52 @@ export async function POST(request: NextRequest) {
     
     let reportId: string | null = null;
     try {
-      reportId = await insertReport({
-        normalizedProductName,
-        score: report.confidenceScore ?? 50,
-        // Stocker aussi l'URL d'image dans le contenu JSON pour cohérence
-        content: {
-          ...report,
-          imageUrl: imageUrl ?? (report as any).imageUrl ?? null,
-        },
-        category: report.category,
-        imageUrl: imageUrl ?? undefined,
-        createdAt: now,
-      });
+      // Préparer le contenu avec l'image si disponible
+      const reportContent = {
+        ...report,
+        imageUrl: imageUrl ?? (report as any).imageUrl ?? null,
+      };
+      
+      // Utiliser createClient directement pour pouvoir ajouter normalized_name
+      const supabaseClient = createClient();
+      const { data: insertedReport, error: insertError } = await supabaseClient
+        .from('reports')
+        .insert({
+          product_name: normalizedProductName, // Nom normalisé pour l'affichage
+          normalized_name: canonicalName, // Nom canonique pour la détection de doublons
+          score: report.confidenceScore ?? 50,
+          content: reportContent,
+          category: report.category,
+          image_url: imageUrl ?? undefined,
+          created_at: now,
+          updated_at: now,
+        })
+        .select('id')
+        .single();
+      
+      if (insertError) {
+        // Si l'erreur est due à la colonne normalized_name qui n'existe pas, on réessaie sans elle
+        const errorMessage = insertError.message || '';
+        const errorCode = (insertError as any).code || '';
+        if (errorMessage.includes('normalized_name') || errorCode === '42703' || errorMessage.includes('column') && errorMessage.includes('normalized_name')) {
+          console.warn('[API] ⚠️ Colonne normalized_name non trouvée dans Supabase, insertion sans cette colonne (fallback vers insertReport classique)');
+          console.warn('[API] 💡 ASTUCE: Ajoutez la colonne normalized_name (TEXT) dans votre table Supabase pour activer la détection de doublons avancée');
+          // Fallback vers insertReport classique (sans normalized_name)
+          reportId = await insertReport({
+            normalizedProductName,
+            score: report.confidenceScore ?? 50,
+            content: reportContent,
+            category: report.category,
+            imageUrl: imageUrl ?? undefined,
+            createdAt: now,
+          });
+        } else {
+          throw insertError;
+        }
+      } else {
+        reportId = insertedReport.id;
+        console.log('[API] ✅ Rapport inséré avec normalized_name:', canonicalName);
+      }
       
       console.log('[API] ✅ Rapport sauvegardé avec succès dans Supabase (ID:', reportId, ', image_url:', imageUrl, ')');
     } catch (insertError) {
