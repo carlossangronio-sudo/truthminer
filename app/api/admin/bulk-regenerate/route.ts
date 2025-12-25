@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import OpenAI from 'openai';
+import { generateSlug } from '@/lib/utils/keyword-extractor';
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY,
@@ -123,7 +124,16 @@ export async function GET(req: Request) {
           }
           console.log('[BulkRegenerate] Parsing JSON (longueur:', content.length, 'caractères)');
           newContent = JSON.parse(content);
-          console.log('[BulkRegenerate] ✅ JSON parsé avec succès');
+          
+          // Ajouter les champs manquants essentiels (title et slug)
+          if (!newContent.title) {
+            newContent.title = name;
+          }
+          if (!newContent.slug) {
+            newContent.slug = generateSlug(name);
+          }
+          
+          console.log('[BulkRegenerate] ✅ JSON parsé avec succès (slug:', newContent.slug, ')');
         } catch (parseError: any) {
           console.error('[BulkRegenerate] ❌ Erreur parsing JSON:', parseError.message);
           return NextResponse.json({ 
