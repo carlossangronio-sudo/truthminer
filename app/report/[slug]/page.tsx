@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     // Extraire le title et summary depuis le contenu
     const reportTitle = (content as any).title || supabaseReport.product_name || 'Rapport';
-    const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur Truth Scanner';
+    const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur TruthMiner';
     const reportSlug = (content as any).slug || slug;
     
     // PRIORITÉ :
@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: reportTitle,
         description: ogDescription,
         url,
-        siteName: 'Truth Scanner',
+        siteName: 'TruthMiner',
         type: 'article',
         images: [
           {
@@ -287,7 +287,7 @@ export default async function ReportPage({ params }: PageProps) {
                       </div>
                       <div className="flex-1">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 mb-0.5">
-                          Score de confiance Truth Scanner
+                          Score de confiance TruthMiner
                         </p>
                         <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug">
                           <span className="font-semibold">{label}</span>{' '}
@@ -432,7 +432,7 @@ export default async function ReportPage({ params }: PageProps) {
               <div className="flex items-center justify-between mb-3 gap-3">
                 <div className="inline-flex items-center gap-2">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-900 text-gray-50 uppercase tracking-[0.16em]">
-                    Verdict Truth Scanner
+                    Verdict TruthMiner
                   </span>
                 </div>
                 <span className="text-xs text-gray-500">

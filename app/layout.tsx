@@ -18,13 +18,13 @@ export const metadata: Metadata = {
   // pour que Next.js résolve correctement les chemins relatifs (ex: /og-image.png)
   metadataBase: new URL("https://tminer.io"),
   title: {
-    default: "Truth Scanner - Neural Core Analysis",
-    template: "%s | Truth Scanner",
+    default: "TruthMiner - AI-Powered Truth Mining sur Reddit",
+    template: "%s | TruthMiner",
   },
   description:
-    "L'IA qui scanne des milliers de discussions Reddit pour extraire la vérité brute. Fini les faux avis.",
+    "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
   keywords: [
-    "Truth Scanner",
+    "TruthMiner",
     "avis Reddit",
     "vérité Reddit",
     "analyse Reddit",
@@ -33,11 +33,10 @@ export const metadata: Metadata = {
     "analyse produits",
     "actualités",
     "tendances de société",
-    "Neural Core",
   ],
-  authors: [{ name: "Truth Scanner" }],
-  creator: "Truth Scanner",
-  publisher: "Truth Scanner",
+  authors: [{ name: "TruthMiner" }],
+  creator: "TruthMiner",
+  publisher: "TruthMiner",
   formatDetection: {
     email: false,
     address: false,
@@ -47,26 +46,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: siteUrl,
-    siteName: "Truth Scanner",
-    title: "Truth Scanner - Neural Core Analysis",
+    siteName: "TruthMiner",
+    title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     description:
-      "L'IA qui scanne des milliers de discussions Reddit pour extraire la vérité brute. Fini les faux avis.",
+      "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     images: [
       {
         // Laisser une URL RELATIVE : Next.js la convertira en URL absolue via metadataBase
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Truth Scanner - Neural Core Analysis",
+        alt: "TruthMiner - L'Avis des Vrais Utilisateurs Reddit",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Truth Scanner - Neural Core Analysis",
+    title: "TruthMiner - AI-Powered Truth Mining sur Reddit",
     description:
-      "L'IA qui scanne des milliers de discussions Reddit pour extraire la vérité brute. Fini les faux avis.",
+      "L'IA qui analyse des milliers de discussions Reddit pour vous donner la vérité brute sur les produits, l'actualité et les tendances de société.",
     // Garder un chemin relatif pour laisser metadataBase faire le travail
     images: ["/og-image.png"],
   },

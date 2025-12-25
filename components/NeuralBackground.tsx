@@ -2,21 +2,13 @@
 
 import React, { useRef, useEffect } from 'react';
 
-interface Particle {
-  x: number;
-  y: number;
-  v: number;
-  s: number;
-  color: string;
-}
-
 /**
  * Arrière-plan neural animé avec particules
  * Optimisé pour performance et gestion mémoire
  */
 export const NeuralBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const particlesRef = useRef<any[]>([]);
   const animationIdRef = useRef<number | null>(null);
   const isVisibleRef = useRef(true);
 
@@ -37,7 +29,7 @@ export const NeuralBackground = () => {
     const isMobile = window.innerWidth < 768;
     const particleCount = isMobile ? 40 : 80;
 
-    class Particle {
+    class ParticleClass {
       x: number = 0;
       y: number = 0;
       v: number = 0;
@@ -79,12 +71,12 @@ export const NeuralBackground = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       // Réinitialiser les particules après resize
-      particlesRef.current = Array.from({ length: particleCount }, () => new Particle());
+      particlesRef.current = Array.from({ length: particleCount }, () => new ParticleClass());
     };
 
     const setup = () => {
       resize();
-      particlesRef.current = Array.from({ length: particleCount }, () => new Particle());
+      particlesRef.current = Array.from({ length: particleCount }, () => new ParticleClass());
     };
 
     const loop = () => {
