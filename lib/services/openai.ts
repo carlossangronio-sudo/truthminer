@@ -15,10 +15,16 @@ export interface GeneratedReport {
   amazonRecommendationReason?: string; // Raison pour laquelle ce lien Amazon est proposé
   imageUrl?: string; // URL de l'image principale du produit
   // Nouveaux champs du format JSON strict (pour compatibilité future avec ReportDisplay.jsx)
-  consensus?: string; // Le verdict principal de la communauté Reddit
-  pros?: string[]; // Points forts avec citations Reddit uniques
-  cons?: string[]; // Points faibles avec citations Reddit uniques
-  final_verdict?: string; // Verdict final avec métaphore originale (remplace punchline)
+  consensus?: string; // Le verdict principal de la communauté Reddit (ultra-court, 10 mots max)
+  pros?: string[]; // Points forts courts avec citations Reddit uniques
+  cons?: string[]; // Points faibles courts avec citations Reddit uniques
+  deep_analysis?: string; // Analyse narrative en trois paragraphes (contexte, réalité usage, positionnement)
+  reddit_quotes?: Array<{ // Citations Reddit structurées
+    user: string; // u/NomDuUser
+    text: string; // Citation brute et réelle
+    subreddit: string; // r/hardware
+  }>;
+  final_verdict?: string; // Verdict final avec métaphore originale
   target_audience?: { // Profils ciblés (remplace recommendations)
     yes?: string; // Profil qui adorera ce produit
     no?: string; // Profil qui sera déçu
@@ -117,14 +123,12 @@ Instructions détaillées pour le format JSON STRICT :
 2. "consensus" : Le verdict principal en 1-2 phrases. Si c'est une mauvaise affaire, dis-le clairement. Exemple : "Le consensus Reddit est sans appel : La Poste et Colissimo sont une mauvaise affaire en 2025. Les avis de passage systématiques et les colis introuvables transforment chaque livraison en parcours du combattant."
 3. "pros" : Tableau de points forts, CHACUN avec une citation Reddit UNIQUE. Format : "Point fort : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-3 points forts si disponibles.
 4. "cons" : Tableau de points faibles, CHACUN avec une citation Reddit UNIQUE. Format : "Point faible : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-4 points faibles si disponibles.
-5. "target_audience" : Objet avec deux champs ultra-courts (une seule phrase chacun) :
+7. "target_audience" : Objet avec deux champs ultra-courts (une seule phrase chacun) :
    - "yes" : Le profil type précis qui adorera ce produit (ex: "Les sportifs intensifs qui cherchent la performance pure.")
    - "no" : Le profil type précis qui sera déçu (ex: "Ceux qui privilégient la durabilité à long terme.")
    **SÉPARATION DES RÔLES** : La section 'target_audience' doit être ultra-courte (une seule phrase par profil).
-6. "punchline" : Une analogie ou métaphore percutante qui résume l'essence du verdict (ex: "C'est comme courir un marathon en sandales.").
-7. "final_verdict" : Un paragraphe final tranché et émotionnel qui donne une conclusion définitive (Achetez / Fuyez / Attendez). 
-   **RÈGLE D'OR** : Le 'final_verdict' ne doit PAS relister les points techniques déjà mentionnés dans pros/cons. Il doit donner le ressenti final global et émotionnel.
-   **SÉPARATION DES RÔLES** : Le 'final_verdict' est distinct de la 'punchline' - la punchline est une métaphore, le final_verdict est la conclusion définitive.
+8. "final_verdict" : La conclusion avec ta métaphore habituelle. Un paragraphe final tranché et émotionnel qui donne une conclusion définitive (Achetez / Fuyez / Attendez). 
+   **RÈGLE D'OR** : Le 'final_verdict' ne doit PAS relister les points techniques déjà mentionnés dans pros/cons. Il doit donner le ressenti final global et émotionnel avec une métaphore originale.
 7. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
 8. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
    - Tu dois extraire le **nom EXACT du modèle de produit le plus recommandé** (pas une catégorie générique)
@@ -184,15 +188,20 @@ Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des c
 RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
 - Tu ne dois RIEN inventer : si une information n'apparaît pas dans les extraits, tu indiques clairement qu'elle est "Non précisée sur Reddit"
 - Vérifie les spécifications techniques (Smart vs AR, écran vs pas d'écran, etc.)
-- **TON RÉEL** : Utilise un ton direct, investigatif et parfois critique. Pas de langage marketing poli.
+- **TON RÉEL** : Utilise un ton direct, investigatif et parfois critique. Pas de langage marketing poli. Écris comme un journaliste tech.
 - **ZÉRO RÉPÉTITION** : Ne cite jamais deux fois la même idée ou le même défaut dans des sections différentes. Chaque citation Reddit doit être UNIQUE et utilisée UNE SEULE FOIS dans tout le rapport.
-- Extrais des citations Reddit réelles et différentes pour chaque élément de "pros" et "cons"
-- **SOURCES** : Mentionne si possible un subreddit spécifique (ex: r/hardware, r/headphones) pour renforcer la crédibilité dans les citations
-- Structure épurée : pas de sous-titres redondants, va droit au but
+- **INTERDICTION FORMELLE** :
+  - Ne répète PAS les points forts/faibles dans la section "deep_analysis".
+  - N'utilise PAS de listes à puces dans "deep_analysis".
+  - "deep_analysis" doit être narratif : trois paragraphes séparés par deux retours à la ligne.
+- **reddit_quotes** : Extrais 3-5 citations brutes et réelles avec user, text et subreddit. Utilise des citations différentes de celles dans pros/cons.
+- **SOURCES** : Mentionne toujours le subreddit (ex: r/hardware, r/headphones) dans reddit_quotes pour renforcer la crédibilité.
 - **SÉPARATION DES RÔLES** :
-  - La section 'target_audience' doit être ultra-courte (une seule phrase par profil).
-  - Le 'final_verdict' ne doit PAS relister les points techniques, mais donner le ressenti final global.
-  - La 'punchline' est une analogie/métaphore percutante, distincte du 'final_verdict' qui est la conclusion définitive (Achetez/Fuyez/Attendez).
+  - "consensus" : ultra-court (10 mots max)
+  - "pros" et "cons" : points courts
+  - "deep_analysis" : analyse narrative en trois paragraphes (contexte, réalité usage, positionnement)
+  - "target_audience" : ultra-court (une seule phrase par profil)
+  - "final_verdict" : conclusion avec métaphore, ne pas relister les points techniques
 
 Discussions Reddit à analyser :
 
@@ -207,7 +216,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (phrase percutante résumant le signal social), pros (tableau de 3 points forts avec citations UNIQUES), cons (tableau de 3 défauts cachés avec citations UNIQUES), target_audience (objet avec yes/no - une phrase ultra-courte par profil), punchline (analogie/métaphore percutante), final_verdict (paragraphe final tranché avec conclusion définitive Achetez/Fuyez/Attendez, SANS relister les points techniques), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (ultra-court, 10 mots max), pros (tableau de 3 points courts), cons (tableau de 3 défauts courts), deep_analysis (trois paragraphes narratifs séparés par \\n\\n - contexte, réalité usage, positionnement - SANS répéter pros/cons, SANS listes à puces), reddit_quotes (tableau de 3-5 citations avec user, text, subreddit), target_audience (objet avec yes/no - une phrase ultra-courte par profil), final_verdict (paragraphe final avec métaphore, conclusion définitive Achetez/Fuyez/Attendez), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -287,39 +296,45 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
       // Construire "defects" (ancien format) à partir de cons[]
       const defects = cons;
       
-      // Construire "article" (ancien format) à partir des nouveaux champs
-      // Structure épurée sans sous-titres redondants
-      // NOTE: On n'inclut PAS "Est-ce fait pour vous ?" dans l'article si target_audience existe
-      // car cette section sera affichée séparément dans ReportDisplay
-      const articleParts = [
-        `## ${parsed.title || keyword}`,
-        '',
-        consensus,
-        '',
-        punchline ? `> ${punchline}` : '',
-        '',
-        finalVerdict ? `**Verdict final** : ${finalVerdict}` : '',
-        '',
-        '## Points forts',
-        '',
-        ...pros.map((pro: string) => `- ${pro}`),
-        '',
-        '## Points faibles',
-        '',
-        ...cons.map((con: string) => `- ${con}`),
-      ];
+      // Construire "article" (ancien format) à partir de deep_analysis si disponible
+      // Sinon, construire depuis les champs individuels (fallback pour anciennes structures)
+      let article = '';
       
-      // Ajouter "Est-ce fait pour vous ?" uniquement si target_audience n'existe pas (ancien format)
-      if (!parsed.target_audience && recommendations.length > 0) {
-        articleParts.push(
+      if (parsed.deep_analysis) {
+        // Nouveau format : utiliser deep_analysis directement
+        article = parsed.deep_analysis;
+      } else {
+        // Ancien format : construire depuis les champs individuels
+        const articleParts = [
+          `## ${parsed.title || keyword}`,
           '',
-          '## Est-ce fait pour vous ?',
+          consensus,
           '',
-          ...recommendations.map((rec: string) => `- ${rec}`)
-        );
+          punchline ? `> ${punchline}` : '',
+          '',
+          finalVerdict ? `**Verdict final** : ${finalVerdict}` : '',
+          '',
+          '## Points forts',
+          '',
+          ...pros.map((pro: string) => `- ${pro}`),
+          '',
+          '## Points faibles',
+          '',
+          ...cons.map((con: string) => `- ${con}`),
+        ];
+        
+        // Ajouter "Est-ce fait pour vous ?" uniquement si target_audience n'existe pas (ancien format)
+        if (!parsed.target_audience && recommendations.length > 0) {
+          articleParts.push(
+            '',
+            '## Est-ce fait pour vous ?',
+            '',
+            ...recommendations.map((rec: string) => `- ${rec}`)
+          );
+        }
+        
+        article = articleParts.join('\n');
       }
-      
-      const article = articleParts.join('\n');
       
       // Construire "userProfiles" (ancien format) à partir de recommendations[]
       const userProfiles = recommendations.join('\n\n');
@@ -341,6 +356,8 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         consensus: parsed.consensus,
         pros: parsed.pros,
         cons: parsed.cons,
+        deep_analysis: parsed.deep_analysis,
+        reddit_quotes: Array.isArray(parsed.reddit_quotes) ? parsed.reddit_quotes : [],
         punchline: parsed.punchline,
         final_verdict: parsed.final_verdict,
         target_audience: parsed.target_audience,

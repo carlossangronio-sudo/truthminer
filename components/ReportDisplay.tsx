@@ -35,6 +35,12 @@ interface ReportDisplayProps {
     cons?: string[];
     punchline?: string | null;
     final_verdict?: string | null;
+    deep_analysis?: string | null;
+    reddit_quotes?: Array<{
+      user: string;
+      text: string;
+      subreddit: string;
+    }>;
     recommendations?: string[];
     target_audience?: {
       yes?: string;
