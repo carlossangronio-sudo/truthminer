@@ -5,11 +5,11 @@ import { generateSlug } from '@/lib/utils/keyword-extractor';
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 8000 // Timeout de 8 secondes pour éviter les dépassements Vercel
+  timeout: 55000 // Timeout de 55 secondes (Vercel Pro permet 60s)
 });
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
 
-export const maxDuration = 10; // Limite Vercel Hobby
+export const maxDuration = 60; // Vercel Pro permet jusqu'à 60 secondes
 
 export async function GET(req: Request) {
   try {
@@ -105,9 +105,9 @@ export async function GET(req: Request) {
               response_format: { type: "json_object" },
               max_tokens: 3000 // Plus de tokens pour analyses très détaillées
             }),
-            // Timeout de secours après 8 secondes (plus de temps pour GPT-4)
+            // Timeout de secours après 55 secondes (Vercel Pro permet 60s, on laisse 5s de marge)
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('OpenAI timeout après 8 secondes')), 8000)
+              setTimeout(() => reject(new Error('OpenAI timeout après 55 secondes')), 55000)
             ) as Promise<any>
           ]);
           console.log('[BulkRegenerate] ✅ Réponse OpenAI reçue');
