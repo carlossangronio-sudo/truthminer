@@ -59,10 +59,10 @@ interface ReportDisplayProps {
 const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   if (!report) return null;
 
-  const { title, url_image, consensus, pros, cons, deep_analysis, reddit_quotes, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason } = report;
+  const { title, url_image, consensus, pros, cons, deep_analysis, reddit_quotes, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
   
   // Gestion de la rétro-compatibilité : on cherche le texte narratif ou le résumé
-  const mainAnalysis = deep_analysis || consensus || choice || 'Analyse en cours...';
+  const mainAnalysis = deep_analysis || consensus || choice || article || 'Analyse en cours...';
   
   // Compter les signaux analysés (approximation basée sur le score)
   const signalCount = Math.max(50, Math.round((confidenceScore || 50) * 10));
