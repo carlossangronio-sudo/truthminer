@@ -153,9 +153,14 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                 Verdict Neural Core
               </h2>
               <p className="text-lg text-slate-100 leading-relaxed">{consensus}</p>
-              {finalVerdict && (
+              {punchline && (
                 <div className="mt-6 p-4 bg-cyan-500/10 border-l-4 border-cyan-500 rounded-r-lg">
-                  <p className="text-cyan-400 font-bold italic">{finalVerdict}</p>
+                  <p className="text-cyan-400 font-bold italic">{punchline}</p>
+                </div>
+              )}
+              {finalVerdict && (
+                <div className="mt-6 p-4 bg-purple-500/10 border-l-4 border-purple-500 rounded-r-lg">
+                  <p className="text-purple-400 font-bold leading-relaxed">{finalVerdict}</p>
                 </div>
               )}
             </motion.section>
