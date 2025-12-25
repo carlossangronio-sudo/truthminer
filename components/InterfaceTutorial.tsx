@@ -204,10 +204,10 @@ const InterfaceTutorial = () => {
       </div>
 
       {/* --- LÉGENDES DES ÉTAPES --- */}
-      <div className="grid grid-cols-5 gap-2 mt-6">
-        {["Intro", "Cible", "Extraction", "Synthèse", "Vérité"].map((text, i) => (
+      <div className="grid grid-cols-5 gap-1 md:gap-2 mt-6 px-2">
+        {["Intro", "Cible", "Mine", "Rapport", "Vérité"].map((text, i) => (
           <div key={i} className="text-center">
-            <div className={`text-[10px] font-black uppercase tracking-widest transition-colors ${i === step ? 'text-cyan-400' : 'text-slate-600'}`}>
+            <div className={`text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-widest transition-colors whitespace-nowrap ${i === step ? 'text-cyan-400' : 'text-slate-600'}`}>
               {text}
             </div>
           </div>
