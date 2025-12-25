@@ -54,14 +54,14 @@ const InterfaceTutorial = () => {
     if (!isVisible) return;
 
     const timer = setInterval(() => {
-      setStep((prev) => (prev < 3 ? prev + 1 : 0));
+      setStep((prev) => (prev < 4 ? prev + 1 : 0));
     }, 4500);
     return () => clearInterval(timer);
   }, [isVisible]);
 
-  // Effet de machine à écrire pour l'étape 0 - ne démarre que si visible
+  // Effet de machine à écrire pour l'étape 1 - ne démarre que si visible
   useEffect(() => {
-    if (step === 0 && isVisible) {
+    if (step === 1 && isVisible) {
       setTypedText("");
       let i = 0;
       const interval = setInterval(() => {
@@ -84,8 +84,34 @@ const InterfaceTutorial = () => {
         {/* --- CONTENU DE L'ÉTAPE --- */}
         <div className="p-8 md:p-12 min-h-[450px] flex flex-col items-center justify-center relative">
           
-          {/* ÉTAPE 1 : LA RECHERCHE */}
+          {/* ÉTAPE 0 : INTRODUCTION */}
           <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
+            <h2 className="text-4xl md:text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-cyan-400 uppercase tracking-tighter mb-6 text-center leading-tight">
+              Ne vous faites plus avoir
+              <br />
+              <span className="text-white">par de faux avis</span>
+            </h2>
+            <p className="text-xl md:text-2xl text-slate-300 mb-8 text-center max-w-2xl">
+              La vérité est cachée dans les discussions Reddit, pas dans les avis 5 étoiles.
+            </p>
+            <div className="flex gap-6 mt-4">
+              <div className="flex flex-col items-center gap-3">
+                <div className="bg-red-500/20 p-4 rounded-2xl border border-red-500/30">
+                  <ShieldCheck className="text-red-400" size={32} />
+                </div>
+                <span className="text-xs uppercase font-bold text-slate-400 tracking-widest">Avis Manipulés</span>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <div className="bg-green-500/20 p-4 rounded-2xl border border-green-500/30">
+                  <MessageSquare className="text-green-400" size={32} />
+                </div>
+                <span className="text-xs uppercase font-bold text-slate-400 tracking-widest">Vérité Reddit</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ÉTAPE 1 : LA RECHERCHE */}
+          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
             <div className="bg-cyan-500/10 p-4 rounded-full mb-6">
               <Search className="text-cyan-400" size={32} />
             </div>
@@ -102,7 +128,7 @@ const InterfaceTutorial = () => {
           </div>
 
           {/* ÉTAPE 2 : LE MINAGE NEURAL */}
-          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
+          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
             <div className="relative w-32 h-32 mb-8">
               <div className="absolute inset-0 border-4 border-cyan-500/20 rounded-full"></div>
               <div className="absolute inset-0 border-t-4 border-cyan-500 rounded-full animate-spin"></div>
@@ -121,7 +147,7 @@ const InterfaceTutorial = () => {
           </div>
 
           {/* ÉTAPE 3 : LE RAPPORT DÉCRYPTÉ */}
-          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
+          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
             <div className="bg-green-500/10 p-4 rounded-full mb-6">
               <Zap className="text-green-400" size={32} />
             </div>
@@ -145,7 +171,7 @@ const InterfaceTutorial = () => {
           </div>
 
           {/* ÉTAPE 4 : CALL TO ACTION */}
-          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
+          <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 4 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
             <h2 className="text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 uppercase tracking-tighter mb-4 text-center leading-tight">
               La Vérité est <br/> sous vos pieds.
             </h2>
@@ -168,7 +194,7 @@ const InterfaceTutorial = () => {
 
         {/* --- BARRE DE PROGRESSION INFÉRIEURE --- */}
         <div className="flex border-t border-white/5 bg-black/20">
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
               className={`flex-1 h-1.5 transition-all duration-300 ${i === step ? 'bg-cyan-500 shadow-[0_0_10px_#22d3ee]' : 'bg-transparent'}`}
@@ -178,8 +204,8 @@ const InterfaceTutorial = () => {
       </div>
 
       {/* --- LÉGENDES DES ÉTAPES --- */}
-      <div className="grid grid-cols-4 gap-2 mt-6">
-        {["Cible", "Extraction", "Synthèse", "Vérité"].map((text, i) => (
+      <div className="grid grid-cols-5 gap-2 mt-6">
+        {["Intro", "Cible", "Extraction", "Synthèse", "Vérité"].map((text, i) => (
           <div key={i} className="text-center">
             <div className={`text-[10px] font-black uppercase tracking-widest transition-colors ${i === step ? 'text-cyan-400' : 'text-slate-600'}`}>
               {text}
