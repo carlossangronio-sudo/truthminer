@@ -214,7 +214,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
             </motion.section>
           )}
 
-          {/* Recommandations */}
+          {/* Est-ce fait pour vous ? */}
           {recommendations.length > 0 && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
