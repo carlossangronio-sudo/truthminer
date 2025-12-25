@@ -235,8 +235,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
             )}
           </div>
 
-          {/* Analyse détaillée (article) */}
-          {report.article && (
+          {/* Analyse détaillée (deep_analysis ou article) */}
+          {(report.deep_analysis || report.article) && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -246,8 +246,44 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
               <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
                 Analyse Détaillée
               </h2>
-              <div className="prose prose-lg max-w-none markdown-content prose-invert prose-headings:text-white prose-p:text-slate-100 prose-strong:text-white prose-li:text-slate-100 prose-a:text-cyan-400">
-                <ReactMarkdown>{report.article}</ReactMarkdown>
+              {report.deep_analysis ? (
+                // Nouveau format : deep_analysis (texte narratif, pas de markdown)
+                <div className="space-y-6 text-slate-100 leading-relaxed">
+                  {report.deep_analysis.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="text-lg">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                // Ancien format : article markdown
+                <div className="prose prose-lg max-w-none markdown-content prose-invert prose-headings:text-white prose-p:text-slate-100 prose-strong:text-white prose-li:text-slate-100 prose-a:text-cyan-400">
+                  <ReactMarkdown>{report.article}</ReactMarkdown>
+                </div>
+              )}
+            </motion.section>
+          )}
+
+          {/* Citations Reddit structurées */}
+          {report.reddit_quotes && report.reddit_quotes.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="mb-12 p-8 bg-slate-900/50 border border-cyan-500/20 rounded-2xl backdrop-blur-sm"
+            >
+              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
+                Citations Reddit
+              </h2>
+              <div className="space-y-4">
+                {report.reddit_quotes.map((quote, index) => (
+                  <div key={index} className="p-4 bg-slate-800/50 border-l-4 border-cyan-500 rounded-r-lg">
+                    <p className="text-slate-100 leading-relaxed italic mb-2">"{quote.text}"</p>
+                    <p className="text-sm text-cyan-400">
+                      — {quote.user} <span className="text-slate-500">({quote.subreddit})</span>
+                    </p>
+                  </div>
+                ))}
               </div>
             </motion.section>
           )}
