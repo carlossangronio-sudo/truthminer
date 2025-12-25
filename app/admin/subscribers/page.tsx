@@ -35,7 +35,7 @@ async function fetchWithTimeout(
 
 async function getSubscribers(): Promise<Subscriber[]> {
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('[Subscribers] Supabase non configuré');
+    console.warn('[Subscribers] Supabase non configuré');
     return [];
   }
 
@@ -66,22 +66,14 @@ async function getSubscribers(): Promise<Subscriber[]> {
 }
 
 export default async function SubscribersPage() {
-  // Protection simple via clé d'admin dans l'URL (même logique que le dashboard admin)
-  const adminKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
-  const url = new URL(typeof window === 'undefined' ? '' : window.location.href);
-  const providedKey = url.searchParams.get('key');
+  // Vérification de l'authentification via cookie de session
+  const { isAdminAuthenticated } = await import('@/lib/auth/admin');
+  const authenticated = await isAdminAuthenticated();
 
-  if (!providedKey || providedKey !== adminKey) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-gray-100 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <h1 className="text-2xl font-semibold">Accès refusé</h1>
-          <p className="text-sm text-slate-400">
-            Cette page est réservée à l&apos;administrateur. Fournissez une clé valide pour y accéder.
-          </p>
-        </div>
-      </main>
-    );
+  if (!authenticated) {
+    // Rediriger vers la page de login
+    const { redirect } = await import('next/navigation');
+    redirect('/admin/login');
   }
 
   const subscribers = await getSubscribers();
@@ -89,73 +81,46 @@ export default async function SubscribersPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-gray-100">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        {/* Header */}
-        <div className="mb-8 pb-6 border-b border-slate-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Dashboard Subscribers</h1>
-              <p className="text-slate-400 text-sm">Liste des emails inscrits à la newsletter</p>
-            </div>
-            <Link
-              href="/admin-secret-dashboard"
-              className="inline-flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              ← Retour au Dashboard
-            </Link>
-          </div>
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Liste des Abonnés</h1>
+          <Link
+            href="/admin-secret-dashboard"
+            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors"
+          >
+            Retour au Dashboard
+          </Link>
         </div>
 
-        {/* Stats */}
-        <div className="mb-6">
-          <div className="bg-slate-900 rounded-xl shadow-lg p-6 border border-slate-800">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm font-medium">Total Inscrits</span>
-              <div className="text-3xl font-bold text-white">{subscribers.length}</div>
-            </div>
+        {subscribers.length === 0 ? (
+          <div className="text-center py-12 text-slate-400">
+            <p>Aucun abonné pour le moment.</p>
           </div>
-        </div>
-
-        {/* Table */}
-        <div className="bg-slate-900 rounded-xl shadow-lg border border-slate-800 overflow-hidden">
-          {subscribers.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">
-              <p>Aucun abonné pour le moment.</p>
-            </div>
-          ) : (
+        ) : (
+          <div className="bg-slate-900 rounded-lg shadow-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-800/50">
+                <thead className="bg-slate-800">
                   <tr>
-                    <th className="text-left p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="text-right p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                       Date d'inscription
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
-                  {subscribers.map((subscriber, index) => (
-                    <tr
-                      key={subscriber.id}
-                      className={`hover:bg-slate-800/50 transition-colors ${
-                        index % 2 === 0 ? 'bg-slate-900' : 'bg-slate-900/50'
-                      }`}
-                    >
-                      <td className="p-4 text-sm text-slate-200">
+                  {subscribers.map((subscriber) => (
+                    <tr key={subscriber.id} className="hover:bg-slate-800/50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {subscriber.email}
                       </td>
-                      <td className="p-4 text-right text-sm text-slate-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                         {new Date(subscriber.created_at).toLocaleDateString('fr-FR', {
                           year: 'numeric',
-                          month: 'short',
+                          month: 'long',
                           day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
                         })}
                       </td>
                     </tr>
@@ -163,10 +128,13 @@ export default async function SubscribersPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
+        )}
+
+        <div className="mt-8 text-sm text-slate-400">
+          <p>Total: {subscribers.length} abonné{subscribers.length > 1 ? 's' : ''}</p>
         </div>
       </div>
     </main>
   );
 }
-

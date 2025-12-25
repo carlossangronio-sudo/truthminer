@@ -14,16 +14,24 @@ export const maxDuration = 60; // Vercel Pro permet jusqu'à 60 secondes
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const key = searchParams.get('key');
     const id = searchParams.get('id');
     const productNameParam = searchParams.get('product_name');
+    const key = searchParams.get('key'); // Compatibilité avec l'ancien système
 
-    // 1. Sécurité
-    if (!key || key !== ADMIN_SECRET_KEY) {
-      console.error('[BulkRegenerate] ❌ Clé invalide');
+    // 1. Vérification de l'authentification
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const session = cookieStore.get('admin_session');
+    const authenticated = session?.value === ADMIN_SECRET_KEY;
+    
+    // Compatibilité avec l'ancien système de clé dans l'URL
+    const keyAuth = key && key === ADMIN_SECRET_KEY;
+
+    if (!authenticated && !keyAuth) {
+      console.error('[BulkRegenerate] ❌ Accès non autorisé');
       return NextResponse.json({ 
         success: false,
-        error: 'Accès non autorisé' 
+        error: 'Accès non autorisé. Veuillez vous connecter via /admin/login' 
       }, { status: 401 });
     }
 
@@ -256,6 +264,7 @@ export async function GET(req: Request) {
 
           <script>
             const reports = ${JSON.stringify(allReports || [])};
+            // Plus besoin de clé, l'authentification se fait via cookie
             const key = "${key}";
             const startBtn = document.getElementById('start-btn');
             const container = document.getElementById('progress-container');
@@ -285,7 +294,7 @@ export async function GET(req: Request) {
                 container.prepend(item);
 
                 try {
-                  const res = await fetch("/api/admin/bulk-regenerate?key=" + encodeURIComponent(key) + "&id=" + encodeURIComponent(r.id));
+                  const res = await fetch("/api/admin/bulk-regenerate?id=" + encodeURIComponent(r.id));
                   
                   // Vérifier si la réponse est OK
                   if (!res.ok) {

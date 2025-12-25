@@ -89,21 +89,20 @@ interface AdminPageProps {
 }
 
 export default async function AdminSecretDashboard(props: AdminPageProps) {
+  // Vérification de l'authentification via cookie de session
+  const { isAdminAuthenticated } = await import('@/lib/auth/admin');
+  const authenticated = await isAdminAuthenticated();
+
+  // Compatibilité avec l'ancien système de clé dans l'URL (optionnel)
   const searchParams = await Promise.resolve(props.searchParams);
   const adminKey = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
   const providedKey = searchParams?.key;
+  const keyAuth = providedKey && providedKey === adminKey;
 
-  if (!providedKey || providedKey !== adminKey) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
-        <div className="text-center space-y-3">
-          <h1 className="text-2xl font-semibold">Accès refusé</h1>
-          <p className="text-sm text-slate-400">
-            Cette page est réservée à l&apos;administrateur. Fournissez une clé valide pour y accéder.
-          </p>
-        </div>
-      </div>
-    );
+  if (!authenticated && !keyAuth) {
+    // Rediriger vers la page de login
+    const { redirect } = await import('next/navigation');
+    redirect('/admin/login');
   }
 
   const allReports = await getAllReports();
