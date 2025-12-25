@@ -75,7 +75,7 @@ export async function GET(req: Request) {
           "consensus": "Résumé percutant en une phrase (15-25 mots).",
           "pros": ["Avantage détaillé 1 (1 phrase complète)", "Avantage détaillé 2 (1 phrase complète)", "Avantage détaillé 3 (1 phrase complète)"],
           "cons": ["Défaut caché 1 (1 phrase complète)", "Défaut caché 2 (1 phrase complète)", "Défaut caché 3 (1 phrase complète)"],
-          "deep_analysis": "ÉCRIS 3 PARAGRAPHES COMPLETS ET DÉTAILLÉS (minimum 150 mots par paragraphe). Paragraphe 1: Le contexte marketing et les attentes autour du produit. Paragraphe 2: La réalité de l'usage après 1-2 mois selon les retours Reddit (défauts cachés, problèmes récurrents). Paragraphe 3: Positionnement par rapport aux alternatives et verdict final. Ton journaliste tech, tranchant et critique.",
+          "deep_analysis": "ÉCRIS 3 PARAGRAPHES COMPLETS ET DÉTAILLÉS EN UNE SEULE CHAÎNE DE CARACTÈRES (séparés par deux retours à la ligne \\n\\n). Minimum 150 mots par paragraphe. Paragraphe 1: Le contexte marketing et les attentes autour du produit. Paragraphe 2: La réalité de l'usage après 1-2 mois selon les retours Reddit (défauts cachés, problèmes récurrents). Paragraphe 3: Positionnement par rapport aux alternatives et verdict final. IMPORTANT: deep_analysis doit être une STRING, pas un objet JSON. Ton journaliste tech, tranchant et critique.",
           "reddit_quotes": [
             {"user": "u/RedditUser", "text": "Citation réelle et marquante trouvée sur Reddit (2-3 phrases)", "subreddit": "r/tech"}
           ],
@@ -136,6 +136,17 @@ export async function GET(req: Request) {
           }
           if (!newContent.slug) {
             newContent.slug = generateSlug(name);
+          }
+          
+          // S'assurer que deep_analysis est une string (pas un objet)
+          if (newContent.deep_analysis && typeof newContent.deep_analysis === 'object') {
+            // Si c'est un objet, le convertir en string
+            newContent.deep_analysis = Object.entries(newContent.deep_analysis)
+              .map(([key, value]) => typeof value === 'string' ? value : String(value))
+              .join('\n\n');
+          } else if (!newContent.deep_analysis) {
+            // Si deep_analysis n'existe pas, utiliser consensus comme fallback
+            newContent.deep_analysis = newContent.consensus || '';
           }
           
           console.log('[BulkRegenerate] ✅ JSON parsé avec succès (slug:', newContent.slug, ')');
