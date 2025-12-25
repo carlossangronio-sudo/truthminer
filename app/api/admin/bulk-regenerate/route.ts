@@ -94,20 +94,20 @@ export async function GET(req: Request) {
         console.log('[BulkRegenerate] Appel OpenAI pour:', name);
         let aiResponse;
         try {
-          // Utilisation de gpt-3.5-turbo qui est plus rapide (2-3s vs 8-12s pour gpt-4)
+          // Utilisation de gpt-4-turbo-preview pour meilleure qualité d'analyse
           aiResponse = await Promise.race([
             openai.chat.completions.create({
-              model: "gpt-3.5-turbo",
+              model: "gpt-4-turbo-preview",
               messages: [
                 { role: "system", content: "Expert en analyse de sentiment Reddit. Réponse JSON uniquement." },
                 { role: "user", content: prompt }
               ],
               response_format: { type: "json_object" },
-              max_tokens: 2500 // Augmenté pour analyses plus longues et détaillées
+              max_tokens: 3000 // Plus de tokens pour analyses très détaillées
             }),
-            // Timeout de secours après 7 secondes
+            // Timeout de secours après 8 secondes (plus de temps pour GPT-4)
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('OpenAI timeout après 7 secondes')), 7000)
+              setTimeout(() => reject(new Error('OpenAI timeout après 8 secondes')), 8000)
             ) as Promise<any>
           ]);
           console.log('[BulkRegenerate] ✅ Réponse OpenAI reçue');

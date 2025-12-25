@@ -54,10 +54,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       content = {};
     }
 
-    // Extraire le title et summary depuis le contenu
-    const reportTitle = (content as any).title || supabaseReport.product_name || 'Rapport';
-    const reportSummary = (content as any).summary || (content as any).choice || 'Découvrez l\'analyse complète sur TruthMiner';
-    const reportSlug = (content as any).slug || slug;
+    // Extraire le title et summary depuis le contenu (sécurisation pour éviter erreurs)
+    const reportTitle = typeof (content as any).title === 'string' 
+      ? (content as any).title 
+      : supabaseReport.product_name || 'Rapport';
+    
+    // S'assurer que reportSummary est toujours une string
+    const rawSummary = (content as any).summary || (content as any).choice || (content as any).consensus || '';
+    const reportSummary = typeof rawSummary === 'string' 
+      ? rawSummary 
+      : (typeof rawSummary === 'object' ? JSON.stringify(rawSummary) : String(rawSummary)) || 'Découvrez l\'analyse complète sur TruthMiner';
+    
+    const reportSlug = typeof (content as any).slug === 'string'
+      ? (content as any).slug
+      : slug;
     
     // PRIORITÉ :
     // 1) url_image (colonne manuelle, URL en ligne valide si présente)
