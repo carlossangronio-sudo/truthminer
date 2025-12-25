@@ -89,7 +89,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 pt-12 relative z-10">
+      <div className="max-w-5xl mx-auto px-6 pt-12 relative z-10">
         
         {/* En-tête du Rapport */}
         <header className="mb-12">
@@ -285,7 +285,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
           <Newsletter />
         </div>
 
-      </main>
+      </div>
     </main>
   );
 };
