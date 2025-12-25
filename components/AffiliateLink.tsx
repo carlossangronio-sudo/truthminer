@@ -35,7 +35,7 @@ export default function AffiliateLink({
         href={amazonUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center justify-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+        className={`inline-flex items-center justify-center px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black uppercase text-xs tracking-[0.2em] rounded-[2rem] transition-all shadow-[0_0_40px_rgba(34,211,238,0.4)] flex items-center justify-center gap-3 active:scale-95 ${className}`}
       >
         <svg
           className="w-5 h-5 mr-2"
@@ -50,7 +50,7 @@ export default function AffiliateLink({
             clipRule="evenodd"
           />
         </svg>
-        Voir le meilleur choix sur Amazon
+        Extraire sur Amazon
       </a>
       {recommendationReason && (
         <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed">

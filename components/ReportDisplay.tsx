@@ -93,10 +93,13 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   // Compter les signaux analysés (approximation basée sur le score)
   const signalCount = Math.max(50, Math.round((confidenceScore || 50) * 10));
 
-  // Construire le lien Amazon si disponible
+  // ID d'affiliation Amazon
+  const affiliateId = 'tminer-21';
+  
+  // Construire le lien Amazon avec tag d'affiliation
   const amazonLink = amazonSearchQuery 
-    ? `https://www.amazon.fr/s?k=${encodeURIComponent(amazonSearchQuery)}`
-    : null;
+    ? `https://www.amazon.fr/s?k=${encodeURIComponent(amazonSearchQuery)}&tag=${affiliateId}`
+    : (report.title ? `https://www.amazon.fr/s?k=${encodeURIComponent(report.title)}&tag=${affiliateId}` : null);
 
   return (
     <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative overflow-hidden">
@@ -166,11 +169,17 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
                 {deep_analysis ? (
                   // Nouveau format : 3 paragraphes séparés
                   <div className="space-y-6">
-                    {deep_analysis.split('\n\n').map((paragraph, index) => (
-                      <p key={index} className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
-                        {paragraph}
+                    {typeof deep_analysis === 'string' ? (
+                      deep_analysis.split('\n\n').map((paragraph, index) => (
+                        <p key={index} className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
+                          {paragraph}
+                        </p>
+                      ))
+                    ) : (
+                      <p className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
+                        {mainAnalysis}
                       </p>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   // Ancien format : texte simple
@@ -260,14 +269,15 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
           </div>
           
           <div className="w-full md:w-auto z-10">
-            {amazonSearchQuery ? (
+            {amazonSearchQuery || report.title ? (
               <AffiliateLink
-                amazonSearchQuery={amazonSearchQuery}
+                amazonSearchQuery={amazonSearchQuery || report.title}
                 recommendationReason={amazonRecommendationReason || 'Recommandation issue de la communauté Reddit'}
+                className="w-full md:w-72"
               />
             ) : (
               <a 
-                href={amazonLink || '#'} 
+                href={amazonLink || 'https://www.amazon.fr/?tag=tminer-21'} 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full md:w-72 bg-cyan-500 hover:bg-cyan-400 text-slate-950 py-7 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] text-center shadow-[0_0_40px_rgba(34,211,238,0.4)] transition-all flex items-center justify-center gap-3 active:scale-95"
