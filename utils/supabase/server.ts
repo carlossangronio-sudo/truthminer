@@ -8,6 +8,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export function createClient() {
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey);
+  // Les variables sont vérifiées au niveau du module, mais TypeScript a besoin d'une vérification à l'exécution
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!url || !key) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createSupabaseClient(url, key);
 }
 
