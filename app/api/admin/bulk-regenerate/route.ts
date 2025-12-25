@@ -23,8 +23,9 @@ async function handleRegeneration(req: Request) {
 
   const supabase = createClient();
 
-  // 2. Sélection des rapports (Correction : on retire 'title' qui n'existe pas dans votre table)
-  let query = supabase.from('reports').select('id, product_name, url_image, slug');
+  // 2. Sélection des rapports (Correction : utilisation de 'image_url' au lieu de 'url_image')
+  // On récupère product_name, image_url et slug pour identifier les rapports
+  let query = supabase.from('reports').select('id, product_name, image_url, slug');
   
   if (targetSlug) {
     query = query.eq('slug', targetSlug);
@@ -79,7 +80,8 @@ async function handleRegeneration(req: Request) {
 
       const newContent = JSON.parse(aiResponse.choices[0].message.content || '{}');
 
-      // 3. Mise à jour (Sécurité url_image : on ne touche qu'au content et updated_at)
+      // 3. Mise à jour (Sécurité image_url : on ne touche qu'au content et updated_at)
+      // La colonne image_url (ton travail du 23/12) est préservée car absente de l'update
       const { error: updateError } = await supabase
         .from('reports')
         .update({ 
