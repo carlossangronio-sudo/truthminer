@@ -264,8 +264,7 @@ export async function GET(req: Request) {
 
           <script>
             const reports = ${JSON.stringify(allReports || [])};
-            // Plus besoin de clé, l'authentification se fait via cookie
-            const key = "${key}";
+            // L'authentification se fait via cookie de session, plus besoin de clé dans l'URL
             const startBtn = document.getElementById('start-btn');
             const container = document.getElementById('progress-container');
             const successCount = document.getElementById('success-count');
