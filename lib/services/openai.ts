@@ -62,14 +62,15 @@ OBJECTIFS PRINCIPAUX :
 IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STRICT suivant :
 {
   "title": "Titre percutant et descriptif",
-  "consensus": "Une phrase percutante qui résume l'avis général de la communauté Reddit. Si c'est une mauvaise affaire, dis-le clairement dès le début.",
-  "pros": ["Point fort 1 avec citation Reddit unique", "Point fort 2 avec citation Reddit unique"],
-  "cons": ["Défaut caché 1 avec citation Reddit unique", "Défaut caché 2 avec citation Reddit unique"],
+  "consensus": "Une phrase percutante qui résume l'avis général (le signal social). Si c'est une mauvaise affaire, dis-le clairement dès le début.",
+  "pros": ["Point fort 1 avec citation Reddit unique", "Point fort 2 avec citation Reddit unique", "Point fort 3 avec citation Reddit unique"],
+  "cons": ["Défaut caché 1 avec citation Reddit unique", "Défaut caché 2 avec citation Reddit unique", "Défaut caché 3 avec citation Reddit unique"],
   "target_audience": {
-    "yes": "Le profil type qui adorera ce produit (ex: Les sportifs intensifs). Une phrase ultra-courte.",
-    "no": "Le profil type qui sera déçu (ex: Ceux qui cherchent la durabilité). Une phrase ultra-courte."
+    "yes": "Le profil type précis qui adorera ce produit (ex: Les sportifs intensifs). Une seule phrase ultra-courte.",
+    "no": "Le profil type précis qui sera déçu (ex: Ceux qui privilégient la durabilité). Une seule phrase ultra-courte."
   },
-  "final_verdict": "Un paragraphe court et brut, terminant par une métaphore originale (ex: Acheter ça, c'est comme...). NE PAS lister les pros/cons, donner une conclusion globale et émotionnelle.",
+  "punchline": "Une analogie ou métaphore percutante (ex: C'est comme courir un marathon en sandales).",
+  "final_verdict": "Un paragraphe final tranché et émotionnel qui donne une conclusion définitive (Achetez / Fuyez / Attendez). NE PAS relister les points techniques, donner le ressenti final global.",
   "products": ["Nom du produit 1", "Nom du produit 2"],
   "confidenceScore": 0-100,
   "category": "Électronique" | "Cosmétiques" | "Alimentation" | "Services",
@@ -83,15 +84,17 @@ RÈGLES DE VÉRIFICATION TECHNIQUE :
 - Ne confonds JAMAIS les fonctionnalités : si un produit n'a pas d'écran, ne mentionne jamais d'écran
 - Vérifie les spécifications techniques mentionnées dans les discussions Reddit avant de les citer
 - Si tu n'es pas sûr d'une caractéristique technique, indique-le clairement plutôt que d'inventer
+- **SOURCES** : Mentionne si possible un subreddit spécifique (ex: r/hardware, r/headphones) pour renforcer la crédibilité dans les citations
 
-TON ET STYLE - CRITIQUE ET TRANCHANT :
-- Ton : journaliste d'investigation tech **cynique, drôle et tranchant**, mais toujours factuel
+TON ET STYLE - RÉEL ET INVESTIGATIF :
+- Ton : journaliste d'investigation tech **direct, investigatif et parfois critique**. Pas de langage marketing poli.
 - Tu peux être moqueur avec les produits ratés, mais jamais avec les utilisateurs
 - **PRIORITÉ AU VERDICT** : Si le produit est une "mauvaise affaire en 2025", c'est l'élément CENTRAL du rapport, pas caché à la fin
 - Le champ "consensus" doit IMMÉDIATEMENT donner le verdict : "Mauvaise affaire", "Excellent choix", "Mitigé", etc.
 - Utilise des expressions tranchées : "Le consensus Reddit est sans appel", "Ce que le marketing vous cache", "La vérité que personne ne vous dit"
 - Sois direct et sans langue de bois : "Non, ce n'est pas fait pour vous si...", "Si vous cherchez X, passez votre chemin"
-- La "punchline" doit être percutante et résumer l'essence critique du verdict
+- La "punchline" doit être une analogie ou métaphore percutante qui résume l'essence du verdict
+- Le "final_verdict" doit être tranché et émotionnel avec une conclusion définitive (Achetez / Fuyez / Attendez)
 
 STRUCTURE ÉPURÉE - PAS DE SOUS-TITRES REDONDANTS :
 - Évite les titres redondants comme "Points forts" ET "Ce que la communauté apprécie" - choisis UN seul titre court et percutant
@@ -100,11 +103,12 @@ STRUCTURE ÉPURÉE - PAS DE SOUS-TITRES REDONDANTS :
 
 CITATIONS REDDIT - ZÉRO RÉPÉTITION (RÈGLE ABSOLUE) :
 - **INTERDICTION STRICTE** : Tu ne peux JAMAIS utiliser la même citation Reddit deux fois dans un même rapport
+- **ZÉRO RÉPÉTITION D'IDÉES** : Ne cite jamais deux fois la même idée ou le même défaut dans des sections différentes
 - Chaque citation doit être UNIQUE et utilisée UNE SEULE FOIS
 - Si tu as déjà utilisé une citation dans "pros", tu ne peux PAS la réutiliser dans "cons" ou ailleurs
-- Format pour chaque élément de "pros" et "cons" : "Description : '[citation exacte et unique]' - Un utilisateur Reddit"
-- Exemple pros : "Autonomie exceptionnelle : 'J'ai tenu 3 jours sans recharger' - Un utilisateur Reddit"
-- Exemple cons : "Surchauffe rapide : 'Mon unité devient brûlante au bout de 30 min' - Un utilisateur Reddit"
+- Format pour chaque élément de "pros" et "cons" : "Description : '[citation exacte et unique]' - Un utilisateur Reddit (r/subreddit si disponible)"
+- Exemple pros : "Autonomie exceptionnelle : 'J'ai tenu 3 jours sans recharger' - Un utilisateur Reddit (r/headphones)"
+- Exemple cons : "Surchauffe rapide : 'Mon unité devient brûlante au bout de 30 min' - Un utilisateur Reddit (r/hardware)"
 - Les citations doivent être extraites des extraits fournis, pas inventées
 - Si tu manques de citations uniques, utilise des citations différentes pour chaque point, même si elles parlent du même sujet
 
@@ -113,11 +117,14 @@ Instructions détaillées pour le format JSON STRICT :
 2. "consensus" : Le verdict principal en 1-2 phrases. Si c'est une mauvaise affaire, dis-le clairement. Exemple : "Le consensus Reddit est sans appel : La Poste et Colissimo sont une mauvaise affaire en 2025. Les avis de passage systématiques et les colis introuvables transforment chaque livraison en parcours du combattant."
 3. "pros" : Tableau de points forts, CHACUN avec une citation Reddit UNIQUE. Format : "Point fort : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-3 points forts si disponibles.
 4. "cons" : Tableau de points faibles, CHACUN avec une citation Reddit UNIQUE. Format : "Point faible : '[citation exacte et unique]' - Un utilisateur Reddit". Minimum 2-4 points faibles si disponibles.
-5. "target_audience" : Objet avec deux champs ultra-courts (une phrase chacun) :
-   - "yes" : Le profil type qui adorera ce produit (ex: "Les sportifs intensifs qui cherchent la performance pure.")
-   - "no" : Le profil type qui sera déçu (ex: "Ceux qui cherchent la durabilité à long terme.")
-6. "final_verdict" : Un paragraphe court et brut qui donne une conclusion globale et émotionnelle, terminant par une métaphore originale (ex: "Acheter ça, c'est comme essayer de vider l'océan avec une fourchette : frustrant et inutile."). 
-   **RÈGLE D'OR** : Le 'final_verdict' ne doit PAS lister les pros/cons déjà mentionnés. Il doit donner une conclusion globale et émotionnelle.
+5. "target_audience" : Objet avec deux champs ultra-courts (une seule phrase chacun) :
+   - "yes" : Le profil type précis qui adorera ce produit (ex: "Les sportifs intensifs qui cherchent la performance pure.")
+   - "no" : Le profil type précis qui sera déçu (ex: "Ceux qui privilégient la durabilité à long terme.")
+   **SÉPARATION DES RÔLES** : La section 'target_audience' doit être ultra-courte (une seule phrase par profil).
+6. "punchline" : Une analogie ou métaphore percutante qui résume l'essence du verdict (ex: "C'est comme courir un marathon en sandales.").
+7. "final_verdict" : Un paragraphe final tranché et émotionnel qui donne une conclusion définitive (Achetez / Fuyez / Attendez). 
+   **RÈGLE D'OR** : Le 'final_verdict' ne doit PAS relister les points techniques déjà mentionnés dans pros/cons. Il doit donner le ressenti final global et émotionnel.
+   **SÉPARATION DES RÔLES** : Le 'final_verdict' est distinct de la 'punchline' - la punchline est une métaphore, le final_verdict est la conclusion définitive.
 7. "products" : Liste précise des noms des produits principaux mentionnés (pour les liens d'affiliation)
 8. "amazonSearchQuery" : REQUÊTE DE RECHERCHE AMAZON OPTIMISÉE ET PRÉCISE. C'est CRUCIAL :
    - Tu dois extraire le **nom EXACT du modèle de produit le plus recommandé** (pas une catégorie générique)
@@ -174,15 +181,18 @@ Sois factuel, honnête, tranché, et cite TOUJOURS les sources Reddit avec des c
 
     const userPrompt = `Analyse ces discussions Reddit sur "${keyword}" et génère un rapport ultra-honnête au format JSON STRICT.
 
-RAPPELS CRITIQUES :
+RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
 - Tu ne dois RIEN inventer : si une information n'apparaît pas dans les extraits, tu indiques clairement qu'elle est "Non précisée sur Reddit"
 - Vérifie les spécifications techniques (Smart vs AR, écran vs pas d'écran, etc.)
-- Utilise un ton tranché et sans compromis - si c'est une mauvaise affaire, dis-le clairement dans "consensus"
-- **ZÉRO RÉPÉTITION** : Chaque citation Reddit doit être UNIQUE et utilisée UNE SEULE FOIS dans tout le rapport
+- **TON RÉEL** : Utilise un ton direct, investigatif et parfois critique. Pas de langage marketing poli.
+- **ZÉRO RÉPÉTITION** : Ne cite jamais deux fois la même idée ou le même défaut dans des sections différentes. Chaque citation Reddit doit être UNIQUE et utilisée UNE SEULE FOIS dans tout le rapport.
 - Extrais des citations Reddit réelles et différentes pour chaque élément de "pros" et "cons"
+- **SOURCES** : Mentionne si possible un subreddit spécifique (ex: r/hardware, r/headphones) pour renforcer la crédibilité dans les citations
 - Structure épurée : pas de sous-titres redondants, va droit au but
-- **RÈGLE D'OR pour final_verdict** : Ne PAS lister les pros/cons déjà mentionnés. Donner une conclusion globale et émotionnelle avec une métaphore originale à la fin
-- **target_audience** : Ultra-court (une phrase par profil), direct et percutant
+- **SÉPARATION DES RÔLES** :
+  - La section 'target_audience' doit être ultra-courte (une seule phrase par profil).
+  - Le 'final_verdict' ne doit PAS relister les points techniques, mais donner le ressenti final global.
+  - La 'punchline' est une analogie/métaphore percutante, distincte du 'final_verdict' qui est la conclusion définitive (Achetez/Fuyez/Attendez).
 
 Discussions Reddit à analyser :
 
@@ -197,7 +207,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus, pros (tableau avec citations UNIQUES), cons (tableau avec citations UNIQUES), target_audience (objet avec yes/no), final_verdict (paragraphe court avec métaphore, SANS lister les pros/cons), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (phrase percutante résumant le signal social), pros (tableau de 3 points forts avec citations UNIQUES), cons (tableau de 3 défauts cachés avec citations UNIQUES), target_audience (objet avec yes/no - une phrase ultra-courte par profil), punchline (analogie/métaphore percutante), final_verdict (paragraphe final tranché avec conclusion définitive Achetez/Fuyez/Attendez, SANS relister les points techniques), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
@@ -247,12 +257,12 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
       const pros = Array.isArray(parsed.pros) ? parsed.pros : [];
       const cons = Array.isArray(parsed.cons) ? parsed.cons : [];
       
-      // Nouveau format : target_audience et final_verdict
+      // Nouveau format : target_audience, punchline et final_verdict (séparés)
       const targetAudience = parsed.target_audience || {};
-      const finalVerdict = parsed.final_verdict || parsed.punchline || '';
+      const punchline = parsed.punchline || '';
+      const finalVerdict = parsed.final_verdict || '';
       
-      // Ancien format (pour compatibilité) : punchline et recommendations
-      const punchline = finalVerdict; // final_verdict remplace punchline
+      // Ancien format (pour compatibilité) : recommendations
       const recommendations: string[] = [];
       
       // Construire recommendations[] à partir de target_audience pour compatibilité
@@ -268,10 +278,11 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         recommendations.push(...parsed.recommendations);
       }
       
-      // Construire "choice" (ancien format) à partir de consensus + final_verdict si disponible
-      const choice = finalVerdict 
-        ? `${consensus} ${finalVerdict}`.trim()
-        : consensus;
+      // Construire "choice" (ancien format) à partir de consensus + punchline + final_verdict si disponible
+      const choiceParts = [consensus];
+      if (punchline) choiceParts.push(punchline);
+      if (finalVerdict) choiceParts.push(finalVerdict);
+      const choice = choiceParts.join(' ').trim();
       
       // Construire "defects" (ancien format) à partir de cons[]
       const defects = cons;
@@ -283,7 +294,9 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         '',
         consensus,
         '',
-        finalVerdict ? `> ${finalVerdict}` : '',
+        punchline ? `> ${punchline}` : '',
+        '',
+        finalVerdict ? `**Verdict final** : ${finalVerdict}` : '',
         '',
         '## Points forts',
         '',
@@ -320,10 +333,10 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         consensus: parsed.consensus,
         pros: parsed.pros,
         cons: parsed.cons,
-        final_verdict: parsed.final_verdict || parsed.punchline,
+        punchline: parsed.punchline,
+        final_verdict: parsed.final_verdict,
         target_audience: parsed.target_audience,
         // Anciens champs pour compatibilité
-        punchline: parsed.punchline || parsed.final_verdict,
         recommendations: recommendations.length > 0 ? recommendations : parsed.recommendations,
       };
 

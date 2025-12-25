@@ -48,7 +48,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
   const consensus = report.consensus || report.choice || 'Analyse en cours...';
   const pros = report.pros || [];
   const cons = report.cons || report.defects || [];
-  const finalVerdict = report.final_verdict || report.punchline || null;
+  const punchline = report.punchline || null;
+  const finalVerdict = report.final_verdict || null;
   const targetAudience = report.target_audience;
   
   // Construire recommendations à partir de target_audience si disponible
