@@ -15,19 +15,53 @@ import {
 const InterfaceTutorial = () => {
   const [step, setStep] = useState(0);
   const [typedText, setTypedText] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
   const targetProduct = "iPhone 16 Pro";
+  const sectionRef = React.useRef<HTMLDivElement>(null);
 
-  // Cycle de l'animation
+  // Détecter quand la section est visible dans le viewport
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            // Démarrer l'animation dès que la section est visible
+          } else {
+            // Optionnel : réinitialiser quand la section sort du viewport
+            // setIsVisible(false);
+          }
+        });
+      },
+      {
+        threshold: 0.3, // Déclencher quand 30% de la section est visible
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
+  // Cycle de l'animation - ne démarre que si la section est visible
+  useEffect(() => {
+    if (!isVisible) return;
+
     const timer = setInterval(() => {
       setStep((prev) => (prev < 3 ? prev + 1 : 0));
     }, 4500);
     return () => clearInterval(timer);
-  }, []);
+  }, [isVisible]);
 
-  // Effet de machine à écrire pour l'étape 0
+  // Effet de machine à écrire pour l'étape 0 - ne démarre que si visible
   useEffect(() => {
-    if (step === 0) {
+    if (step === 0 && isVisible) {
       setTypedText("");
       let i = 0;
       const interval = setInterval(() => {
@@ -37,10 +71,10 @@ const InterfaceTutorial = () => {
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [step]);
+  }, [step, isVisible]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 font-sans">
+    <div ref={sectionRef} className="w-full max-w-4xl mx-auto p-4 font-sans">
       <div className="relative bg-[#0a0525] border border-cyan-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-cyan-500/10">
         
         {/* --- DÉCOR CYBER --- */}
