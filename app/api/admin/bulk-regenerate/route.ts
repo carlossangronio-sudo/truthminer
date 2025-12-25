@@ -3,99 +3,49 @@ import { createClient } from '@/utils/supabase/server';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// On définit la clé par défaut si non présente dans le .env
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
 
-// Configuration pour éviter les timeouts Vercel (max 10s en Hobby, 60s en Pro)
-export const maxDuration = 10; // Limité à 10s sur Vercel Hobby
+export const maxDuration = 10; // Limite Vercel Hobby
 
-// Fonction commune de traitement pour éviter les erreurs 405 (Method Not Allowed)
-async function handleRegeneration(req: Request) {
-  const startTime = Date.now();
-  
-  try {
-    const { searchParams } = new URL(req.url);
-    const key = searchParams.get('key');
-    const targetId = searchParams.get('id');
-    const targetProductName = searchParams.get('product_name');
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const key = searchParams.get('key');
+  const id = searchParams.get('id');
+  const productNameParam = searchParams.get('product_name');
 
-    console.log('[BulkRegenerate] Démarrage - Params:', { 
-      hasKey: !!key, 
-      targetId, 
-      targetProductName 
-    });
+  // 1. Sécurité
+  if (!key || key !== ADMIN_SECRET_KEY) {
+    return NextResponse.json({ 
+      error: 'Accès non autorisé' 
+    }, { status: 401 });
+  }
 
-    // 1. Vérification de sécurité
-    if (!key || key !== ADMIN_SECRET_KEY) {
-      console.log('[BulkRegenerate] ❌ Clé invalide');
-      return NextResponse.json({ 
-        error: 'Accès non autorisé', 
-        debug: "La clé fournie ne correspond pas à la configuration." 
-      }, { status: 401 });
-    }
+  const supabase = createClient();
 
-    // 2. SÉCURITÉ TIMEOUT : Sur Vercel Hobby (10s max), on ne peut traiter qu'un rapport à la fois
-    if (!targetId && !targetProductName) {
-      return NextResponse.json({
-        error: "Mode complet désactivé pour éviter les timeouts",
-        message: "Sur Vercel Hobby, la limite est de 10 secondes. Tu dois traiter un rapport à la fois.",
-        instruction: "Utilise l'un de ces paramètres pour cibler un seul rapport :",
-        options: {
-          byId: "?key=truthminer-admin-2024&id=TON_ID_ICI",
-          byProductName: "?key=truthminer-admin-2024&product_name=iPhone%2015%20Pro"
-        },
-        tip: "Pour régénérer tous les rapports, appelle cette URL plusieurs fois avec différents IDs"
-      }, { status: 400 });
-    }
-
-    console.log('[BulkRegenerate] ✅ Clé validée');
-
-    const supabase = createClient();
-
-    // 3. Sélection des rapports (un seul rapport uniquement)
-    let query = supabase.from('reports').select('id, product_name, image_url');
-    
-    // Filtre par ID si fourni (mode test sur un seul rapport)
-    if (targetId) {
-      console.log('[BulkRegenerate] Filtre par ID:', targetId);
-      query = query.eq('id', targetId);
-    }
-    // Sinon, filtre par product_name si fourni (alternative pour mode test)
-    else if (targetProductName) {
-      console.log('[BulkRegenerate] Filtre par product_name:', targetProductName);
-      query = query.eq('product_name', targetProductName);
-    }
-
-    console.log('[BulkRegenerate] Exécution requête Supabase...');
-    const { data: reports, error: fetchError } = await query;
-
-    if (fetchError) {
-      console.error('[BulkRegenerate] ❌ Erreur Supabase:', fetchError);
-      return NextResponse.json({ 
-        error: "Erreur Supabase", 
-        details: fetchError.message 
-      }, { status: 500 });
-    }
-
-    console.log('[BulkRegenerate] ✅ Rapports récupérés:', reports?.length || 0);
-
-    if (!reports || reports.length === 0) {
-      return NextResponse.json({ 
-        message: "Aucun rapport trouvé pour ce critère.",
-        searched: targetId ? `ID: ${targetId}` : `product_name: ${targetProductName}`
-      });
-    }
-
-    // On ne traite que le premier rapport pour éviter les timeouts
-    const report = reports[0];
-    const productName = report.product_name || "Produit inconnu";
-    
-    console.log(`[BulkRegenerate] Traitement: ${productName} (ID: ${report.id})`);
-    
+  // --- MODE INDIVIDUEL (Appelé par le navigateur pour 1 rapport) ---
+  if (id || productNameParam) {
     try {
-      // PROMPT NARRATIF V3 (Évite les redondances)
-      const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${productName}.
+      let query = supabase.from('reports').select('id, product_name, image_url');
+      
+      if (id) {
+        query = query.eq('id', id);
+      } else if (productNameParam) {
+        // Utilisation de eq() pour une correspondance exacte (plus sûr que ilike)
+        query = query.eq('product_name', productNameParam);
+      }
+
+      const { data: report, error: fetchError } = await query.maybeSingle();
+      
+      if (fetchError || !report) {
+        throw new Error(fetchError?.message || "Rapport non trouvé");
+      }
+
+      const name = report.product_name || "Produit inconnu";
+
+      console.log(`[BulkRegenerate] Traitement: ${name} (ID: ${report.id})`);
+
+      // PROMPT NARRATIF V3 complet (comme dans le code original)
+      const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${name}.
       
       STRUCTURE JSON STRICTE :
       {
@@ -113,7 +63,6 @@ async function handleRegeneration(req: Request) {
 
       RÈGLES : Pas de répétition. Pas de listes dans deep_analysis. Ton tranchant.`;
 
-      console.log(`[BulkRegenerate] Appel OpenAI pour: ${productName}`);
       const aiResponse = await openai.chat.completions.create({
         model: "gpt-4-turbo-preview",
         messages: [
@@ -123,12 +72,9 @@ async function handleRegeneration(req: Request) {
         response_format: { type: "json_object" }
       });
 
-      console.log(`[BulkRegenerate] ✅ Réponse OpenAI reçue pour: ${productName}`);
       const newContent = JSON.parse(aiResponse.choices[0].message.content || '{}');
 
-      // Mise à jour (Sécurité image_url : on ne touche qu'au content et updated_at)
-      // La colonne image_url (ton travail du 23/12) est préservée car absente de l'update
-      console.log(`[BulkRegenerate] Mise à jour Supabase pour: ${productName}`);
+      // MISE À JOUR : On protège image_url (ton travail du 23/12)
       const { error: updateError } = await supabase
         .from('reports')
         .update({ 
@@ -137,44 +83,160 @@ async function handleRegeneration(req: Request) {
         })
         .eq('id', report.id);
 
-      if (updateError) {
-        console.error(`[BulkRegenerate] ❌ Erreur update pour ${productName}:`, updateError);
-        throw updateError;
-      }
-      
-      const duration = Math.round((Date.now() - startTime) / 1000);
-      console.log(`[BulkRegenerate] ✅ Rapport mis à jour: ${productName} (${duration}s)`);
+      if (updateError) throw updateError;
 
-      return NextResponse.json({
-        status: "success",
-        message: `Rapport régénéré avec succès: ${productName}`,
-        reportId: report.id,
-        productName: productName,
-        duration: `${duration}s`
+      console.log(`[BulkRegenerate] ✅ Rapport mis à jour: ${name}`);
+
+      return NextResponse.json({ 
+        success: true, 
+        product: name,
+        reportId: report.id
       });
     } catch (err: any) {
-      console.error(`[BulkRegenerate] ❌ Erreur pour ${productName}:`, err.message);
-      return NextResponse.json({
-        status: "error",
-        error: err.message,
-        productName: productName,
-        reportId: report.id
+      console.error('[BulkRegenerate] ❌ Erreur:', err.message);
+      return NextResponse.json({ 
+        success: false, 
+        error: err.message 
       }, { status: 500 });
     }
-  } catch (error: any) {
-    console.error('[BulkRegenerate] ❌ Erreur globale:', error);
-    return NextResponse.json({
-      error: "Erreur lors du traitement",
-      message: error.message
+  }
+
+  // --- MODE TABLEAU DE BORD (Si aucun ID n'est fourni) ---
+  // On récupère la liste des IDs pour le navigateur
+  const { data: allReports, error: reportsError } = await supabase
+    .from('reports')
+    .select('id, product_name')
+    .order('created_at', { ascending: false });
+  
+  if (reportsError) {
+    return NextResponse.json({ 
+      error: "Erreur lors de la récupération des rapports",
+      details: reportsError.message 
     }, { status: 500 });
   }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>TruthMiner Migration</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <meta charset="UTF-8">
+      </head>
+      <body class="bg-[#02010a] text-white font-sans p-4 md:p-10">
+        <div class="max-w-2xl mx-auto border border-cyan-500/30 p-6 md:p-8 rounded-3xl bg-[#0a0525]">
+          <h1 class="text-xl md:text-2xl font-black italic mb-4 md:mb-6 text-cyan-400 uppercase tracking-tighter">Console de Migration Séquentielle</h1>
+          <p class="text-slate-400 mb-4 md:mb-8 text-xs md:text-sm">Vercel Hobby limite les requêtes à 10s. Ce script va traiter vos <strong class="text-cyan-400">${allReports?.length || 0}</strong> rapports un par un directement depuis votre navigateur.</p>
+          
+          <div class="mb-4 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-xs text-cyan-300">
+            <strong>⚠ Protection active :</strong> La colonne <code class="bg-black/30 px-1 rounded">image_url</code> ne sera pas modifiée. Seul le <code class="bg-black/30 px-1 rounded">content</code> sera régénéré.
+          </div>
+
+          <div id="stats" class="mb-6 flex gap-4 text-xs">
+            <div class="flex-1 p-3 bg-white/5 rounded-lg text-center">
+              <div class="text-2xl font-black text-cyan-400" id="success-count">0</div>
+              <div class="text-slate-400 uppercase tracking-widest mt-1">Succès</div>
+            </div>
+            <div class="flex-1 p-3 bg-white/5 rounded-lg text-center">
+              <div class="text-2xl font-black text-red-400" id="error-count">0</div>
+              <div class="text-slate-400 uppercase tracking-widest mt-1">Erreurs</div>
+            </div>
+            <div class="flex-1 p-3 bg-white/5 rounded-lg text-center">
+              <div class="text-2xl font-black text-yellow-400" id="remaining-count">${allReports?.length || 0}</div>
+              <div class="text-slate-400 uppercase tracking-widest mt-1">Restants</div>
+            </div>
+          </div>
+          
+          <div id="progress-container" class="space-y-1 mb-6 max-h-60 overflow-y-auto border-t border-white/5 pt-4 text-xs">
+            <!-- Les progrès s'afficheront ici -->
+          </div>
+
+          <button id="start-btn" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black py-4 rounded-xl transition-all uppercase text-xs tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
+            Démarrer la régénération
+          </button>
+          
+          <p class="text-[10px] text-slate-500 mt-4 text-center">
+            Ne ferme pas cette page pendant le traitement. Chaque rapport prend environ 5-8 secondes.
+          </p>
+        </div>
+
+        <script>
+          const reports = ${JSON.stringify(allReports || [])};
+          const key = "${key}";
+          const startBtn = document.getElementById('start-btn');
+          const container = document.getElementById('progress-container');
+          const successCount = document.getElementById('success-count');
+          const errorCount = document.getElementById('error-count');
+          const remainingCount = document.getElementById('remaining-count');
+          
+          let processed = 0;
+          let success = 0;
+          let errors = 0;
+
+          startBtn.onclick = async () => {
+            startBtn.disabled = true;
+            startBtn.innerHTML = "⏳ Traitement en cours...";
+            
+            for (const r of reports) {
+              const item = document.createElement('div');
+              item.className = "flex justify-between items-center border-b border-white/5 py-2 uppercase tracking-widest text-[10px]";
+              item.innerHTML = '<span class="truncate mr-2">' + (r.product_name || 'Sans nom') + '</span><span class="text-yellow-500 shrink-0">⏳ Encours...</span>';
+              container.prepend(item);
+              const statusSpan = item.querySelector('span:last-child');
+
+              try {
+                const res = await fetch("/api/admin/bulk-regenerate?key=" + encodeURIComponent(key) + "&id=" + encodeURIComponent(r.id));
+                const data = await res.json();
+                
+                if (data.success) {
+                  statusSpan.className = "text-green-500 shrink-0";
+                  statusSpan.innerHTML = "✅ Terminé";
+                  success++;
+                  successCount.textContent = success;
+                } else {
+                  throw new Error(data.error || 'Erreur inconnue');
+                }
+              } catch (e) {
+                statusSpan.className = "text-red-500 shrink-0";
+                statusSpan.innerHTML = "❌ Erreur";
+                errors++;
+                errorCount.textContent = errors;
+                console.error('Erreur pour', r.product_name, ':', e);
+              }
+              
+              processed++;
+              const remaining = reports.length - processed;
+              remainingCount.textContent = remaining;
+              
+              // Délai de 500ms entre chaque requête pour éviter de surcharger
+              if (processed < reports.length) {
+                await new Promise(r => setTimeout(r, 500));
+              }
+            }
+            
+            startBtn.innerHTML = "✅ Migration Terminée !";
+            startBtn.classList.remove('bg-cyan-500', 'hover:bg-cyan-400');
+            startBtn.classList.add('bg-green-500');
+            
+            // Message de fin
+            const finalMsg = document.createElement('div');
+            finalMsg.className = "mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-xs text-green-300 text-center";
+            finalMsg.innerHTML = "<strong>Migration terminée !</strong><br>Succès: " + success + " | Erreurs: " + errors;
+            container.after(finalMsg);
+          };
+        </script>
+      </body>
+    </html>
+  `;
+
+  return new NextResponse(html, { 
+    headers: { 
+      'Content-Type': 'text/html; charset=utf-8' 
+    } 
+  });
 }
 
-// On exporte GET pour le navigateur et POST pour les outils admin
-export async function GET(req: Request) {
-  return handleRegeneration(req);
-}
-
+// On exporte aussi POST pour compatibilité
 export async function POST(req: Request) {
-  return handleRegeneration(req);
+  return GET(req);
 }
