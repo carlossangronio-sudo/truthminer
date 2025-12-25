@@ -235,8 +235,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
             )}
           </div>
 
-          {/* Analyse détaillée (deep_analysis ou article) */}
-          {(report.deep_analysis || report.article) && (
+          {/* Analyse détaillée (rétro-compatible) */}
+          {(report.deep_analysis || report.article || report.consensus || report.choice) && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -255,10 +255,15 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                     </p>
                   ))}
                 </div>
-              ) : (
+              ) : report.article ? (
                 // Ancien format : article markdown
                 <div className="prose prose-lg max-w-none markdown-content prose-invert prose-headings:text-white prose-p:text-slate-100 prose-strong:text-white prose-li:text-slate-100 prose-a:text-cyan-400">
                   <ReactMarkdown>{report.article}</ReactMarkdown>
+                </div>
+              ) : (
+                // Fallback : afficher consensus ou choice pour ne pas laisser la page vide
+                <div className="text-slate-100 leading-relaxed">
+                  <p className="text-lg">{report.consensus || report.choice || 'Analyse en cours...'}</p>
                 </div>
               )}
             </motion.section>
