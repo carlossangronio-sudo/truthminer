@@ -244,15 +244,17 @@ export default async function ReportPage({ params }: PageProps) {
             </p>
           </div>
 
-          {/* Image principale du produit - Utiliser ImageCard pour le fallback automatique */}
-          <div className="mb-6">
-            <ImageCard
-              imageUrl={report.image_url || undefined}
-              title={report.title}
-              height="h-64 md:h-96"
-              className="rounded-lg"
-            />
-          </div>
+          {/* Image principale du produit - PRIORITÉ : url_image (colonne manuelle) */}
+          {(report.url_image || report.image_url) && (
+            <div className="mb-6">
+              <ImageCard
+                imageUrl={report.url_image || report.image_url || undefined}
+                title={report.title}
+                height="h-64 md:h-96"
+                className="rounded-lg"
+              />
+            </div>
+          )}
 
           <div className="space-y-8 md:space-y-10 animate-fade-in">
             {/* Score de confiance TruthMiner */}
