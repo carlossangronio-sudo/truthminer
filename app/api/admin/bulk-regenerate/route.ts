@@ -87,8 +87,34 @@ export async function POST(request: NextRequest) {
         // Générer le nouveau rapport avec le nouveau format (deep_analysis, reddit_quotes)
         const newReport = await openaiService.generateReport(currentTitle, redditResults);
 
+        // Construire l'objet content JSON pour Supabase (format attendu)
+        const contentToSave = {
+          title: newReport.title,
+          slug: newReport.slug,
+          choice: newReport.choice,
+          defects: newReport.defects,
+          article: newReport.article,
+          products: newReport.products,
+          userProfiles: newReport.userProfiles,
+          confidenceScore: newReport.confidenceScore,
+          category: newReport.category,
+          amazonSearchQuery: newReport.amazonSearchQuery,
+          amazonRecommendationReason: newReport.amazonRecommendationReason,
+          imageUrl: newReport.imageUrl,
+          // Nouveaux champs du format JSON strict
+          consensus: newReport.consensus,
+          pros: newReport.pros,
+          cons: newReport.cons,
+          deep_analysis: newReport.deep_analysis,
+          reddit_quotes: newReport.reddit_quotes,
+          punchline: newReport.punchline,
+          final_verdict: newReport.final_verdict,
+          target_audience: newReport.target_audience,
+          recommendations: newReport.recommendations,
+        };
+
         // Mettre à jour uniquement le champ content (NE TOUCHE PAS à url_image)
-        const success = await updateReportContent(report.id, newReport);
+        const success = await updateReportContent(report.id, contentToSave);
 
         if (success) {
           results.updated++;
