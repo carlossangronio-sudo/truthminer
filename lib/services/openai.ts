@@ -289,6 +289,8 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
       
       // Construire "article" (ancien format) à partir des nouveaux champs
       // Structure épurée sans sous-titres redondants
+      // NOTE: On n'inclut PAS "Est-ce fait pour vous ?" dans l'article si target_audience existe
+      // car cette section sera affichée séparément dans ReportDisplay
       const articleParts = [
         `## ${parsed.title || keyword}`,
         '',
@@ -305,11 +307,17 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : tit
         '## Points faibles',
         '',
         ...cons.map((con: string) => `- ${con}`),
-        '',
-        '## Est-ce fait pour vous ?',
-        '',
-        ...recommendations.map((rec: string) => `- ${rec}`),
       ];
+      
+      // Ajouter "Est-ce fait pour vous ?" uniquement si target_audience n'existe pas (ancien format)
+      if (!parsed.target_audience && recommendations.length > 0) {
+        articleParts.push(
+          '',
+          '## Est-ce fait pour vous ?',
+          '',
+          ...recommendations.map((rec: string) => `- ${rec}`)
+        );
+      }
       
       const article = articleParts.join('\n');
       

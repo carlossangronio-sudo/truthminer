@@ -52,20 +52,26 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
   const finalVerdict = report.final_verdict || null;
   const targetAudience = report.target_audience;
   
-  // Construire recommendations à partir de target_audience si disponible
-  let recommendations: string[] = [];
-  if (targetAudience) {
-    if (targetAudience.yes) {
-      recommendations.push(`✅ ${targetAudience.yes}`);
-    }
-    if (targetAudience.no) {
-      recommendations.push(`❌ ${targetAudience.no}`);
-    }
+  // Extraire les profils depuis target_audience (nouveau format) ou recommendations (ancien format)
+  const targetYes = targetAudience?.yes || null;
+  const targetNo = targetAudience?.no || null;
+  
+  // Fallback pour anciennes structures : construire depuis recommendations si target_audience n'existe pas
+  let fallbackYes: string | null = null;
+  let fallbackNo: string | null = null;
+  if (!targetAudience && report.recommendations && report.recommendations.length > 0) {
+    // Parser les anciennes recommendations pour extraire yes/no
+    report.recommendations.forEach((rec) => {
+      if (rec.toLowerCase().includes('oui') || rec.includes('✅')) {
+        fallbackYes = rec.replace(/✅|OUI|oui|Pour\s+/gi, '').trim();
+      }
+      if (rec.toLowerCase().includes('non') || rec.includes('❌')) {
+        fallbackNo = rec.replace(/❌|NON|non|Pour\s+/gi, '').trim();
+      }
+    });
   }
-  // Fallback : utiliser recommendations existant si target_audience n'existe pas
-  if (recommendations.length === 0 && report.recommendations) {
-    recommendations = report.recommendations;
-  }
+  
+  const hasTargetAudience = (targetYes || targetNo) || (fallbackYes || fallbackNo);
 
   // Compter les signaux analysés (approximation basée sur le score)
   const signalCount = Math.max(50, Math.round(score * 10));
@@ -240,8 +246,8 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
             </motion.section>
           )}
 
-          {/* Est-ce fait pour vous ? */}
-          {recommendations.length > 0 && (
+          {/* Target Audience - Utilise uniquement les données du JSON, pas de titre en dur */}
+          {hasTargetAudience && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -253,17 +259,29 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                   <AlertTriangle className="w-5 h-5 text-purple-400" />
                 </div>
                 <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
-                  Est-ce fait pour vous ?
+                  Profil Cible
                 </h2>
               </div>
-              <ul className="space-y-4">
-                {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-purple-400 flex-shrink-0" />
-                    <span className="text-slate-100 leading-relaxed">{rec}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-4">
+                {(targetYes || fallbackYes) && (
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                    <div>
+                      <span className="text-emerald-400 font-bold mr-2">✅ Pour :</span>
+                      <span className="text-slate-100 leading-relaxed">{targetYes || fallbackYes}</span>
+                    </div>
+                  </div>
+                )}
+                {(targetNo || fallbackNo) && (
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                    <div>
+                      <span className="text-red-400 font-bold mr-2">❌ Pas pour :</span>
+                      <span className="text-slate-100 leading-relaxed">{targetNo || fallbackNo}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </motion.section>
           )}
 
