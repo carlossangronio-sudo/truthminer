@@ -220,7 +220,7 @@ export async function GET(req: Request) {
         <body class="bg-[#02010a] text-white font-sans p-4 md:p-10">
           <div class="max-w-2xl mx-auto border border-cyan-500/30 p-6 md:p-8 rounded-3xl bg-[#0a0525]">
             <h1 class="text-xl md:text-2xl font-black italic mb-4 md:mb-6 text-cyan-400 uppercase tracking-tighter">Console de Migration Séquentielle</h1>
-            <p class="text-slate-400 mb-4 md:mb-8 text-xs md:text-sm">Vercel Hobby limite les requêtes à 10s. Ce script va traiter vos <strong class="text-cyan-400">${allReports?.length || 0}</strong> rapports un par un directement depuis votre navigateur.</p>
+            <p class="text-slate-400 mb-4 md:mb-8 text-xs md:text-sm">Vercel Pro permet jusqu'à 60s par requête. Ce script va traiter vos <strong class="text-cyan-400">${allReports?.length || 0}</strong> rapports un par un directement depuis votre navigateur.</p>
             
             <div class="mb-4 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-xs text-cyan-300">
               <strong>⚠ Protection active :</strong> La colonne <code class="bg-black/30 px-1 rounded">image_url</code> ne sera pas modifiée. Seul le <code class="bg-black/30 px-1 rounded">content</code> sera régénéré.
