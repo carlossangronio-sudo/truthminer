@@ -115,19 +115,19 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="max-w-5xl mx-auto text-center"
           >
-            <IABadge text="Neural Core Active" />
+            <IABadge text="Extraction d'avis communautaires" />
             
             <h1 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-tight">
               <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-pulse">
-                DECODEZ LE SIGNAL
+                DETERREZ LA VÉRITÉ
               </span>
               <br />
-              <span className="text-white">SOCIAL</span>
+              <span className="text-white">BRUTE</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-              L&apos;IA scanne Reddit pour extraire la vérité brute. 
-              <span className="text-cyan-400"> Fini les faux avis.</span>
+            <p className="text-xl md:text-2xl text-slate-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Nous analysons des milliers de discussions Reddit pour extraire l&apos;essence des opinions réelles. 
+              <span className="text-cyan-400"> Pas de marketing, juste du vécu.</span>
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">

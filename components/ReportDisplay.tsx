@@ -75,11 +75,11 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <IABadge text="Analyse Détaillée" />
+              <IABadge text="Extraction d'avis communautaires" />
               <h1 className="text-4xl md:text-6xl font-black text-white mb-4 uppercase tracking-tighter leading-tight">
                 {report.title}
               </h1>
-              <p className="text-slate-400 text-sm uppercase tracking-widest">
+              <p className="text-slate-200 text-sm uppercase tracking-widest">
                 Généré le {new Date(report.createdAt).toLocaleDateString('fr-FR', {
                   year: 'numeric',
                   month: 'long',
@@ -131,7 +131,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
               <h2 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter">
                 Verdict Neural Core
               </h2>
-              <p className="text-lg text-slate-300 leading-relaxed">{consensus}</p>
+              <p className="text-lg text-slate-100 leading-relaxed">{consensus}</p>
               {punchline && (
                 <div className="mt-6 p-4 bg-cyan-500/10 border-l-4 border-cyan-500 rounded-r-lg">
                   <p className="text-cyan-400 font-bold italic">{punchline}</p>
@@ -162,7 +162,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                   {pros.map((pro, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="text-slate-300 leading-relaxed">{pro}</span>
+                      <span className="text-slate-100 leading-relaxed">{pro}</span>
                     </li>
                   ))}
                 </ul>
@@ -189,7 +189,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                   {cons.map((con, index) => (
                     <li key={index} className="flex items-start gap-3">
                       <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                      <span className="text-slate-300 leading-relaxed">{con}</span>
+                      <span className="text-slate-100 leading-relaxed">{con}</span>
                     </li>
                   ))}
                 </ul>
@@ -234,7 +234,7 @@ export default function ReportDisplay({ report }: ReportDisplayProps) {
                 {recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-purple-400 flex-shrink-0" />
-                    <span className="text-slate-300 leading-relaxed">{rec}</span>
+                    <span className="text-slate-100 leading-relaxed">{rec}</span>
                   </li>
                 ))}
               </ul>
