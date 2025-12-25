@@ -173,7 +173,7 @@ const InterfaceTutorial = () => {
           {/* ÉTAPE 4 : CALL TO ACTION */}
           <div className={`transition-all duration-700 flex flex-col items-center w-full ${step === 4 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute'}`}>
             <h2 className="text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 uppercase tracking-tighter mb-4 text-center leading-tight">
-              La Vérité est <br/> sous vos pieds.
+              Verdict sans filtre
             </h2>
             <div className="flex gap-4 mt-6">
               <div className="flex flex-col items-center gap-2">
