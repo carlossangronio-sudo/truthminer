@@ -67,24 +67,29 @@ export async function GET(req: Request) {
         const name = report.product_name || "Produit inconnu";
         console.log(`[BulkRegenerate] ✅ Rapport trouvé: ${name} (ID: ${report.id})`);
 
-        // Étape 2: Appel OpenAI (utilisation de gpt-3.5-turbo pour vitesse)
+        // Étape 2: Appel OpenAI - PROMPT AMÉLIORÉ pour analyses plus longues et détaillées
         const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${name}.
         
         STRUCTURE JSON STRICTE :
         {
-          "consensus": "Résumé percutant en une phrase.",
-          "pros": ["Avantage 1", "Avantage 2", "Avantage 3"],
-          "cons": ["Inconvénient 1", "Inconvénient 2", "Inconvénient 3"],
-          "deep_analysis": "Rédige 3 paragraphes narratifs détaillés (Contexte / Usage réel / Verdict).",
+          "consensus": "Résumé percutant en une phrase (15-25 mots).",
+          "pros": ["Avantage détaillé 1 (1 phrase complète)", "Avantage détaillé 2 (1 phrase complète)", "Avantage détaillé 3 (1 phrase complète)"],
+          "cons": ["Défaut caché 1 (1 phrase complète)", "Défaut caché 2 (1 phrase complète)", "Défaut caché 3 (1 phrase complète)"],
+          "deep_analysis": "ÉCRIS 3 PARAGRAPHES COMPLETS ET DÉTAILLÉS (minimum 150 mots par paragraphe). Paragraphe 1: Le contexte marketing et les attentes autour du produit. Paragraphe 2: La réalité de l'usage après 1-2 mois selon les retours Reddit (défauts cachés, problèmes récurrents). Paragraphe 3: Positionnement par rapport aux alternatives et verdict final. Ton journaliste tech, tranchant et critique.",
           "reddit_quotes": [
-            {"user": "u/RedditUser", "text": "Citation réelle et marquante", "subreddit": "r/tech"}
+            {"user": "u/RedditUser", "text": "Citation réelle et marquante trouvée sur Reddit (2-3 phrases)", "subreddit": "r/tech"}
           ],
-          "target_audience": {"yes": "Cible idéale", "no": "À éviter"},
-          "punchline": "Métaphore originale",
-          "final_verdict": "Verdict brut"
+          "target_audience": {"yes": "Profil type précis qui adorera ce produit (1 phrase)", "no": "Profil type précis qui sera déçu (1 phrase)"},
+          "punchline": "Métaphore ou analogie originale et percutante (1 phrase)",
+          "final_verdict": "Verdict final brut et tranché avec recommandation claire (Achetez/Fuyez/Attendez) - 3-4 phrases"
         }
 
-        RÈGLES : Pas de répétition. Pas de listes dans deep_analysis. Ton tranchant.`;
+        RÈGLES STRICTES :
+        - deep_analysis doit faire MINIMUM 450 mots au total (150 mots par paragraphe)
+        - Pas de répétition entre les sections
+        - Pas de listes à puces dans deep_analysis, uniquement des paragraphes narratifs
+        - Ton direct, investigatif, parfois critique
+        - Ne cite jamais deux fois la même idée`;
 
         console.log('[BulkRegenerate] Appel OpenAI pour:', name);
         let aiResponse;
@@ -98,7 +103,7 @@ export async function GET(req: Request) {
                 { role: "user", content: prompt }
               ],
               response_format: { type: "json_object" },
-              max_tokens: 1500 // Limite pour réponse plus rapide
+              max_tokens: 2500 // Augmenté pour analyses plus longues et détaillées
             }),
             // Timeout de secours après 7 secondes
             new Promise((_, reject) => 

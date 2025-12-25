@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         productName: row.product_name,
         score: row.score,
         category: row.category || content.category || 'Services',
-        slug: content.slug || row.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        slug: content.slug || (row.product_name ? row.product_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : ''),
         title: content.title || row.product_name,
         choice: content.choice || 'Non spécifié',
         createdAt: row.created_at,
