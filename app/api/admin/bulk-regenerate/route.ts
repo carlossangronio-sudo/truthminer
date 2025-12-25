@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 8000 // Timeout de 8 secondes pour éviter les dépassements Vercel
+});
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || 'truthminer-admin-2024';
 
 export const maxDuration = 10; // Limite Vercel Hobby
@@ -63,7 +66,7 @@ export async function GET(req: Request) {
         const name = report.product_name || "Produit inconnu";
         console.log(`[BulkRegenerate] ✅ Rapport trouvé: ${name} (ID: ${report.id})`);
 
-        // Étape 2: Appel OpenAI
+        // Étape 2: Appel OpenAI (utilisation de gpt-3.5-turbo pour vitesse)
         const prompt = `Tu es l'IA experte de TruthMiner. Analyse ce produit : ${name}.
         
         STRUCTURE JSON STRICTE :
@@ -85,14 +88,22 @@ export async function GET(req: Request) {
         console.log('[BulkRegenerate] Appel OpenAI pour:', name);
         let aiResponse;
         try {
-          aiResponse = await openai.chat.completions.create({
-            model: "gpt-4-turbo-preview",
-            messages: [
-              { role: "system", content: "Expert en analyse de sentiment Reddit. Réponse JSON uniquement." },
-              { role: "user", content: prompt }
-            ],
-            response_format: { type: "json_object" }
-          });
+          // Utilisation de gpt-3.5-turbo qui est plus rapide (2-3s vs 8-12s pour gpt-4)
+          aiResponse = await Promise.race([
+            openai.chat.completions.create({
+              model: "gpt-3.5-turbo",
+              messages: [
+                { role: "system", content: "Expert en analyse de sentiment Reddit. Réponse JSON uniquement." },
+                { role: "user", content: prompt }
+              ],
+              response_format: { type: "json_object" },
+              max_tokens: 1500 // Limite pour réponse plus rapide
+            }),
+            // Timeout de secours après 7 secondes
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('OpenAI timeout après 7 secondes')), 7000)
+            ) as Promise<any>
+          ]);
           console.log('[BulkRegenerate] ✅ Réponse OpenAI reçue');
         } catch (openaiError: any) {
           console.error('[BulkRegenerate] ❌ Erreur OpenAI:', openaiError.message);
@@ -213,7 +224,7 @@ export async function GET(req: Request) {
             </button>
             
             <p class="text-[10px] text-slate-500 mt-4 text-center">
-              Ne ferme pas cette page pendant le traitement. Chaque rapport prend environ 5-8 secondes.
+              Ne ferme pas cette page pendant le traitement. Chaque rapport prend environ 3-5 secondes (optimisé avec GPT-3.5).
             </p>
           </div>
 
