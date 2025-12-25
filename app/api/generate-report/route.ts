@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SerperService } from '@/lib/services/serper';
 import { OpenAIService } from '@/lib/services/openai';
 import { getCachedReport, getReportByTitle, insertReport } from '@/lib/supabase/client';
-import { extractMainKeyword, normalizeKeyword, generateSlug } from '@/lib/utils/keyword-extractor';
+import { extractMainKeyword, normalizeKeyword, normalizeProductName, generateSlug } from '@/lib/utils/keyword-extractor';
+import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,22 +34,62 @@ export async function POST(request: NextRequest) {
     const searchKeyword = extractMainKeyword(trimmedKeyword);
     const normalizedProductName = normalizeKeyword(searchKeyword);
     
+    // Normalisation avancée pour la détection de doublons (supprime articles et ponctuation)
+    // Exemple: "L'iPhone 17" -> "iphone 17"
+    const cleanQuery = normalizeProductName(searchKeyword);
+    
     // 🚨 LOG DE CONTRÔLE : Avertissement avant consommation de crédits
     console.log('🚨 CONSOMMATION CRÉDIT : Appel API Serper initié pour le sujet:', trimmedKeyword);
     
     console.log('[API] 🔍 Requête originale:', trimmedKeyword);
     console.log('[API] 🔍 Mot-clé extrait pour recherche:', searchKeyword);
     console.log('[API] 🔍 Mot-clé normalisé:', normalizedProductName);
+    console.log('[API] 🔍 Mot-clé nettoyé (anti-doublon):', cleanQuery);
 
     // 1. SYSTÈME DE CACHE ANTI-DOUBLONS RENFORCÉ : Vérifier si un rapport existe déjà
     // Avant de consommer des crédits OpenAI/Serper, on vérifie si un rapport identique existe
-    // La normalisation gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13'
+    // La normalisation gère les variations : 'iphone 13' = 'iPhone 13' = 'IPHONE 13' = "L'iPhone 13"
     // 
     // IMPORTANT : Cette vérification est CRITIQUE pour éviter le contenu dupliqué Google
     // Si plusieurs utilisateurs demandent la même chose, on redirige vers le rapport existant
-    console.log('[API] 🔍 Vérification cache anti-doublons pour:', normalizedProductName);
+    console.log('[API] 🔍 Vérification cache anti-doublons avec ilike pour:', cleanQuery);
     
-    // Vérification 1 : Par product_name normalisé (le plus rapide)
+    // Vérification 1 : Recherche avec ilike sur product_name (détection de doublons améliorée)
+    // On utilise ilike pour être insensible à la casse et détecter les variations comme "L'iPhone 17" = "iPhone 17"
+    const supabase = createClient();
+    const { data: existingReport, error: searchError } = await supabase
+      .from('reports')
+      .select('*')
+      .ilike('product_name', `%${cleanQuery}%`)
+      .maybeSingle();
+    
+    // Si on trouve un rapport avec un nom similaire, on le renvoie directement SANS appeler l'IA
+    if (existingReport && !searchError) {
+      console.log(`[API] ✅ Doublon détecté pour "${trimmedKeyword}" (nom nettoyé: "${cleanQuery}"). Renvoi du rapport existant (ID: ${existingReport.id}) - ÉVITE APPEL IA`);
+      const existingContent = typeof existingReport.content === 'object'
+        ? existingReport.content
+        : JSON.parse(existingReport.content || '{}');
+      
+      const existingSlug = existingContent.slug || generateSlug(existingContent.title || existingReport.product_name);
+      
+      // Retourner le rapport existant sans générer de nouveau contenu
+      return NextResponse.json({
+        success: true,
+        report: {
+          ...existingContent,
+          keyword: trimmedKeyword,
+          createdAt: existingReport.created_at,
+          confidenceScore: existingReport.score,
+          imageUrl: existingReport.image_url || existingReport.url_image || existingContent.imageUrl || null,
+        },
+        cached: true,
+        isDuplicate: true,
+        redirect: `/report/${existingSlug}`,
+      });
+    }
+    
+    // Vérification 2 : Par product_name normalisé (méthode classique, pour compatibilité et cas limites)
+    console.log('[API] 🔍 Aucun doublon trouvé avec ilike, vérification avec normalizeKeyword...');
     const existing = await getCachedReport(normalizedProductName);
 
     if (existing) {

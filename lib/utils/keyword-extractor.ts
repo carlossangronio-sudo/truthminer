@@ -103,6 +103,30 @@ export function normalizeKeyword(keyword: string): string {
 }
 
 /**
+ * Normalisation avancée pour la détection de doublons
+ * Transforme "L'iPhone 17 Pro !" en "iphone 17 pro"
+ * Supprime les articles au début (le, la, l', les, the, un, une, a, an)
+ * Supprime toute la ponctuation
+ * Utilisée pour détecter que "iPhone 17" = "l'iPhone 17" = "Le iPhone 17"
+ */
+export function normalizeProductName(name: string): string {
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+  
+  return name
+    .toLowerCase()
+    // Supprimer les articles au début
+    .replace(/^(l'|le |la |les |the |un |une |a |an )/i, '')
+    // Supprimer toute la ponctuation
+    .replace(/[^\w\s]/gi, '')
+    // Enlever les espaces en trop
+    .trim()
+    // Remplacer les doubles espaces par un seul
+    .replace(/\s+/g, ' ');
+}
+
+/**
  * Génère un slug normalisé à partir d'un titre ou mot-clé
  * Utilisé pour créer des URLs cohérentes et détecter les doublons
  */
