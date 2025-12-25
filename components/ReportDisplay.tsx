@@ -1,18 +1,25 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import React from 'react';
 import Link from 'next/link';
+import { 
+  CheckCircle, 
+  XCircle,
+  AlertTriangle, 
+  Zap, 
+  Quote, 
+  ShieldCheck, 
+  ExternalLink,
+  Users,
+  Info
+} from 'lucide-react';
 import { NeuralBackground } from './NeuralBackground';
 import { TrustScore } from './TrustScore';
-import { IABadge } from './IABadge';
-import ImageCard from './ImageCard';
+import { ScannerLogo } from './ScannerLogo';
 import AffiliateLink from './AffiliateLink';
-import Image from 'next/image';
 import ShareButtons from './ShareButtons';
 import SimilarReports from './SimilarReports';
 import Newsletter from './Newsletter';
-import ReactMarkdown from 'react-markdown';
-import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 
 interface ReportDisplayProps {
   report: {
@@ -49,363 +56,238 @@ interface ReportDisplayProps {
   };
 }
 
-export default function ReportDisplay({ report }: ReportDisplayProps) {
-  const score = report.confidenceScore ?? 50;
-  const consensus = report.consensus || report.choice || 'Analyse en cours...';
-  const pros = report.pros || [];
-  const cons = report.cons || report.defects || [];
-  const punchline = report.punchline || null;
-  const finalVerdict = report.final_verdict || null;
-  const targetAudience = report.target_audience;
-  
-  // Extraire les profils depuis target_audience (nouveau format) ou recommendations (ancien format)
-  const targetYes = targetAudience?.yes || null;
-  const targetNo = targetAudience?.no || null;
-  
-  // Fallback pour anciennes structures : construire depuis recommendations si target_audience n'existe pas
-  let fallbackYes: string | null = null;
-  let fallbackNo: string | null = null;
-  if (!targetAudience && report.recommendations && report.recommendations.length > 0) {
-    // Parser les anciennes recommendations pour extraire yes/no
-    report.recommendations.forEach((rec) => {
-      if (rec.toLowerCase().includes('oui') || rec.includes('✅')) {
-        fallbackYes = rec.replace(/✅|OUI|oui|Pour\s+/gi, '').trim();
-      }
-      if (rec.toLowerCase().includes('non') || rec.includes('❌')) {
-        fallbackNo = rec.replace(/❌|NON|non|Pour\s+/gi, '').trim();
-      }
-    });
-  }
-  
-  const hasTargetAudience = (targetYes || targetNo) || (fallbackYes || fallbackNo);
+const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
+  if (!report) return null;
 
+  const { title, url_image, consensus, pros, cons, deep_analysis, reddit_quotes, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason } = report;
+  
+  // Gestion de la rétro-compatibilité : on cherche le texte narratif ou le résumé
+  const mainAnalysis = deep_analysis || consensus || choice || 'Analyse en cours...';
+  
   // Compter les signaux analysés (approximation basée sur le score)
-  const signalCount = Math.max(50, Math.round(score * 10));
+  const signalCount = Math.max(50, Math.round((confidenceScore || 50) * 10));
+  
+  // Construire le lien Amazon si disponible
+  const amazonLink = amazonSearchQuery 
+    ? `https://www.amazon.fr/s?k=${encodeURIComponent(amazonSearchQuery)}`
+    : null;
 
   return (
-    <main className="min-h-screen relative overflow-hidden">
+    <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative overflow-hidden">
       <NeuralBackground />
       
-      <div className="relative z-10">
-        {/* Header avec transition */}
-        <motion.section
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="pt-20 pb-12"
-        >
-          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6 text-sm uppercase tracking-wider transition-colors"
-            >
-              <span>←</span>
-              <span>Retour</span>
-            </Link>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <IABadge text="Extraction d'avis communautaires" />
-              <h1 className="text-4xl md:text-6xl font-black text-white mb-4 uppercase tracking-tighter leading-tight">
-                {report.title}
-              </h1>
-              <p className="text-slate-200 text-sm uppercase tracking-widest">
-                Généré le {new Date(report.createdAt).toLocaleDateString('fr-FR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* Image principale */}
-        {(report.url_image || report.image_url) && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="container mx-auto px-4 md:px-6 mb-12 max-w-6xl"
+      {/* Navigation / Logo */}
+      <nav className="p-6 border-b border-white/5 bg-[#02010a]/60 backdrop-blur-xl sticky top-0 z-50 relative">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <ScannerLogo />
+          <Link
+            href="/"
+            className="text-cyan-400 hover:text-cyan-300 text-sm uppercase tracking-wider transition-colors"
           >
-            <div className="rounded-2xl overflow-hidden border border-cyan-500/20 shadow-[0_0_30px_rgba(34,211,238,0.1)]">
-              <ImageCard
-                imageUrl={report.url_image || report.image_url || undefined}
-                title={report.title}
-                height="h-64 md:h-96"
-                className="w-full"
+            ← Retour
+          </Link>
+        </div>
+      </nav>
+
+      <main className="max-w-5xl mx-auto px-6 pt-12 relative z-10">
+        
+        {/* En-tête du Rapport */}
+        <header className="mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-[9px] font-black uppercase tracking-widest mb-6">
+            <Zap size={12} fill="currentColor" /> Analyse de Sentiment Réel
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter mb-8 leading-tight">
+            {title}
+          </h1>
+
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between border-t border-white/5 pt-8">
+            <TrustScore 
+              score={confidenceScore || 85} 
+              count={signalCount} 
+            />
+            
+            {punchline && (
+              <div className="flex-1 max-w-md italic text-slate-400 text-lg border-l-2 border-purple-500 pl-6 py-2 bg-purple-500/5 rounded-r-xl">
+                "{punchline}"
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Section Image et Résumé */}
+        <div className="grid md:grid-cols-12 gap-10 mb-16">
+          <div className="md:col-span-4 aspect-square bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-8 flex items-center justify-center relative overflow-hidden group shadow-2xl">
+            <div className="absolute inset-0 bg-cyan-500/5 blur-3xl rounded-full opacity-50"></div>
+            {url_image ? (
+              <img 
+                src={url_image} 
+                alt={title}
+                className="relative z-10 max-h-full object-contain filter drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-105"
+                onError={(e) => {
+                  // Fallback si l'image ne charge pas
+                  (e.target as HTMLImageElement).src = '/placeholder-dark.png';
+                }}
               />
+            ) : (
+              <div className="relative z-10 text-slate-500 text-sm">Image non disponible</div>
+            )}
+          </div>
+
+          <div className="md:col-span-8 space-y-8">
+            <div className="bg-[#0a0525]/80 border border-white/5 p-8 md:p-10 rounded-[2.5rem] backdrop-blur-md">
+              <h3 className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em] mb-4 flex items-center gap-2">
+                <Info size={14} /> Analyse Narrative
+              </h3>
+              <div className="prose prose-invert max-w-none prose-p:text-slate-300 prose-p:leading-relaxed prose-p:text-lg italic">
+                {/* On affiche l'analyse détaillée ou l'ancien résumé si pas encore migré */}
+                {deep_analysis ? (
+                  // Nouveau format : 3 paragraphes séparés
+                  <div className="space-y-6">
+                    {deep_analysis.split('\n\n').map((paragraph, index) => (
+                      <p key={index} className="whitespace-pre-line">{paragraph}</p>
+                    ))}
+                  </div>
+                ) : (
+                  // Ancien format : texte simple
+                  <p className="whitespace-pre-line">{mainAnalysis}</p>
+                )}
+              </div>
             </div>
-          </motion.div>
+          </div>
+        </div>
+
+        {/* Signaux Alpha & Interférences (Affichés une seule fois) */}
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <div className="p-8 rounded-[2.5rem] bg-cyan-500/[0.02] border border-cyan-500/20">
+            <h3 className="flex items-center gap-3 text-cyan-400 font-black uppercase tracking-widest text-sm mb-8 italic">
+              <CheckCircle size={18} /> Signaux Alpha
+            </h3>
+            <ul className="space-y-4">
+              {(pros || []).map((pro, i) => (
+                <li key={i} className="flex gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 text-sm text-slate-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-[0_0_8px_cyan]"></div>
+                  {pro}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="p-8 rounded-[2.5rem] bg-purple-500/[0.02] border border-purple-500/20">
+            <h3 className="flex items-center gap-3 text-purple-400 font-black uppercase tracking-widest text-sm mb-8 italic">
+              <XCircle size={18} /> Interférences
+            </h3>
+            <ul className="space-y-4">
+              {(cons || []).map((con, i) => (
+                <li key={i} className="flex gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 text-sm text-slate-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-2 shrink-0 shadow-[0_0_8px_purple]"></div>
+                  {con}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Preuves Reddit (Si disponibles dans le nouveau format) */}
+        {reddit_quotes && reddit_quotes.length > 0 && (
+          <div className="mb-16">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 text-center">
+              Extraits du Réseau Reddit
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {reddit_quotes.map((quote, i) => (
+                <div key={i} className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl relative overflow-hidden group">
+                  <Quote className="absolute -top-2 -left-2 text-white/5 group-hover:text-cyan-500/10 transition-colors" size={80} />
+                  <p className="text-sm italic text-slate-300 relative z-10 mb-4 leading-relaxed">
+                    "{quote.text}"
+                  </p>
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="text-cyan-500/60">{quote.user}</span>
+                    <span className="px-2 py-1 bg-white/5 rounded-md">{quote.subreddit}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div className="container mx-auto px-4 md:px-6 max-w-6xl pb-16">
-          {/* Score de confiance avec TrustScore */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-12"
-          >
-            <TrustScore score={score} count={signalCount} />
-          </motion.div>
-
-          {/* Consensus / Verdict principal */}
-          {consensus && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="mb-12 p-8 bg-slate-900/50 border border-cyan-500/20 rounded-2xl backdrop-blur-sm"
-            >
-              <h2 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter">
-                Verdict Neural Core
-              </h2>
-              <p className="text-lg text-slate-100 leading-relaxed">{consensus}</p>
-              {punchline && (
-                <div className="mt-6 p-4 bg-cyan-500/10 border-l-4 border-cyan-500 rounded-r-lg">
-                  <p className="text-cyan-400 font-bold italic">{punchline}</p>
-                </div>
+        {/* Profils & Verdict */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="md:col-span-2 bg-[#05011a] border border-white/5 p-10 rounded-[3rem]">
+            <h3 className="text-xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3">
+              <Users size={20} className="text-cyan-400" /> Profils Recommandés
+            </h3>
+            <div className="space-y-4">
+              {target_audience ? (
+                <>
+                  {target_audience.yes && (
+                    <div className="p-6 rounded-2xl bg-cyan-400/5 border border-cyan-400/20 flex justify-between items-center gap-4">
+                      <p className="text-sm font-medium italic"><span className="text-cyan-400 font-black not-italic mr-2">POUR :</span> {target_audience.yes}</p>
+                      <div className="px-4 py-1 bg-cyan-400 text-slate-950 text-[10px] font-black rounded-lg uppercase">OUI</div>
+                    </div>
+                  )}
+                  {target_audience.no && (
+                    <div className="p-6 rounded-2xl bg-purple-400/5 border border-purple-400/20 flex justify-between items-center gap-4">
+                      <p className="text-sm font-medium italic"><span className="text-purple-400 font-black not-italic mr-2">CONTRE :</span> {target_audience.no}</p>
+                      <div className="px-4 py-1 bg-purple-400 text-white text-[10px] font-black rounded-lg uppercase">NON</div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-slate-400 text-sm italic">Informations de profil non disponibles.</p>
               )}
-              {finalVerdict && (
-                <div className="mt-6 p-4 bg-purple-500/10 border-l-4 border-purple-500 rounded-r-lg">
-                  <p className="text-purple-400 font-bold leading-relaxed">{finalVerdict}</p>
-                </div>
-              )}
-            </motion.section>
-          )}
-
-          {/* Points forts et faibles en grille */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            {/* Points forts */}
-            {pros.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="p-6 bg-slate-900/50 border border-emerald-500/20 rounded-2xl backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tighter">
-                    Points Forts
-                  </h3>
-                </div>
-                <ul className="space-y-3">
-                  {pros.map((pro, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="text-slate-100 leading-relaxed">{pro}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.section>
-            )}
-
-            {/* Points faibles */}
-            {cons.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
-                className="p-6 bg-slate-900/50 border border-red-500/20 rounded-2xl backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center border border-red-500/30">
-                    <XCircle className="w-5 h-5 text-red-400" />
-                  </div>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tighter">
-                    Points Faibles
-                  </h3>
-                </div>
-                <ul className="space-y-3">
-                  {cons.map((con, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                      <span className="text-slate-100 leading-relaxed">{con}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.section>
-            )}
+            </div>
           </div>
 
-          {/* Analyse détaillée (rétro-compatible) */}
-          {(report.deep_analysis || report.article || report.consensus || report.choice) && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="mb-12 p-8 bg-slate-900/50 border border-cyan-500/20 rounded-2xl backdrop-blur-sm"
-            >
-              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
-                Analyse Détaillée
-              </h2>
-              {report.deep_analysis ? (
-                // Nouveau format : deep_analysis (texte narratif, pas de markdown)
-                <div className="space-y-6 text-slate-100 leading-relaxed">
-                  {report.deep_analysis.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-lg">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              ) : report.article ? (
-                // Ancien format : article markdown
-                <div className="prose prose-lg max-w-none markdown-content prose-invert prose-headings:text-white prose-p:text-slate-100 prose-strong:text-white prose-li:text-slate-100 prose-a:text-cyan-400">
-                  <ReactMarkdown>{report.article}</ReactMarkdown>
-                </div>
+          <div className="bg-gradient-to-br from-cyan-500 to-purple-600 p-[1px] rounded-[3rem]">
+            <div className="bg-[#02010a] h-full w-full rounded-[3rem] p-10 flex flex-col justify-center text-center">
+              <h3 className="text-lg font-black uppercase tracking-widest mb-4 italic">Verdict Final</h3>
+              <p className="text-sm text-slate-300 italic mb-8 leading-relaxed">
+                {final_verdict || "Consultez l'analyse complète ci-dessus."}
+              </p>
+              {amazonSearchQuery ? (
+                <AffiliateLink
+                  amazonSearchQuery={amazonSearchQuery}
+                  recommendationReason={amazonRecommendationReason || 'Recommandation issue de la communauté Reddit'}
+                />
               ) : (
-                // Fallback : afficher consensus ou choice pour ne pas laisser la page vide
-                <div className="text-slate-100 leading-relaxed">
-                  <p className="text-lg">{report.consensus || report.choice || 'Analyse en cours...'}</p>
-                </div>
+                <a 
+                  href={amazonLink || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white text-slate-950 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Amazon <ExternalLink size={14} />
+                </a>
               )}
-            </motion.section>
-          )}
-
-          {/* Citations Reddit structurées */}
-          {report.reddit_quotes && report.reddit_quotes.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.75 }}
-              className="mb-12 p-8 bg-slate-900/50 border border-cyan-500/20 rounded-2xl backdrop-blur-sm"
-            >
-              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
-                Citations Reddit
-              </h2>
-              <div className="space-y-4">
-                {report.reddit_quotes.map((quote, index) => (
-                  <div key={index} className="p-4 bg-slate-800/50 border-l-4 border-cyan-500 rounded-r-lg">
-                    <p className="text-slate-100 leading-relaxed italic mb-2">"{quote.text}"</p>
-                    <p className="text-sm text-cyan-400">
-                      — {quote.user} <span className="text-slate-500">({quote.subreddit})</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.section>
-          )}
-
-          {/* Target Audience - Utilise uniquement les données du JSON, pas de titre en dur */}
-          {hasTargetAudience && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-              className="mb-12 p-8 bg-slate-900/50 border border-purple-500/20 rounded-2xl backdrop-blur-sm"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
-                  <AlertTriangle className="w-5 h-5 text-purple-400" />
-                </div>
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">
-                  Profil Cible
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {(targetYes || fallbackYes) && (
-                  <div className="flex items-start gap-3">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                    <div>
-                      <span className="text-emerald-400 font-bold mr-2">✅ Pour :</span>
-                      <span className="text-slate-100 leading-relaxed">{targetYes || fallbackYes}</span>
-                    </div>
-                  </div>
-                )}
-                {(targetNo || fallbackNo) && (
-                  <div className="flex items-start gap-3">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                    <div>
-                      <span className="text-red-400 font-bold mr-2">❌ Pas pour :</span>
-                      <span className="text-slate-100 leading-relaxed">{targetNo || fallbackNo}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.section>
-          )}
-
-          {/* Lien Amazon avec image url_image */}
-          {report.amazonSearchQuery && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.9 }}
-              className="mb-12 p-8 bg-slate-900/50 border border-orange-500/20 rounded-2xl backdrop-blur-sm"
-            >
-              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter">
-                Vérifier les Prix
-              </h2>
-              
-              {/* Image produit - PRIORITÉ : url_image (colonne manuelle) */}
-              {(report.url_image || report.image_url) && (
-                <div className="mb-6 flex justify-center">
-                  <div className="relative w-full max-w-sm h-64 rounded-xl overflow-hidden border border-cyan-500/20">
-                    <ImageCard
-                      imageUrl={report.url_image || report.image_url || undefined}
-                      title={report.title}
-                      height="h-full"
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              )}
-              
-              <AffiliateLink
-                amazonSearchQuery={report.amazonSearchQuery}
-                recommendationReason={
-                  report.amazonRecommendationReason ||
-                  'Recommandation issue de la communauté Reddit'
-                }
-              />
-            </motion.section>
-          )}
-
-          {/* Boutons de partage */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
-            className="mb-12"
-          >
-            <ShareButtons
-              title={report.title}
-              slug={report.slug}
-              score={report.confidenceScore}
-            />
-          </motion.div>
-
-          {/* Analyses similaires */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.1 }}
-            className="mb-12"
-          >
-            <SimilarReports
-              currentSlug={report.slug}
-              currentCategory={undefined}
-            />
-          </motion.div>
-
-          {/* Newsletter */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
-          >
-            <Newsletter />
-          </motion.div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Boutons de partage */}
+        <div className="mb-12">
+          <ShareButtons
+            title={title}
+            slug={report.slug}
+            score={confidenceScore}
+          />
+        </div>
+
+        {/* Analyses similaires */}
+        <div className="mb-12">
+          <SimilarReports
+            currentSlug={report.slug}
+            currentCategory={undefined}
+          />
+        </div>
+
+        {/* Newsletter */}
+        <div className="mb-12">
+          <Newsletter />
+        </div>
+
+      </main>
     </main>
   );
-}
+};
 
+export default ReportDisplay;
