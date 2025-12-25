@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar';
 import Newsletter from '@/components/Newsletter';
 import FeaturesSection from '@/components/FeaturesSection';
 import RecentReportsGrid from '@/components/RecentReportsGrid';
+import InterfaceTutorial from '@/components/InterfaceTutorial';
 import { NeuralBackground } from '@/components/NeuralBackground';
 import { IABadge } from '@/components/IABadge';
 
@@ -173,6 +174,11 @@ export default function Home() {
 
       {/* Section Features - Explication de la méthode */}
       <FeaturesSection />
+
+      {/* Tutorial interactif */}
+      <section className="relative py-16 md:py-24">
+        <InterfaceTutorial />
+      </section>
 
       {/* Archives - Rapports récents */}
       {!isLoadingReports && recentReports.length > 0 && (
