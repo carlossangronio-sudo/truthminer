@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Footer from "@/components/Footer";
 import AnalyticsWrapper from "@/components/AnalyticsWrapper";
+import PageTransition from "@/components/PageTransition";
 
 // URL canonique du site utilisée pour metadataBase et les liens absolus
 const siteUrl = "https://tminer.io";
@@ -106,7 +107,9 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.className} antialiased flex flex-col min-h-screen`}>
         <ThemeProvider>
-          <div className="flex-1">{children}</div>
+          <PageTransition>
+            <div className="flex-1">{children}</div>
+          </PageTransition>
           <Footer />
         </ThemeProvider>
         <AnalyticsWrapper />

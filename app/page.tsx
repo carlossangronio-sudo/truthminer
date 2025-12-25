@@ -84,9 +84,10 @@ export default function Home() {
           data.report.keyword?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       }
 
-      // Rediriger vers la page dédiée du rapport
+      // Rediriger vers la page dédiée du rapport avec transition
       if (slug) {
         // Le loader reste affiché pendant la redirection
+        // Utiliser router.push pour une transition fluide avec framer-motion
         router.push(`/report/${slug}`);
         // Ne pas mettre setIsLoading(false) ici pour que le loader reste visible
         return;

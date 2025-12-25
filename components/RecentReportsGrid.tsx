@@ -1,5 +1,8 @@
 'use client';
 
+'use client';
+
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -41,18 +44,23 @@ export default function RecentReportsGrid({ reports }: RecentReportsGridProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reports.map((report) => {
+          {reports.map((report, index) => {
             // PRIORITÉ : url_image (colonne manuelle) > image_url > imageUrl
             const imageUrl = report.url_image || report.image_url || report.imageUrl || null;
             const slug = report.slug || report.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || report.id;
             const title = report.title || report.product_name || report.productName || 'Rapport';
 
             return (
-              <Link
+              <motion.div
                 key={report.id}
-                href={`/report/${slug}`}
-                className="group relative block bg-slate-900/50 border border-cyan-500/20 rounded-2xl overflow-hidden hover:border-cyan-500/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
               >
+                <Link
+                  href={`/report/${slug}`}
+                  className="group relative block bg-slate-900/50 border border-cyan-500/20 rounded-2xl overflow-hidden hover:border-cyan-500/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
+                >
                 {/* Image */}
                 {imageUrl ? (
                   <div className="relative w-full h-48 bg-slate-800 overflow-hidden">
@@ -92,6 +100,7 @@ export default function RecentReportsGrid({ reports }: RecentReportsGridProps) {
                   </div>
                 </div>
               </Link>
+              </motion.div>
             );
           })}
         </div>
