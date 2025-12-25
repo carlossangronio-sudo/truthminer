@@ -55,7 +55,7 @@ const InterfaceTutorial = () => {
             <div className="bg-cyan-500/10 p-4 rounded-full mb-6">
               <Search className="text-cyan-400" size={32} />
             </div>
-            <h2 className="text-2xl font-black italic text-white mb-8 uppercase tracking-tighter">1. Nommez votre cible</h2>
+            <h2 className="text-2xl font-black italic text-white mb-8 uppercase tracking-tighter">1. Nommez votre produit ou sujet</h2>
             <div className="w-full max-w-md relative">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4 backdrop-blur-md">
                 <span className="text-cyan-500/50 font-mono">_</span>
@@ -76,7 +76,7 @@ const InterfaceTutorial = () => {
                 <Cpu className="text-cyan-400 animate-pulse" size={40} />
               </div>
             </div>
-            <h2 className="text-2xl font-black italic text-white mb-4 uppercase tracking-tighter text-center">2. Extraction de l'Or</h2>
+            <h2 className="text-2xl font-black italic text-white mb-4 uppercase tracking-tighter text-center">2. Extraction des avis Reddit</h2>
             <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
               <div className="bg-cyan-500/5 border border-cyan-500/20 p-2 rounded-lg text-[10px] text-cyan-500 font-bold uppercase text-center tracking-widest">Reddit Intel</div>
               <div className="bg-purple-500/5 border border-purple-500/20 p-2 rounded-lg text-[10px] text-purple-500 font-bold uppercase text-center tracking-widest">Social Signals</div>
