@@ -8,7 +8,6 @@ import {
   AlertTriangle, 
   Zap, 
   Quote, 
-  ShieldCheck, 
   ExternalLink,
   Users,
   Info
