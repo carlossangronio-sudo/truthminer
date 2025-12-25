@@ -80,8 +80,22 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   const imageSource = url_image || image_url || "/placeholder-tech.png";
 
   // --- LOGIQUE TEXTE (Rétro-compatibilité) ---
+  // Convertir deep_analysis en string si c'est un objet
+  let deepAnalysisText = '';
+  if (deep_analysis) {
+    if (typeof deep_analysis === 'string') {
+      deepAnalysisText = deep_analysis;
+    } else if (typeof deep_analysis === 'object') {
+      // Si c'est un objet avec des clés, les convertir en texte
+      deepAnalysisText = Object.entries(deep_analysis)
+        .map(([key, value]) => `${typeof value === 'string' ? value : ''}`)
+        .filter(Boolean)
+        .join('\n\n');
+    }
+  }
+  
   const mainAnalysis = 
-    deep_analysis || 
+    deepAnalysisText || 
     consensus || 
     choice || 
     article || 
@@ -166,20 +180,14 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
                 <Info size={14} /> Analyse Détaillée
               </h3>
               <div className="prose prose-invert max-w-none">
-                {deep_analysis ? (
+                {deepAnalysisText ? (
                   // Nouveau format : 3 paragraphes séparés
                   <div className="space-y-6">
-                    {typeof deep_analysis === 'string' ? (
-                      deep_analysis.split('\n\n').map((paragraph, index) => (
-                        <p key={index} className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
-                          {paragraph}
-                        </p>
-                      ))
-                    ) : (
-                      <p className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
-                        {mainAnalysis}
+                    {deepAnalysisText.split('\n\n').map((paragraph, index) => (
+                      <p key={index} className="text-slate-300 leading-relaxed text-lg italic whitespace-pre-line">
+                        {paragraph}
                       </p>
-                    )}
+                    ))}
                   </div>
                 ) : (
                   // Ancien format : texte simple
