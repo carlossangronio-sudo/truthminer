@@ -27,7 +27,7 @@ export const NeuralBackground = () => {
 
     // Détection mobile pour réduire le nombre de particules
     const isMobile = window.innerWidth < 768;
-    const particleCount = isMobile ? 40 : 80;
+    const particleCount = isMobile ? 60 : 120;
 
     class ParticleClass {
       x: number = 0;
@@ -44,8 +44,8 @@ export const NeuralBackground = () => {
         if (!canvas) return;
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.v = Math.random() * 0.3 + 0.1;
-        this.s = Math.random() * 1.5;
+        this.v = Math.random() * 0.4 + 0.15;
+        this.s = Math.random() * 2.5 + 1;
         this.color = Math.random() > 0.5 ? '#22d3ee' : '#a855f7';
       }
 
@@ -59,7 +59,7 @@ export const NeuralBackground = () => {
       draw() {
         if (!ctx || !canvas) return;
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = 0.15;
+        ctx.globalAlpha = 0.35;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -86,10 +86,35 @@ export const NeuralBackground = () => {
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Dessiner les connexions entre particules proches
+      const maxDistance = 150;
+      for (let i = 0; i < particlesRef.current.length; i++) {
+        for (let j = i + 1; j < particlesRef.current.length; j++) {
+          const p1 = particlesRef.current[i];
+          const p2 = particlesRef.current[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < maxDistance) {
+            ctx.strokeStyle = p1.color;
+            ctx.globalAlpha = (1 - distance / maxDistance) * 0.2;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Dessiner les particules
       particlesRef.current.forEach((p) => {
         p.update();
         p.draw();
       });
+      
       animationIdRef.current = requestAnimationFrame(loop);
     };
 
