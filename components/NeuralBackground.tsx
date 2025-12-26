@@ -7,8 +7,9 @@ import { useTheme } from 'next-themes';
  * Arrière-plan neural animé avec particules
  * Optimisé pour performance et gestion mémoire
  * S'adapte automatiquement au mode clair/sombre
+ * @param intensity - Intensité de l'animation (0-1). Par défaut: 1.0 pour homepage, 0.5 pour pages d'analyse
  */
-export const NeuralBackground = () => {
+export const NeuralBackground = ({ intensity = 1.0 }: { intensity?: number } = {}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<any[]>([]);
   const animationIdRef = useRef<number | null>(null);
@@ -45,6 +46,9 @@ export const NeuralBackground = () => {
     const darkColors = ['#22d3ee', '#a855f7']; // Cyan et Purple pour mode sombre
     const lightColors = ['#0891b2', '#7c3aed']; // Cyan et Purple plus sombres pour mode clair
     const colors = isDark ? darkColors : lightColors;
+    
+    // Capturer intensity dans la closure pour l'utiliser dans ParticleClass
+    const currentIntensity = intensity;
 
     class ParticleClass {
       x: number = 0;
@@ -78,7 +82,7 @@ export const NeuralBackground = () => {
         ctx.fillStyle = this.color;
         // Opacité adaptée au thème et à l'intensité : très subtile en mode clair pour ne pas perturber la lecture
         const baseOpacity = isDark ? 0.4 : 0.15;
-        ctx.globalAlpha = baseOpacity * intensity;
+        ctx.globalAlpha = baseOpacity * currentIntensity;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -120,7 +124,7 @@ export const NeuralBackground = () => {
             ctx.strokeStyle = p1.color;
             // Opacité des connexions adaptée au thème et à l'intensité : très subtile en mode clair
             const baseOpacity = isDark ? 0.25 : 0.08;
-            ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity * intensity;
+            ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity * currentIntensity;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
