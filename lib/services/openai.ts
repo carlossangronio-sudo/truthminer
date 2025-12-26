@@ -76,6 +76,7 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STR
     {"user": "u/NomDuUser", "text": "Citation chirurgicale et ultra-pertinente avec détails concrets (2-4 phrases)", "subreddit": "r/hardware", "source_url": "URL du thread Reddit ou recherche"}
   ],
   "debate_summary": "Paragraphe court (3-4 phrases) décrivant les points où la communauté Reddit est divisée.",
+  "controversy_index": 0-100,
   "target_audience": {
     "yes": "Le profil type précis qui adorera ce produit (ex: Les sportifs intensifs). Une seule phrase ultra-courte.",
     "no": "Le profil type précis qui sera déçu (ex: Ceux qui privilégient la durabilité). Une seule phrase ultra-courte."
@@ -223,6 +224,11 @@ RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
   - Exemple EXCELLENT : {"user": "u/TechReviewer", "text": "Après 8 mois d'usage quotidien, l'écran commence à se fissurer au niveau des bords. C'est un défaut de conception mentionné par plusieurs utilisateurs sur r/iPhone.", "subreddit": "r/iPhone", "source_url": "https://www.reddit.com/r/iPhone/comments/abc123/..."}
   - Exemple À ÉVITER : {"user": "u/User123", "text": "C'est un bon produit", "subreddit": "r/tech", "source_url": ""}
 - **debate_summary** : Ajoute une section "Le Débat" qui résume les points où la communauté Reddit est DIVISÉE (ex: certains adorent l'écran, d'autres détestent le reflet). Format : "Paragraphe court (3-4 phrases) décrivant les points de désaccord dans la communauté."
+- **controversy_index** : Calcule un index de controverse (0-100) basé sur la division de la communauté :
+  - 0-30 : Consensus fort (peu de désaccord)
+  - 31-60 : Opinion divisée (débat modéré)
+  - 61-100 : Forte controverse (communauté très divisée)
+  - Base-toi sur la proportion de points positifs vs négatifs et la divergence des avis dans les discussions
 - **SOURCES** : Mentionne TOUJOURS le subreddit exact (ex: r/hardware, r/headphones) dans reddit_quotes pour renforcer la crédibilité. Si le subreddit n'est pas mentionné dans l'extrait, utilise le subreddit le plus probable selon le contexte.
 - **SÉPARATION DES RÔLES** :
   - "consensus" : ultra-court (10 mots max)
@@ -244,11 +250,11 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (ultra-court, 10 mots max), pros (tableau de 3 points courts), cons (tableau de 3 défauts courts), deep_analysis (trois paragraphes narratifs séparés par \\n\\n - contexte, réalité usage, positionnement - SANS répéter pros/cons, SANS listes à puces), reddit_quotes (tableau de 3-5 citations avec user, text, subreddit, source_url), debate_summary (paragraphe court décrivant les points de désaccord dans la communauté), target_audience (objet avec yes/no - une phrase ultra-courte par profil), final_verdict (paragraphe final avec métaphore, conclusion définitive Achetez/Fuyez/Attendez), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (ultra-court, 10 mots max), pros (tableau de 3 points courts), cons (tableau de 3 défauts courts), deep_analysis (trois paragraphes narratifs séparés par \\n\\n - contexte, réalité usage, positionnement - SANS répéter pros/cons, SANS listes à puces), reddit_quotes (tableau de 3-5 citations avec user, text, subreddit, source_url), debate_summary (paragraphe court décrivant les points de désaccord dans la communauté), controversy_index (nombre entier 0-100 indiquant le niveau de controverse), target_audience (objet avec yes/no - une phrase ultra-courte par profil), final_verdict (paragraphe final avec métaphore, conclusion définitive Achetez/Fuyez/Attendez), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4-turbo-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },

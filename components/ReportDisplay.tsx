@@ -49,6 +49,7 @@ interface ReportDisplayProps {
       source_url?: string;
     }>;
     debate_summary?: string | null;
+    controversy_index?: number | null; // Index de controverse (0-100)
     recommendations?: string[];
     target_audience?: {
       yes?: string;
@@ -73,7 +74,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   if (!report) return null;
 
   // On extrait les données de base
-  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, debate_summary, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
+  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, debate_summary, controversy_index, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
   
   // --- LOGIQUE IMAGE "SÉCURITÉ MAXIMALE" ---
   // On priorise absolument 'url_image' (ton travail manuel du 23/12)
@@ -265,13 +266,60 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
           </div>
         )}
 
-        {/* LE DÉBAT */}
+        {/* LE DÉBAT - Heatmap des Opinions */}
         {debate_summary && (
           <div className="mb-16 p-8 rounded-[2.5rem] bg-purple-500/[0.03] border border-purple-500/20 shadow-xl">
-            <h3 className="flex items-center gap-3 text-purple-400 font-black uppercase tracking-widest text-sm mb-6 italic">
-              <Users size={18} /> Le Débat
-            </h3>
-            <p className="text-sm text-slate-300 leading-relaxed italic">{debate_summary}</p>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="flex items-center gap-3 text-purple-400 font-black uppercase tracking-widest text-sm italic">
+                <Users size={18} /> Le Débat
+              </h3>
+              {controversy_index !== null && controversy_index !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] uppercase text-slate-500 tracking-widest">Index de Controverse</span>
+                  <div className="px-3 py-1 bg-purple-500/20 border border-purple-500/40 rounded-full">
+                    <span className="text-purple-400 font-black text-sm">{controversy_index}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed italic mb-6">{debate_summary}</p>
+            
+            {/* Heatmap visuelle des points de friction */}
+            {pros && cons && (pros.length > 0 || cons.length > 0) && (
+              <div className="mt-6 pt-6 border-t border-purple-500/20">
+                <p className="text-[9px] uppercase text-slate-500 tracking-widest mb-4">Points de Friction Identifiés</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pros.length > 0 && (
+                    <div className="p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] uppercase text-cyan-400 tracking-widest font-bold">Validation</span>
+                        <span className="text-xs text-cyan-300 font-bold">~{Math.round((pros.length / (pros.length + cons.length)) * 100)}%</span>
+                      </div>
+                      <div className="h-2 bg-cyan-500/20 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.round((pros.length / (pros.length + cons.length)) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  {cons.length > 0 && (
+                    <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[9px] uppercase text-red-400 tracking-widest font-bold">Critiques</span>
+                        <span className="text-xs text-red-300 font-bold">~{Math.round((cons.length / (pros.length + cons.length)) * 100)}%</span>
+                      </div>
+                      <div className="h-2 bg-red-500/20 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-red-500 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.round((cons.length / (pros.length + cons.length)) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

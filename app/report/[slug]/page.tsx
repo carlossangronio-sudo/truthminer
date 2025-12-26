@@ -221,6 +221,7 @@ export default async function ReportPage({ params }: PageProps) {
             deep_analysis: content.deep_analysis || null,
             reddit_quotes: Array.isArray(content.reddit_quotes) ? content.reddit_quotes : [],
             debate_summary: content.debate_summary || null,
+            controversy_index: typeof content.controversy_index === 'number' ? content.controversy_index : null,
             punchline: content.punchline || null,
             final_verdict: content.final_verdict || null,
             target_audience: content.target_audience || null,

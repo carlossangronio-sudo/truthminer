@@ -126,38 +126,64 @@ export default function Home() {
               <span className="text-white">BRUTE</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
               Moteur de recherche de vérité : On scanne Reddit pour vous éviter de le faire.
             </p>
             
-            {/* Barre de recherche style Perplexity/ChatGPT - très visible et centrale */}
-            <div className="max-w-4xl mx-auto mb-8">
-              <div className="relative flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl border-2 border-cyan-500/40 rounded-2xl p-4 shadow-[0_0_40px_rgba(34,211,238,0.2)] hover:border-cyan-500/60 transition-all">
+            {/* Barre de recherche style Perplexity/ChatGPT - ÉLÉMENT CENTRAL */}
+            <div className="max-w-4xl mx-auto mb-6">
+              <div className="relative flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl border-2 border-cyan-500/50 rounded-2xl p-5 shadow-[0_0_50px_rgba(34,211,238,0.3)] hover:border-cyan-500/70 transition-all">
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                  placeholder="Posez votre question... Ex: iPhone 15, souris gaming, VPN..."
+                  placeholder="Entrez un produit ou un sujet précis (ex: iPhone 16, Dyson V15, Tesla Model 3)"
                   className="flex-1 bg-transparent text-white placeholder-slate-400 focus:outline-none text-lg md:text-xl font-medium"
                 />
                 <button
                   onClick={handleGenerate}
                   disabled={isLoading || !keyword.trim()}
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-base md:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-base md:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_25px_rgba(34,211,238,0.5)] hover:shadow-[0_0_35px_rgba(34,211,238,0.7)]"
                 >
-                  {isLoading ? 'Analyse...' : 'Miner'}
+                  {isLoading ? 'Minage...' : 'Miner'}
                 </button>
               </div>
+              <p className="text-xs text-slate-500 text-center mt-3 uppercase tracking-widest">
+                Analysé en temps réel via Reddit
+              </p>
             </div>
 
+            {/* Interface "Minage en cours" avec barre de progression animée */}
             {isLoading && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-12 max-w-2xl mx-auto"
               >
-                <CircularProgress isActive={isLoading} />
+                <div className="bg-slate-900/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 shadow-[0_0_40px_rgba(34,211,238,0.2)]">
+                  <h3 className="text-xl font-black text-cyan-400 mb-4 uppercase tracking-tighter text-center">
+                    Minage en cours...
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-6 text-center">
+                    Extraction des signaux Reddit pour <span className="text-cyan-400 font-bold">{keyword}</span>
+                  </p>
+                  <CircularProgress isActive={isLoading} />
+                  <div className="mt-6 space-y-2">
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <span>Scan des discussions Reddit...</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <span>Analyse des avis communautaires...</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <span>Génération du rapport de vérité...</span>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 

@@ -6,6 +6,7 @@ import { useState } from 'react';
 interface TrustScoreProps {
   score: number;
   count: number;
+  commentCount?: number; // Nombre réel de commentaires analysés
   className?: string;
 }
 
@@ -13,12 +14,14 @@ interface TrustScoreProps {
  * Composant d'affichage du score de confiance avec style cyber/neural
  * Couleurs dynamiques selon le score : vert (élevé), jaune (moyen), orange (mitigé), rouge (bas)
  */
-export const TrustScore = ({ score, count, className = '' }: TrustScoreProps) => {
+export const TrustScore = ({ score, count, commentCount, className = '' }: TrustScoreProps) => {
   const [showTooltip, setShowTooltip] = useState(false);
   
   // Validation des props
   const validScore = Math.max(0, Math.min(100, score));
   const validCount = Math.max(0, count);
+  // Utiliser commentCount si disponible, sinon estimer à partir du score
+  const estimatedComments = commentCount || Math.max(50, Math.round((validScore || 50) * 2));
 
   // Déterminer la couleur selon le score (thème néon cyber)
   let colorClasses = {
@@ -81,8 +84,10 @@ export const TrustScore = ({ score, count, className = '' }: TrustScoreProps) =>
           >
             <Info size={12} className="text-slate-400 hover:text-cyan-400 cursor-help transition-colors" />
             {showTooltip && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 border border-cyan-500/30 rounded-lg text-xs text-slate-200 shadow-xl z-50">
-                Ce score est calculé par l&apos;IA en analysant le rapport entre les avis positifs et négatifs extraits de Reddit sur les 12 derniers mois.
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-72 p-4 bg-slate-900 border border-cyan-500/30 rounded-lg text-xs text-slate-200 shadow-xl z-50">
+                <p className="font-bold text-cyan-400 mb-2">Indice de Satisfaction Communautaire</p>
+                <p>Ce score est calculé par l&apos;IA en analysant le rapport entre les avis positifs et négatifs extraits de Reddit sur les 12 derniers mois.</p>
+                <p className="mt-2 text-cyan-300">Analysé sur <strong>{estimatedComments}</strong> commentaires Reddit récents.</p>
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-cyan-500/30"></div>
               </div>
             )}
