@@ -107,16 +107,27 @@ STRUCTURE ÉPURÉE - PAS DE SOUS-TITRES REDONDANTS :
 - Utilise des titres directs : "Points forts", "Points faibles", "Verdict", "Recommandations"
 - Pas de sous-sections inutiles - va droit au but
 
-CITATIONS REDDIT - ZÉRO RÉPÉTITION (RÈGLE ABSOLUE) :
+CITATIONS REDDIT - SÉLECTION CHIRURGICALE ET ULTRA-PERTINENTE (RÈGLE ABSOLUE) :
+- **CRITÈRES DE SÉLECTION PRIORITAIRES** : Choisis UNIQUEMENT les citations qui :
+  1. Contiennent des informations CONCRÈTES et MESURABLES (ex: "3 jours d'autonomie", "surchauffe après 30 min", "écran qui se fissure au 6e mois")
+  2. Révèlent des DÉFAUTS CACHÉS ou des AVANTAGES INATTENDUS non mentionnés par le marketing
+  3. Viennent d'utilisateurs avec de l'EXPÉRIENCE RÉELLE (évite les "je viens de l'acheter", privilégie "après 6 mois d'usage")
+  4. Sont SPÉCIFIQUES et TECHNIQUES plutôt que génériques ("la batterie tient 2 jours" > "c'est bien")
+  5. Mentionnent des COMPARAISONS avec d'autres produits ou des alternatives
+  6. Décrivent des PROBLÈMES RÉCURRENTS ou des PATTERNS observés par plusieurs utilisateurs
+
 - **INTERDICTION STRICTE** : Tu ne peux JAMAIS utiliser la même citation Reddit deux fois dans un même rapport
 - **ZÉRO RÉPÉTITION D'IDÉES** : Ne cite jamais deux fois la même idée ou le même défaut dans des sections différentes
-- Chaque citation doit être UNIQUE et utilisée UNE SEULE FOIS
+- Chaque citation doit être UNIQUE, PERTINENTE et utilisée UNE SEULE FOIS
 - Si tu as déjà utilisé une citation dans "pros", tu ne peux PAS la réutiliser dans "cons" ou ailleurs
-- Format pour chaque élément de "pros" et "cons" : "Description : '[citation exacte et unique]' - Un utilisateur Reddit (r/subreddit si disponible)"
-- Exemple pros : "Autonomie exceptionnelle : 'J'ai tenu 3 jours sans recharger' - Un utilisateur Reddit (r/headphones)"
-- Exemple cons : "Surchauffe rapide : 'Mon unité devient brûlante au bout de 30 min' - Un utilisateur Reddit (r/hardware)"
+- **ÉVITE LES CITATIONS GÉNÉRIQUES** : Rejette les citations vagues comme "c'est bien", "je recommande", "pas mal". Privilégie celles avec détails concrets.
+- Format pour chaque élément de "pros" et "cons" : "Description : '[citation exacte et unique avec détails concrets]' - Un utilisateur Reddit (r/subreddit si disponible)"
+- Exemple pros (BON) : "Autonomie exceptionnelle : 'J'ai tenu 3 jours sans recharger avec usage intensif, c'est du jamais vu' - Un utilisateur Reddit (r/headphones)"
+- Exemple pros (MAUVAIS - trop générique) : "C'est bien : 'Je recommande ce produit' - Un utilisateur Reddit"
+- Exemple cons (BON) : "Surchauffe récurrente : 'Mon unité devient brûlante au bout de 30 min d'utilisation, même en mode économie. C'est un problème connu sur r/hardware' - Un utilisateur Reddit (r/hardware)"
+- Exemple cons (MAUVAIS - trop vague) : "Problème : 'Il y a des bugs' - Un utilisateur Reddit"
 - Les citations doivent être extraites des extraits fournis, pas inventées
-- Si tu manques de citations uniques, utilise des citations différentes pour chaque point, même si elles parlent du même sujet
+- Si tu manques de citations pertinentes, cherche dans les extraits des discussions les passages les plus détaillés et informatifs
 
 Instructions détaillées pour le format JSON STRICT :
 1. "title" : Un titre accrocheur, percutant et descriptif (ex: "La Poste et Colissimo : Quand le passage du facteur devient un casse-tête")
@@ -194,8 +205,18 @@ RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
   - Ne répète PAS les points forts/faibles dans la section "deep_analysis".
   - N'utilise PAS de listes à puces dans "deep_analysis".
   - "deep_analysis" doit être narratif : trois paragraphes séparés par deux retours à la ligne.
-- **reddit_quotes** : Extrais 3-5 citations brutes et réelles avec user, text et subreddit. Utilise des citations différentes de celles dans pros/cons.
-- **SOURCES** : Mentionne toujours le subreddit (ex: r/hardware, r/headphones) dans reddit_quotes pour renforcer la crédibilité.
+- **reddit_quotes** : Extrais 3-5 citations CHIRURGICALES et ULTRA-PERTINENTES avec user, text et subreddit. 
+  CRITÈRES DE SÉLECTION STRICTS pour reddit_quotes :
+  - Choisis UNIQUEMENT les citations les plus RÉVÉLATRICES et INFORMATIVES
+  - Privilégie les citations avec DÉTAILS CONCRETS, MESURES, DURÉES, COMPARAISONS
+  - Évite les citations génériques ou peu informatives ("c'est bien", "je recommande")
+  - Sélectionne des citations qui apportent une VALEUR RÉELLE à l'utilisateur
+  - Utilise des citations DIFFÉRENTES de celles dans pros/cons (aucun doublon)
+  - Chaque citation doit être UNIQUE et apporter une information distincte
+  - Format : {"user": "u/NomDuUser", "text": "Citation exacte avec détails concrets (2-4 phrases max)", "subreddit": "r/hardware"}
+  - Exemple EXCELLENT : {"user": "u/TechReviewer", "text": "Après 8 mois d'usage quotidien, l'écran commence à se fissurer au niveau des bords. C'est un défaut de conception mentionné par plusieurs utilisateurs sur r/iPhone.", "subreddit": "r/iPhone"}
+  - Exemple À ÉVITER : {"user": "u/User123", "text": "C'est un bon produit", "subreddit": "r/tech"}
+- **SOURCES** : Mentionne TOUJOURS le subreddit exact (ex: r/hardware, r/headphones) dans reddit_quotes pour renforcer la crédibilité. Si le subreddit n'est pas mentionné dans l'extrait, utilise le subreddit le plus probable selon le contexte.
 - **SÉPARATION DES RÔLES** :
   - "consensus" : ultra-court (10 mots max)
   - "pros" et "cons" : points courts
