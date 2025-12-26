@@ -137,7 +137,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
 
   return (
     <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative overflow-hidden">
-      <NeuralBackground intensity={0.5} />
+      <NeuralBackground intensity={0.25} />
       
       {/* Navigation */}
       <nav className="p-6 border-b border-white/5 bg-[#02010a]/60 backdrop-blur-xl sticky top-0 z-50 relative">
