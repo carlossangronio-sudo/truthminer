@@ -76,8 +76,9 @@ export const NeuralBackground = () => {
       draw() {
         if (!ctx || !canvas) return;
         ctx.fillStyle = this.color;
-        // Opacité adaptée au thème : légèrement augmentée pour meilleure visibilité sans perturber la lecture
-        ctx.globalAlpha = isDark ? 0.6 : 0.4;
+        // Opacité adaptée au thème et à l'intensité : très subtile en mode clair pour ne pas perturber la lecture
+        const baseOpacity = isDark ? 0.4 : 0.15;
+        ctx.globalAlpha = baseOpacity * intensity;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -117,9 +118,9 @@ export const NeuralBackground = () => {
           
           if (distance < maxDistance) {
             ctx.strokeStyle = p1.color;
-            // Opacité des connexions adaptée au thème : légèrement augmentée
-            const baseOpacity = isDark ? 0.4 : 0.2;
-            ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity;
+            // Opacité des connexions adaptée au thème et à l'intensité : très subtile en mode clair
+            const baseOpacity = isDark ? 0.25 : 0.08;
+            ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity * intensity;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -159,7 +160,7 @@ export const NeuralBackground = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       particlesRef.current = [];
     };
-  }, [mounted, isDark]); // Re-démarrer l'animation quand le thème change
+  }, [mounted, isDark, intensity]); // Re-démarrer l'animation quand le thème ou l'intensité change
 
   // Fond adapté au thème
   const bgColor = isDark ? '#02010a' : '#f8fafc';
