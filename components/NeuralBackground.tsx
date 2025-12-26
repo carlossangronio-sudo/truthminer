@@ -1,20 +1,32 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
 
 /**
  * Arrière-plan neural animé avec particules
  * Optimisé pour performance et gestion mémoire
+ * S'adapte automatiquement au mode clair/sombre
  */
 export const NeuralBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<any[]>([]);
   const animationIdRef = useRef<number | null>(null);
   const isVisibleRef = useRef(true);
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  // Déterminer le thème actuel
+  const currentTheme = theme === 'system' ? systemTheme : theme;
+  const isDark = currentTheme === 'dark';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !mounted) return;
     
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
@@ -28,6 +40,11 @@ export const NeuralBackground = () => {
     // Détection mobile pour réduire le nombre de particules
     const isMobile = window.innerWidth < 768;
     const particleCount = isMobile ? 60 : 120;
+
+    // Couleurs adaptées au thème
+    const darkColors = ['#22d3ee', '#a855f7']; // Cyan et Purple pour mode sombre
+    const lightColors = ['#0891b2', '#7c3aed']; // Cyan et Purple plus sombres pour mode clair
+    const colors = isDark ? darkColors : lightColors;
 
     class ParticleClass {
       x: number = 0;
@@ -46,7 +63,7 @@ export const NeuralBackground = () => {
         this.y = Math.random() * canvas.height;
         this.v = Math.random() * 0.4 + 0.15;
         this.s = Math.random() * 2.5 + 1;
-        this.color = Math.random() > 0.5 ? '#22d3ee' : '#a855f7';
+        this.color = colors[Math.floor(Math.random() * colors.length)];
       }
 
       update() {
@@ -59,7 +76,8 @@ export const NeuralBackground = () => {
       draw() {
         if (!ctx || !canvas) return;
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = 0.5; // Augmenté de 0.35 à 0.5 pour plus de visibilité
+        // Opacité adaptée au thème : plus subtile en mode clair
+        ctx.globalAlpha = isDark ? 0.5 : 0.3;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -99,8 +117,10 @@ export const NeuralBackground = () => {
           
           if (distance < maxDistance) {
             ctx.strokeStyle = p1.color;
-            ctx.globalAlpha = (1 - distance / maxDistance) * 0.3; // Augmenté de 0.2 à 0.3 pour plus de visibilité
-            ctx.lineWidth = 1.5; // Légèrement plus épais
+            // Opacité des connexions adaptée au thème
+            const baseOpacity = isDark ? 0.3 : 0.15;
+            ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -139,13 +159,19 @@ export const NeuralBackground = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       particlesRef.current = [];
     };
-  }, []);
+  }, [mounted, isDark]); // Re-démarrer l'animation quand le thème change
+
+  // Fond adapté au thème
+  const bgColor = isDark ? '#02010a' : '#f8fafc';
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-0 bg-[#02010a]"
-      style={{ pointerEvents: 'none' }}
+      className="fixed inset-0 z-0 transition-colors duration-300"
+      style={{ 
+        pointerEvents: 'none',
+        backgroundColor: bgColor
+      }}
       aria-hidden="true"
     />
   );
