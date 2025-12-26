@@ -201,12 +201,14 @@ export default function Home() {
       </section>
 
       {/* Tutorial interactif */}
-      <section className="relative py-16 md:py-24">
+      <section className="relative py-16 md:py-24 z-10">
         <InterfaceTutorial />
       </section>
 
       {/* Section Features - Explication de la méthode */}
-      <FeaturesSection />
+      <section className="relative z-10">
+        <FeaturesSection />
+      </section>
 
       {/* Bibliothèque de pépites déjà minées */}
       {!isLoadingReports && recentReports.length > 0 && (
