@@ -76,8 +76,8 @@ export const NeuralBackground = () => {
       draw() {
         if (!ctx || !canvas) return;
         ctx.fillStyle = this.color;
-        // Opacité adaptée au thème : plus subtile en mode clair
-        ctx.globalAlpha = isDark ? 0.5 : 0.3;
+        // Opacité adaptée au thème : légèrement augmentée pour meilleure visibilité sans perturber la lecture
+        ctx.globalAlpha = isDark ? 0.6 : 0.4;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -117,8 +117,8 @@ export const NeuralBackground = () => {
           
           if (distance < maxDistance) {
             ctx.strokeStyle = p1.color;
-            // Opacité des connexions adaptée au thème
-            const baseOpacity = isDark ? 0.3 : 0.15;
+            // Opacité des connexions adaptée au thème : légèrement augmentée
+            const baseOpacity = isDark ? 0.4 : 0.2;
             ctx.globalAlpha = (1 - distance / maxDistance) * baseOpacity;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
