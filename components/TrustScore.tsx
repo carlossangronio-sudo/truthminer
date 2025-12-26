@@ -1,6 +1,7 @@
 'use client';
 
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Info } from 'lucide-react';
+import { useState } from 'react';
 
 interface TrustScoreProps {
   score: number;
@@ -13,6 +14,8 @@ interface TrustScoreProps {
  * Couleurs dynamiques selon le score : vert (élevé), jaune (moyen), orange (mitigé), rouge (bas)
  */
 export const TrustScore = ({ score, count, className = '' }: TrustScoreProps) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
   // Validation des props
   const validScore = Math.max(0, Math.min(100, score));
   const validCount = Math.max(0, count);
@@ -68,7 +71,23 @@ export const TrustScore = ({ score, count, className = '' }: TrustScoreProps) =>
     <div className={`flex items-center gap-6 ${colorClasses.bg} p-6 rounded-[2.5rem] border ${colorClasses.border} ${className}`}>
       <div className={`text-center px-6 border-r ${colorClasses.borderRight}`}>
         <div className={`text-5xl font-black ${colorClasses.text} leading-none`}>{validScore}%</div>
-        <div className="text-[9px] font-black uppercase text-slate-500 mt-2 tracking-widest">Confiance</div>
+        <div className="text-[9px] font-black uppercase text-slate-500 mt-2 tracking-widest flex items-center justify-center gap-1.5">
+          Indice de Satisfaction Communautaire
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            onClick={() => setShowTooltip(!showTooltip)}
+          >
+            <Info size={12} className="text-slate-400 hover:text-cyan-400 cursor-help transition-colors" />
+            {showTooltip && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 border border-cyan-500/30 rounded-lg text-xs text-slate-200 shadow-xl z-50">
+                Ce score est calculé par l&apos;IA en analysant le rapport entre les avis positifs et négatifs extraits de Reddit sur les 12 derniers mois.
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-cyan-500/30"></div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <div>
         <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">

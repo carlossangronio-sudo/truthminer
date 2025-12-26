@@ -73,8 +73,9 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STR
   "cons": ["Défaut caché 1 avec citation Reddit unique et détaillée", "Défaut caché 2 avec citation Reddit unique et détaillée", "Défaut caché 3 avec citation Reddit unique et détaillée"],
   "deep_analysis": "Trois paragraphes narratifs séparés par \\n\\n (Contexte / Usage réel / Verdict). SANS répéter pros/cons, SANS listes à puces.",
   "reddit_quotes": [
-    {"user": "u/NomDuUser", "text": "Citation chirurgicale et ultra-pertinente avec détails concrets (2-4 phrases)", "subreddit": "r/hardware"}
+    {"user": "u/NomDuUser", "text": "Citation chirurgicale et ultra-pertinente avec détails concrets (2-4 phrases)", "subreddit": "r/hardware", "source_url": "URL du thread Reddit ou recherche"}
   ],
+  "debate_summary": "Paragraphe court (3-4 phrases) décrivant les points où la communauté Reddit est divisée.",
   "target_audience": {
     "yes": "Le profil type précis qui adorera ce produit (ex: Les sportifs intensifs). Une seule phrase ultra-courte.",
     "no": "Le profil type précis qui sera déçu (ex: Ceux qui privilégient la durabilité). Une seule phrase ultra-courte."
@@ -209,7 +210,7 @@ RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
   - Ne répète PAS les points forts/faibles dans la section "deep_analysis".
   - N'utilise PAS de listes à puces dans "deep_analysis".
   - "deep_analysis" doit être narratif : trois paragraphes séparés par deux retours à la ligne.
-- **reddit_quotes** : Extrais 3-5 citations CHIRURGICALES et ULTRA-PERTINENTES avec user, text et subreddit. 
+- **reddit_quotes** : Extrais 3-5 citations CHIRURGICALES et ULTRA-PERTINENTES avec user, text, subreddit et source_url. 
   CRITÈRES DE SÉLECTION STRICTS pour reddit_quotes :
   - Choisis UNIQUEMENT les citations les plus RÉVÉLATRICES et INFORMATIVES
   - Privilégie les citations avec DÉTAILS CONCRETS, MESURES, DURÉES, COMPARAISONS
@@ -217,9 +218,11 @@ RAPPELS CRITIQUES - RÈGLES D'OR DE RÉDACTION :
   - Sélectionne des citations qui apportent une VALEUR RÉELLE à l'utilisateur
   - Utilise des citations DIFFÉRENTES de celles dans pros/cons (aucun doublon)
   - Chaque citation doit être UNIQUE et apporter une information distincte
-  - Format : {"user": "u/NomDuUser", "text": "Citation exacte avec détails concrets (2-4 phrases max)", "subreddit": "r/hardware"}
-  - Exemple EXCELLENT : {"user": "u/TechReviewer", "text": "Après 8 mois d'usage quotidien, l'écran commence à se fissurer au niveau des bords. C'est un défaut de conception mentionné par plusieurs utilisateurs sur r/iPhone.", "subreddit": "r/iPhone"}
-  - Exemple À ÉVITER : {"user": "u/User123", "text": "C'est un bon produit", "subreddit": "r/tech"}
+  - Format : {"user": "u/NomDuUser", "text": "Citation exacte avec détails concrets (2-4 phrases max)", "subreddit": "r/hardware", "source_url": "URL complète du thread Reddit ou recherche Reddit"}
+  - **source_url** : Si l'URL exacte du thread est disponible dans les extraits, utilise-la. Sinon, construis une URL de recherche Reddit pertinente (ex: "https://www.reddit.com/r/hardware/search/?q=iPhone+15+problème")
+  - Exemple EXCELLENT : {"user": "u/TechReviewer", "text": "Après 8 mois d'usage quotidien, l'écran commence à se fissurer au niveau des bords. C'est un défaut de conception mentionné par plusieurs utilisateurs sur r/iPhone.", "subreddit": "r/iPhone", "source_url": "https://www.reddit.com/r/iPhone/comments/abc123/..."}
+  - Exemple À ÉVITER : {"user": "u/User123", "text": "C'est un bon produit", "subreddit": "r/tech", "source_url": ""}
+- **debate_summary** : Ajoute une section "Le Débat" qui résume les points où la communauté Reddit est DIVISÉE (ex: certains adorent l'écran, d'autres détestent le reflet). Format : "Paragraphe court (3-4 phrases) décrivant les points de désaccord dans la communauté."
 - **SOURCES** : Mentionne TOUJOURS le subreddit exact (ex: r/hardware, r/headphones) dans reddit_quotes pour renforcer la crédibilité. Si le subreddit n'est pas mentionné dans l'extrait, utilise le subreddit le plus probable selon le contexte.
 - **SÉPARATION DES RÔLES** :
   - "consensus" : ultra-court (10 mots max)
@@ -241,7 +244,7 @@ Extrait: ${result.snippet}
   )
   .join('\n')}
 
-Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (ultra-court, 10 mots max), pros (tableau de 3 points courts), cons (tableau de 3 défauts courts), deep_analysis (trois paragraphes narratifs séparés par \\n\\n - contexte, réalité usage, positionnement - SANS répéter pros/cons, SANS listes à puces), reddit_quotes (tableau de 3-5 citations avec user, text, subreddit), target_audience (objet avec yes/no - une phrase ultra-courte par profil), final_verdict (paragraphe final avec métaphore, conclusion définitive Achetez/Fuyez/Attendez), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
+Réponds UNIQUEMENT avec un objet JSON valide contenant les champs STRICTS : title, consensus (ultra-court, 10 mots max), pros (tableau de 3 points courts), cons (tableau de 3 défauts courts), deep_analysis (trois paragraphes narratifs séparés par \\n\\n - contexte, réalité usage, positionnement - SANS répéter pros/cons, SANS listes à puces), reddit_quotes (tableau de 3-5 citations avec user, text, subreddit, source_url), debate_summary (paragraphe court décrivant les points de désaccord dans la communauté), target_audience (objet avec yes/no - une phrase ultra-courte par profil), final_verdict (paragraphe final avec métaphore, conclusion définitive Achetez/Fuyez/Attendez), products (tableau), confidenceScore (nombre entier entre 0 et 100), category (une seule catégorie parmi : "Électronique", "Cosmétiques", "Alimentation", "Services"), amazonSearchQuery (requête de recherche Amazon optimisée), amazonRecommendationReason (explication courte du lien proposé).`;
 
     try {
       const completion = await this.client.chat.completions.create({

@@ -46,7 +46,9 @@ interface ReportDisplayProps {
       user: string;
       text: string;
       subreddit: string;
+      source_url?: string;
     }>;
+    debate_summary?: string | null;
     recommendations?: string[];
     target_audience?: {
       yes?: string;
@@ -71,7 +73,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   if (!report) return null;
 
   // On extrait les données de base
-  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
+  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, debate_summary, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
   
   // --- LOGIQUE IMAGE "SÉCURITÉ MAXIMALE" ---
   // On priorise absolument 'url_image' (ton travail manuel du 23/12)
@@ -235,17 +237,41 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
           <div className="mb-16">
             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 text-center italic">Signaux Bruts du Réseau</h3>
             <div className="grid md:grid-cols-2 gap-6">
-              {reddit_quotes.map((quote, i) => (
-                <div key={i} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] relative group hover:border-cyan-500/30 transition-all shadow-xl">
-                  <Quote className="text-cyan-500/10 absolute top-4 left-4" size={40} />
-                  <p className="text-sm italic text-slate-300 mb-6 relative z-10 leading-relaxed">"{quote.text}"</p>
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-600 tracking-widest">
-                    <span className="text-cyan-500/40">{quote.user}</span>
-                    <span className="bg-white/5 px-2 py-1 rounded-md">{quote.subreddit}</span>
+              {reddit_quotes.map((quote, i) => {
+                // Construire l'URL Reddit : utiliser source_url si disponible, sinon construire une URL de recherche
+                const redditUrl = quote.source_url || `https://www.reddit.com/r/${quote.subreddit.replace('r/', '')}/search/?q=${encodeURIComponent(quote.text.substring(0, 50))}`;
+                
+                return (
+                  <div key={i} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] relative group hover:border-cyan-500/30 transition-all shadow-xl">
+                    <Quote className="text-cyan-500/10 absolute top-4 left-4" size={40} />
+                    <p className="text-sm italic text-slate-300 mb-6 relative z-10 leading-relaxed">"{quote.text}"</p>
+                    <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-600 tracking-widest mb-3">
+                      <span className="text-cyan-500/40">{quote.user}</span>
+                      <span className="bg-white/5 px-2 py-1 rounded-md">{quote.subreddit}</span>
+                    </div>
+                    <a
+                      href={redditUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-[9px] font-bold uppercase tracking-widest transition-colors group/link"
+                    >
+                      <ExternalLink size={12} className="group-hover/link:translate-x-0.5 transition-transform" />
+                      Voir la discussion
+                    </a>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </div>
+        )}
+
+        {/* LE DÉBAT */}
+        {debate_summary && (
+          <div className="mb-16 p-8 rounded-[2.5rem] bg-purple-500/[0.03] border border-purple-500/20 shadow-xl">
+            <h3 className="flex items-center gap-3 text-purple-400 font-black uppercase tracking-widest text-sm mb-6 italic">
+              <Users size={18} /> Le Débat
+            </h3>
+            <p className="text-sm text-slate-300 leading-relaxed italic">{debate_summary}</p>
           </div>
         )}
 

@@ -126,27 +126,29 @@ export default function Home() {
               <span className="text-white">BRUTE</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-slate-200 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Nous analysons des milliers de discussions Reddit pour extraire l&apos;essence des opinions réelles. 
-              <span className="text-cyan-400"> Pas de marketing, juste du vécu.</span>
+            <p className="text-lg md:text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed">
+              Moteur de recherche de vérité : On scanne Reddit pour vous éviter de le faire.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
-              <input
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                placeholder="Ex: iPhone 15, souris gaming, VPN..."
-                className="flex-1 px-6 py-4 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-cyan-500/30 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-lg"
-              />
-              <button
-                onClick={handleGenerate}
-                disabled={isLoading || !keyword.trim()}
-                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]"
-              >
-                {isLoading ? 'Analyse en cours...' : 'Miner'}
-              </button>
+            {/* Barre de recherche style Perplexity/ChatGPT - très visible et centrale */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="relative flex items-center gap-3 bg-slate-900/80 backdrop-blur-xl border-2 border-cyan-500/40 rounded-2xl p-4 shadow-[0_0_40px_rgba(34,211,238,0.2)] hover:border-cyan-500/60 transition-all">
+                <input
+                  type="text"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                  placeholder="Posez votre question... Ex: iPhone 15, souris gaming, VPN..."
+                  className="flex-1 bg-transparent text-white placeholder-slate-400 focus:outline-none text-lg md:text-xl font-medium"
+                />
+                <button
+                  onClick={handleGenerate}
+                  disabled={isLoading || !keyword.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-base md:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+                >
+                  {isLoading ? 'Analyse...' : 'Miner'}
+                </button>
+              </div>
             </div>
 
             {isLoading && (
@@ -180,9 +182,16 @@ export default function Home() {
       {/* Section Features - Explication de la méthode */}
       <FeaturesSection />
 
-      {/* Archives - Rapports récents */}
+      {/* Bibliothèque de pépites déjà minées */}
       {!isLoadingReports && recentReports.length > 0 && (
-        <RecentReportsGrid reports={recentReports} />
+        <section className="relative py-16 md:py-24">
+          <div className="container mx-auto px-4 md:px-6">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-8 text-center uppercase tracking-tighter">
+              Bibliothèque de pépites déjà minées
+            </h2>
+            <RecentReportsGrid reports={recentReports} />
+          </div>
+        </section>
       )}
 
       {/* Newsletter / capture email */}

@@ -218,13 +218,14 @@ export default async function ReportPage({ params }: PageProps) {
       consensus: content.consensus || content.choice || null,
       pros: Array.isArray(content.pros) ? content.pros : [],
       cons: Array.isArray(content.cons) ? content.cons : (Array.isArray(content.defects) ? content.defects : []),
-      deep_analysis: content.deep_analysis || null,
-      reddit_quotes: Array.isArray(content.reddit_quotes) ? content.reddit_quotes : [],
-      punchline: content.punchline || null,
-      final_verdict: content.final_verdict || null,
-      target_audience: content.target_audience || null,
-      recommendations: Array.isArray(content.recommendations) ? content.recommendations : [],
-    };
+            deep_analysis: content.deep_analysis || null,
+            reddit_quotes: Array.isArray(content.reddit_quotes) ? content.reddit_quotes : [],
+            debate_summary: content.debate_summary || null,
+            punchline: content.punchline || null,
+            final_verdict: content.final_verdict || null,
+            target_audience: content.target_audience || null,
+            recommendations: Array.isArray(content.recommendations) ? content.recommendations : [],
+          };
 
     return (
       <>
