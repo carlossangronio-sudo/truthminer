@@ -307,16 +307,20 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
               <AffiliateLink
                 amazonSearchQuery={amazonSearchQuery || report.title}
                 recommendationReason={amazonRecommendationReason || 'Recommandation issue de la communauté Reddit'}
-                className="w-full md:w-72"
+                className="w-full md:w-80"
               />
             ) : (
               <a 
                 href={amazonLink || 'https://www.amazon.fr/?tag=tminer-21'} 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full md:w-72 bg-cyan-500 hover:bg-cyan-400 text-slate-950 py-7 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] text-center shadow-[0_0_40px_rgba(34,211,238,0.4)] transition-all flex items-center justify-center gap-3 active:scale-95"
+                className="w-full md:w-80 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white py-8 rounded-2xl font-black uppercase text-sm tracking-[0.2em] text-center shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_60px_rgba(249,115,22,0.7)] transition-all flex items-center justify-center gap-3 active:scale-95 border-2 border-orange-400/50"
               >
-                Extraire sur Amazon <ExternalLink size={18} />
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                Vérifier le prix sur Amazon
+                <ExternalLink size={18} />
               </a>
             )}
           </div>
