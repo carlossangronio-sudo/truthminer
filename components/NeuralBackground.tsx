@@ -59,7 +59,7 @@ export const NeuralBackground = () => {
       draw() {
         if (!ctx || !canvas) return;
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = 0.35;
+        ctx.globalAlpha = 0.5; // Augmenté de 0.35 à 0.5 pour plus de visibilité
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
         ctx.fill();
@@ -99,8 +99,8 @@ export const NeuralBackground = () => {
           
           if (distance < maxDistance) {
             ctx.strokeStyle = p1.color;
-            ctx.globalAlpha = (1 - distance / maxDistance) * 0.2;
-            ctx.lineWidth = 1;
+            ctx.globalAlpha = (1 - distance / maxDistance) * 0.3; // Augmenté de 0.2 à 0.3 pour plus de visibilité
+            ctx.lineWidth = 1.5; // Légèrement plus épais
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -144,7 +144,8 @@ export const NeuralBackground = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 -z-10 bg-[#02010a]"
+      className="fixed inset-0 z-0 bg-[#02010a]"
+      style={{ pointerEvents: 'none' }}
       aria-hidden="true"
     />
   );
