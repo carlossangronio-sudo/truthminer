@@ -103,7 +103,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative overflow-hidden">
-      <NeuralBackground />
+      <NeuralBackground intensity={0.25} />
       
       <Navbar />
       
