@@ -5,20 +5,14 @@ import React, { useRef, useEffect, useState } from 'react';
 /**
  * Arrière-plan neural animé avec particules
  * Optimisé pour performance et gestion mémoire
- * S'adapte automatiquement au mode clair/sombre
- * @param intensity - Intensité de l'animation (0-1). Par défaut: 1.0 pour homepage, 0.5 pour pages d'analyse
+ * @param intensity - Intensité de l'animation (0-1). Par défaut: 1.0 pour homepage, 0.25 pour pages d'analyse
  */
 export const NeuralBackground = ({ intensity = 1.0 }: { intensity?: number } = {}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<any[]>([]);
   const animationIdRef = useRef<number | null>(null);
   const isVisibleRef = useRef(true);
-  const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  
-  // Déterminer le thème actuel
-  const currentTheme = theme === 'system' ? systemTheme : theme;
-  const isDark = currentTheme === 'dark';
 
   useEffect(() => {
     setMounted(true);
