@@ -69,8 +69,12 @@ IMPORTANT : Tu dois répondre UNIQUEMENT avec un objet JSON valide au format STR
 {
   "title": "Titre percutant et descriptif",
   "consensus": "Une phrase percutante qui résume l'avis général (le signal social). Si c'est une mauvaise affaire, dis-le clairement dès le début.",
-  "pros": ["Point fort 1 avec citation Reddit unique", "Point fort 2 avec citation Reddit unique", "Point fort 3 avec citation Reddit unique"],
-  "cons": ["Défaut caché 1 avec citation Reddit unique", "Défaut caché 2 avec citation Reddit unique", "Défaut caché 3 avec citation Reddit unique"],
+  "pros": ["Point fort 1 avec citation Reddit unique et détaillée", "Point fort 2 avec citation Reddit unique et détaillée", "Point fort 3 avec citation Reddit unique et détaillée"],
+  "cons": ["Défaut caché 1 avec citation Reddit unique et détaillée", "Défaut caché 2 avec citation Reddit unique et détaillée", "Défaut caché 3 avec citation Reddit unique et détaillée"],
+  "deep_analysis": "Trois paragraphes narratifs séparés par \\n\\n (Contexte / Usage réel / Verdict). SANS répéter pros/cons, SANS listes à puces.",
+  "reddit_quotes": [
+    {"user": "u/NomDuUser", "text": "Citation chirurgicale et ultra-pertinente avec détails concrets (2-4 phrases)", "subreddit": "r/hardware"}
+  ],
   "target_audience": {
     "yes": "Le profil type précis qui adorera ce produit (ex: Les sportifs intensifs). Une seule phrase ultra-courte.",
     "no": "Le profil type précis qui sera déçu (ex: Ceux qui privilégient la durabilité). Une seule phrase ultra-courte."
