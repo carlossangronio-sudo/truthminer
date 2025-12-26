@@ -35,22 +35,15 @@ export default function AffiliateLink({
         href={amazonUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={`inline-flex items-center justify-center px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black uppercase text-xs tracking-[0.2em] rounded-[2rem] transition-all shadow-[0_0_40px_rgba(34,211,238,0.4)] flex items-center justify-center gap-3 active:scale-95 ${className}`}
+        className={`inline-flex items-center justify-center px-8 py-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black uppercase text-base tracking-[0.2em] rounded-2xl transition-all duration-200 shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_60px_rgba(249,115,22,0.7)] border-2 border-orange-400/50 active:scale-95 ${className}`}
       >
-        <svg
-          className="w-5 h-5 mr-2"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-          <path
-            fillRule="evenodd"
-            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-            clipRule="evenodd"
-          />
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
-        Extraire sur Amazon
+        Vérifier le prix sur Amazon
+        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
       </a>
       {recommendationReason && (
         <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed">
