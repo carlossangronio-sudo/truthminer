@@ -34,6 +34,7 @@ interface ReportDisplayProps {
     confidenceScore: number;
     amazonSearchQuery?: string | null;
     amazonRecommendationReason?: string | null;
+    purchase_url?: string | null; // URL d'achat prioritaire (Amazon, Fnac, etc.)
     url_image?: string | null;
     image_url?: string | null;
     consensus?: string | null;
@@ -74,7 +75,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   if (!report) return null;
 
   // On extrait les données de base
-  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, debate_summary, controversy_index, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, choice, article } = report;
+  const { title, url_image, image_url, consensus, pros, cons, deep_analysis, reddit_quotes, debate_summary, controversy_index, target_audience, final_verdict, punchline, confidenceScore, amazonSearchQuery, amazonRecommendationReason, purchase_url, choice, article } = report;
   
   // --- LOGIQUE IMAGE "SÉCURITÉ MAXIMALE" ---
   // On priorise absolument 'url_image' (ton travail manuel du 23/12)
@@ -113,10 +114,26 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
   // ID d'affiliation Amazon
   const affiliateId = 'tminer-21';
   
-  // Construire le lien Amazon avec tag d'affiliation
-  const amazonLink = amazonSearchQuery 
-    ? `https://www.amazon.fr/s?k=${encodeURIComponent(amazonSearchQuery)}&tag=${affiliateId}`
-    : (report.title ? `https://www.amazon.fr/s?k=${encodeURIComponent(report.title)}&tag=${affiliateId}` : null);
+  // Fonction pour déterminer le texte du bouton selon l'URL
+  const getButtonText = (url: string): string => {
+    const urlLower = url.toLowerCase();
+    if (urlLower.includes('amazon')) {
+      return 'Vérifier sur Amazon';
+    } else if (urlLower.includes('fnac')) {
+      return 'Voir sur Fnac';
+    }
+    return 'Voir l\'offre';
+  };
+  
+  // PRIORITÉ : purchase_url (colonne manuelle) > amazonSearchQuery > fallback
+  const purchaseLink = purchase_url || null;
+  
+  // Construire le lien Amazon avec tag d'affiliation (fallback si pas de purchase_url)
+  const amazonLink = purchaseLink 
+    ? null 
+    : (amazonSearchQuery 
+      ? `https://www.amazon.fr/s?k=${encodeURIComponent(amazonSearchQuery)}&tag=${affiliateId}`
+      : (report.title ? `https://www.amazon.fr/s?k=${encodeURIComponent(report.title)}&tag=${affiliateId}` : null));
 
   return (
     <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative overflow-hidden">
@@ -350,16 +367,11 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
             )}
           </div>
           
-          <div className="w-full md:w-auto z-10">
-            {amazonSearchQuery || report.title ? (
-              <AffiliateLink
-                amazonSearchQuery={amazonSearchQuery || report.title}
-                recommendationReason={amazonRecommendationReason || 'Recommandation issue de la communauté Reddit'}
-                className="w-full md:w-80"
-              />
-            ) : (
+          {/* Bouton d'achat - Affiché uniquement si purchase_url existe */}
+          {purchaseLink && (
+            <div className="w-full md:w-auto z-10">
               <a 
-                href={amazonLink || 'https://www.amazon.fr/?tag=tminer-21'} 
+                href={purchaseLink} 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full md:w-80 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white py-8 rounded-2xl font-black uppercase text-sm tracking-[0.2em] text-center shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_60px_rgba(249,115,22,0.7)] transition-all flex items-center justify-center gap-3 active:scale-95 border-2 border-orange-400/50"
@@ -367,11 +379,39 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                Vérifier le prix sur Amazon
+                {getButtonText(purchaseLink)}
                 <ExternalLink size={18} />
               </a>
-            )}
-          </div>
+            </div>
+          )}
+          
+          {/* Fallback : AffiliateLink ou lien Amazon généré si pas de purchase_url */}
+          {!purchaseLink && (
+            <div className="w-full md:w-auto z-10">
+              {amazonSearchQuery || report.title ? (
+                <AffiliateLink
+                  amazonSearchQuery={amazonSearchQuery || report.title}
+                  recommendationReason={amazonRecommendationReason || 'Recommandation issue de la communauté Reddit'}
+                  className="w-full md:w-80"
+                />
+              ) : (
+                amazonLink && (
+                  <a 
+                    href={amazonLink} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full md:w-80 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white py-8 rounded-2xl font-black uppercase text-sm tracking-[0.2em] text-center shadow-[0_0_50px_rgba(249,115,22,0.5)] hover:shadow-[0_0_60px_rgba(249,115,22,0.7)] transition-all flex items-center justify-center gap-3 active:scale-95 border-2 border-orange-400/50"
+                  >
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Vérifier le prix sur Amazon
+                    <ExternalLink size={18} />
+                  </a>
+                )
+              )}
+            </div>
+          )}
         </div>
 
         {/* Boutons de partage */}

@@ -47,6 +47,7 @@ type SupabaseReportRow = {
   category?: string;
   image_url: string | null;
   url_image?: string | null; // Colonne ajoutée manuellement pour les images OG
+  purchase_url?: string | null; // URL d'achat (Amazon, Fnac, etc.)
   created_at: string;
   updated_at?: string;
 };

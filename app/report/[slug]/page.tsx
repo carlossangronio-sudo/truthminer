@@ -214,6 +214,7 @@ export default async function ReportPage({ params }: PageProps) {
       url_image: supabaseReport.url_image || null,
       image_url: supabaseReport.url_image || supabaseReport.image_url || null,
       productName: supabaseReport.product_name || null,
+      purchase_url: supabaseReport.purchase_url || null,
       // Nouveaux champs JSON structurés (alignement avec le nouveau format)
       consensus: content.consensus || content.choice || null,
       pros: Array.isArray(content.pros) ? content.pros : [],
