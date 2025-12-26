@@ -136,7 +136,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({ report }) => {
       : (report.title ? `https://www.amazon.fr/s?k=${encodeURIComponent(report.title)}&tag=${affiliateId}` : null));
 
   return (
-    <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative overflow-hidden">
+    <main className="min-h-screen text-slate-100 font-sans bg-[#02010a] pb-20 relative">
       <NeuralBackground intensity={0.25} />
       
       {/* Navigation */}
