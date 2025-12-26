@@ -31,6 +31,8 @@ export interface GeneratedReport {
   };
   recommendations?: string[]; // Ancien format (pour compatibilité)
   punchline?: string; // Ancien format (pour compatibilité)
+  debate_summary?: string; // Section "Le Débat" - points où la communauté est divisée
+  controversy_index?: number; // Index de controverse (0-100) : 0=consensus fort, 100=forte controverse
 }
 
 /**
