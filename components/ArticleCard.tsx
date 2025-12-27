@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import ImageCard from './ImageCard';
 
 type ArticleCardProps = {
@@ -41,67 +42,33 @@ export default function ArticleCard({
   return (
     <Link
       href={`/report/${slug}`}
-      className="group block rounded-xl bg-white dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+      className="group relative glass-card overflow-hidden flex flex-col hover:bg-white/40 transition-all border border-white/60"
     >
-      {/* Image miniature en haut de la carte avec fallback automatique */}
-      <ImageCard
-        imageUrl={imageUrl}
-        title={title}
-        height="h-48"
-        className="group-hover:scale-105 transition-transform duration-300"
-      />
-      <div className="p-5 md:p-6">
-        {/* Header avec score */}
-        <div className="flex items-start justify-between mb-3">
-          {category && (
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 uppercase tracking-[0.1em]">
-              {category}
-            </span>
-          )}
-          <div
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${getConfidenceColor(
-              score
-            )}`}
-          >
-            {score}%
+      {/* Image */}
+      <div className="h-48 w-full relative overflow-hidden">
+        <ImageCard
+          imageUrl={imageUrl}
+          title={title}
+          height="h-full"
+          className="group-hover:scale-110 transition-transform duration-700"
+        />
+        {category && (
+          <div className="absolute top-4 left-4">
+            <span className="px-3 py-1 bg-white/80 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600">{category}</span>
           </div>
+        )}
+      </div>
+
+      {/* Contenu */}
+      <div className="p-6 flex-1 flex flex-col justify-between">
+        <div>
+          <h4 className="text-xl font-black uppercase italic text-slate-900 mb-2 leading-tight line-clamp-2">{title}</h4>
+          <p className="text-sm text-slate-500 font-medium line-clamp-2 mb-6">{choice || 'Analyse basée sur les discussions Reddit.'}</p>
         </div>
-
-        {/* Titre */}
-        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-50 mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">
-          {title}
-        </h3>
-
-        {/* Extrait */}
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-          {choice || 'Analyse basée sur les discussions Reddit.'}
-        </p>
-
-        {/* Footer avec date */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-800">
-          <span className="text-xs text-gray-500 dark:text-gray-500">
-            {new Date(createdAt).toLocaleDateString('fr-FR', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </span>
-          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:underline flex items-center gap-1">
-            Lire l&apos;analyse
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5l7 7-7 7" />
-            </svg>
-          </span>
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-200/50">
+          <button className="text-blue-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 group/btn">
+            Consulter <ArrowUpRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+          </button>
         </div>
       </div>
     </Link>

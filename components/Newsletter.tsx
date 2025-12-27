@@ -70,12 +70,13 @@ export default function Newsletter({ className = '' }: NewsletterProps) {
 
   return (
     <section
-      className={`rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 shadow-xl p-6 md:p-8 text-center text-slate-50 ${className}`}
+      className={`glass-card-ultra p-6 md:p-8 text-center relative z-10 ${className}`}
+      style={{ overflow: 'visible' }}
     >
-      <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
-        Ne manquez plus aucune vérité sur les produits.
+      <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter mb-2 text-slate-900" style={{ lineHeight: '2', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
+        Ne manquez plus aucune <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500" style={{ display: 'inline-block', paddingBottom: '2rem', paddingTop: '1rem', lineHeight: '2.2', overflow: 'visible' }}>vérité</span>
       </h2>
-      <p className="text-sm md:text-base text-slate-300 mb-6">
+      <p className="text-sm md:text-base text-slate-600 mb-6 font-medium">
         Recevez nos meilleures analyses Reddit directement par mail.
       </p>
 
@@ -88,12 +89,12 @@ export default function Newsletter({ className = '' }: NewsletterProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Votre email"
-          className="flex-1 px-4 py-3 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+          className="flex-1 px-4 py-3 rounded-xl glass-card border border-white/60 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm md:text-base font-medium"
         />
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed text-sm md:text-base font-semibold transition-colors whitespace-nowrap"
+          className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-sm md:text-base font-black uppercase italic tracking-wider text-white transition-all whitespace-nowrap"
         >
           {isLoading ? 'Inscription...' : "S'abonner"}
         </button>
@@ -101,8 +102,8 @@ export default function Newsletter({ className = '' }: NewsletterProps) {
 
       {message && (
         <p
-          className={`mt-3 text-xs md:text-sm ${
-            status === 'success' ? 'text-emerald-300' : 'text-rose-300'
+          className={`mt-3 text-xs md:text-sm font-medium ${
+            status === 'success' ? 'text-emerald-600' : 'text-red-600'
           }`}
         >
           {message}

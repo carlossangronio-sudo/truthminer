@@ -26,11 +26,11 @@ export const ScannerLogo = ({ onClick, className = '' }: ScannerLogoProps) => {
       }}
       aria-label="TruthMiner - Accueil"
     >
-      <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] group-hover:scale-110 transition-transform">
-        <Cpu size={22} />
+      <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-xl shadow-lg group-hover:scale-110 transition-all">
+        T
       </div>
-      <span className="text-xl font-black uppercase tracking-tighter italic text-white">
-        Truth<span className="text-cyan-400">Miner</span>
+      <span className="text-xl font-bold tracking-tight text-slate-900 uppercase italic">
+        Truth<span className="text-blue-600">Miner</span>
       </span>
     </div>
   );

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Outfit, Roboto } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Footer from "@/components/Footer";
 import AnalyticsWrapper from "@/components/AnalyticsWrapper";
@@ -9,9 +9,17 @@ import PageTransition from "@/components/PageTransition";
 // URL canonique du site utilisée pour metadataBase et les liens absolus
 const siteUrl = "https://tminer.io";
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+  display: "swap",
+  variable: "--font-heading",
 });
 
 export const metadata: Metadata = {
@@ -105,10 +113,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased flex flex-col min-h-screen`}>
+      <body className={`${outfit.className} ${roboto.variable} antialiased flex flex-col min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-blue-500/30 overflow-x-hidden relative`}>
+        {/* Background Elements (Mesh Gradients & Orbs) */}
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          {/* Animated Orbs */}
+          <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] bg-blue-400/20 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-[0%] right-[-10%] w-[70%] h-[70%] bg-indigo-300/30 blur-[120px] rounded-full" />
+          <div className="absolute top-[20%] right-[10%] w-[50%] h-[50%] bg-cyan-200/30 blur-[100px] rounded-full" />
+          <div className="absolute top-[50%] left-[20%] w-[30%] h-[30%] bg-purple-200/10 blur-[100px] rounded-full" />
+        </div>
+
+        {/* Floating Glass Orb for depth */}
+        <div className="fixed top-1/4 left-10 w-32 h-32 bg-white/20 border border-white/40 backdrop-blur-2xl rounded-full z-0 shadow-2xl animate-bounce pointer-events-none" style={{ animationDuration: '6s' }} />
+
         <ThemeProvider>
           <PageTransition>
-            <div className="flex-1">{children}</div>
+            <div className="flex-1 relative z-10">{children}</div>
           </PageTransition>
           <Footer />
         </ThemeProvider>

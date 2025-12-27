@@ -1,10 +1,9 @@
 'use client';
 
-'use client';
-
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
 
 interface RecentReport {
   id: string;
@@ -32,80 +31,60 @@ export default function RecentReportsGrid({ reports }: RecentReportsGridProps) {
   }
 
   return (
-    <section className="py-16 md:py-24 relative">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4 uppercase tracking-tighter">
-            Archives <span className="text-cyan-400">Neural</span>
-          </h2>
-          <p className="text-slate-400 text-sm uppercase tracking-widest">
-            Dernières analyses décodées
-          </p>
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {reports.map((report, index) => {
+        // PRIORITÉ : url_image (colonne manuelle) > image_url > imageUrl
+        const imageUrl = report.url_image || report.image_url || report.imageUrl || null;
+        const slug = report.slug || report.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || report.id;
+        const title = report.title || report.product_name || report.productName || 'Rapport';
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reports.map((report, index) => {
-            // PRIORITÉ : url_image (colonne manuelle) > image_url > imageUrl
-            const imageUrl = report.url_image || report.image_url || report.imageUrl || null;
-            const slug = report.slug || report.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || report.id;
-            const title = report.title || report.product_name || report.productName || 'Rapport';
-
-            return (
-              <motion.div
-                key={report.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Link
-                  href={`/report/${slug}`}
-                  className="group relative block bg-slate-900/50 border border-cyan-500/20 rounded-2xl overflow-hidden hover:border-cyan-500/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]"
-                >
-                {/* Image */}
-                {imageUrl ? (
-                  <div className="relative w-full h-48 bg-slate-800 overflow-hidden">
-                    <Image
-                      src={imageUrl}
-                      alt={title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        // Fallback si l'image ne charge pas
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 flex items-center justify-center">
-                    <div className="text-4xl">📊</div>
-                  </div>
-                )}
-
-                {/* Contenu */}
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
-                      <span className="text-cyan-400 text-xs font-black uppercase tracking-wider">
-                        {report.score}% confiance
-                      </span>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-2">
-                    {title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider">
-                    <span>Analyse complète</span>
-                    <span className="text-cyan-500">→</span>
-                  </div>
+        return (
+          <motion.div
+            key={report.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <Link
+              href={`/report/${slug}`}
+              className="group relative glass-card overflow-hidden flex flex-col hover:bg-white/40 transition-all border border-white/60"
+            >
+              {/* Image */}
+              {imageUrl ? (
+                <div className="h-48 w-full relative overflow-hidden">
+                  <Image
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
                 </div>
-              </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+              ) : (
+                <div className="h-48 w-full bg-gradient-to-br from-blue-500/20 to-indigo-300/20 flex items-center justify-center">
+                  <div className="text-4xl">📊</div>
+                </div>
+              )}
+
+              {/* Contenu */}
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xl font-black uppercase italic text-slate-900 mb-2 leading-tight line-clamp-2">{title}</h4>
+                </div>
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-200/50">
+                  <button className="text-blue-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 group/btn">
+                    Consulter <ArrowUpRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }
 

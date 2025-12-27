@@ -9,8 +9,8 @@ import Newsletter from '@/components/Newsletter';
 import FeaturesSection from '@/components/FeaturesSection';
 import RecentReportsGrid from '@/components/RecentReportsGrid';
 import InterfaceTutorial from '@/components/InterfaceTutorial';
-import { NeuralBackground } from '@/components/NeuralBackground';
 import { IABadge } from '@/components/IABadge';
+import { Search } from 'lucide-react';
 
 interface RecentReport {
   id: string;
@@ -103,83 +103,79 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      <NeuralBackground intensity={0.25} />
-      
       <Navbar />
       
-      {/* Hero Section - Style Cyber/Neural */}
-      <section className="relative py-20 md:py-32">
-        <div className="container mx-auto px-4 md:px-6">
+      {/* Hero Section - Style Crystal/Glassmorphism */}
+      <section className="relative pt-32 pb-20" style={{ overflow: 'visible' }}>
+        <div className="container mx-auto px-6" style={{ overflow: 'visible' }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="max-w-5xl mx-auto text-center"
+            className="max-w-4xl mx-auto text-center"
+            style={{ overflow: 'visible' }}
           >
-            <IABadge text="Extraction d'avis communautaires" />
+            <IABadge text="Vérification en temps réel" />
             
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-tight">
-              <span className="bg-gradient-to-r from-cyan-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-pulse">
-                DETERREZ LA VÉRITÉ
+            <h1 className="font-black mb-8 tracking-tighter italic uppercase text-slate-900" style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', lineHeight: '1.8', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
+              <span className="block" style={{ lineHeight: '1.8', paddingBottom: '2rem', paddingTop: '1rem', overflow: 'visible', display: 'block' }}>
+                Ne vous faites plus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">avoir</span>
               </span>
-              <br />
-              <span className="text-white">BRUTE</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Moteur de recherche de vérité : On scanne Reddit pour vous éviter de le faire.
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+              Découvrez la vérité cachée dans les discussions Reddit. Obtenez en 30 secondes ce que les autres mettent 3 heures à trouver.
             </p>
             
-            {/* Barre de recherche style Perplexity/ChatGPT - ÉLÉMENT CENTRAL */}
-            <div className="max-w-4xl mx-auto mb-6">
-              <div className="relative flex items-center gap-3 bg-slate-900/90 backdrop-blur-xl border-2 border-cyan-500/50 rounded-2xl p-5 shadow-[0_0_50px_rgba(34,211,238,0.3)] hover:border-cyan-500/70 transition-all">
-                <input
-                  type="text"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
-                  placeholder="Entrez un produit ou un sujet précis (ex: iPhone 16, Dyson V15, Tesla Model 3)"
-                  className="flex-1 bg-transparent text-white placeholder-slate-400 focus:outline-none text-lg md:text-xl font-medium"
-                />
+            {/* Barre de recherche style Glassmorphism */}
+            <div className="max-w-2xl mx-auto relative group mb-6">
+              <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full group-hover:bg-blue-500/20 transition-all" />
+              <div className="relative flex items-center bg-white/60 backdrop-blur-3xl border border-white p-2 rounded-2xl shadow-xl">
+                <Search className="ml-4 text-slate-400" size={20} />
+                      <input
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                        placeholder="Quel produit ou sujet aimeriez-vous miner ?"
+                        className="w-full bg-transparent border-none focus:ring-0 px-4 py-3 text-slate-900 font-medium placeholder:text-slate-400"
+                      />
                 <button
                   onClick={handleGenerate}
                   disabled={isLoading || !keyword.trim()}
-                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-xl font-black text-base md:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-[0_0_25px_rgba(34,211,238,0.5)] hover:shadow-[0_0_35px_rgba(34,211,238,0.7)]"
+                  className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black uppercase italic tracking-wider hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Minage...' : 'Miner'}
+                  {isLoading ? 'Analyse...' : 'Analyser'}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 text-center mt-3 uppercase tracking-widest">
-                Analysé en temps réel via Reddit
-              </p>
             </div>
 
-            {/* Interface "Minage en cours" avec barre de progression animée */}
+            {/* Interface "Analyse en cours" avec barre de progression animée */}
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-12 max-w-2xl mx-auto"
               >
-                <div className="bg-slate-900/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 shadow-[0_0_40px_rgba(34,211,238,0.2)]">
-                  <h3 className="text-xl font-black text-cyan-400 mb-4 uppercase tracking-tighter text-center">
-                    Minage en cours...
+                <div className="glass-card p-8">
+                  <h3 className="text-xl font-black text-blue-600 mb-4 uppercase italic text-center">
+                    Analyse en cours...
                   </h3>
-                  <p className="text-slate-400 text-sm mb-6 text-center">
-                    Extraction des signaux Reddit pour <span className="text-cyan-400 font-bold">{keyword}</span>
+                  <p className="text-slate-500 text-sm mb-6 text-center font-medium">
+                    Extraction des signaux Reddit pour <span className="text-blue-600 font-bold">{keyword}</span>
                   </p>
                   <CircularProgress isActive={isLoading} />
                   <div className="mt-6 space-y-2">
                     <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                       <span>Scan des discussions Reddit...</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                       <span>Analyse des avis communautaires...</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                       <span>Génération du rapport de vérité...</span>
                     </div>
                   </div>
@@ -191,7 +187,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 max-w-2xl mx-auto"
+                className="mt-6 p-4 glass-card border-red-200 text-red-600 max-w-2xl mx-auto"
               >
                 {error}
               </motion.div>
@@ -213,9 +209,9 @@ export default function Home() {
       {/* Bibliothèque de pépites déjà minées */}
       {!isLoadingReports && recentReports.length > 0 && (
         <section className="relative py-16 md:py-24">
-          <div className="container mx-auto px-4 md:px-6">
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-8 text-center uppercase tracking-tighter">
-              Bibliothèque de pépites déjà minées
+          <div className="container mx-auto px-6" style={{ overflow: 'visible' }}>
+            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-12 text-center uppercase italic tracking-tighter" style={{ lineHeight: '2', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
+              Analyses <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500" style={{ display: 'inline-block', paddingBottom: '2rem', paddingTop: '1rem', lineHeight: '2.2', overflow: 'visible' }}>Déjà Minées</span>
             </h2>
             <RecentReportsGrid reports={recentReports} />
           </div>

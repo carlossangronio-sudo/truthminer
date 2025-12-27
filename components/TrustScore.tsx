@@ -70,10 +70,19 @@ export const TrustScore = ({ score, count, commentCount, className = '' }: Trust
     };
   }
 
+  // Adapter les couleurs pour le thème clair
+  const lightColorClasses = validScore >= 70 
+    ? { text: 'text-emerald-600', border: 'border-emerald-500/30', borderRight: 'border-emerald-500/20' }
+    : validScore >= 50
+    ? { text: 'text-yellow-600', border: 'border-yellow-500/30', borderRight: 'border-yellow-500/20' }
+    : validScore >= 30
+    ? { text: 'text-orange-600', border: 'border-orange-500/30', borderRight: 'border-orange-500/20' }
+    : { text: 'text-red-600', border: 'border-red-500/30', borderRight: 'border-red-500/20' };
+
   return (
-    <div className={`flex items-center gap-6 ${colorClasses.bg} p-6 rounded-[2.5rem] border ${colorClasses.border} ${className}`}>
-      <div className={`text-center px-6 border-r ${colorClasses.borderRight}`}>
-        <div className={`text-5xl font-black ${colorClasses.text} leading-none`}>{validScore}%</div>
+    <div className={`flex items-center gap-6 glass-card p-6 ${className}`}>
+      <div className={`text-center px-6 border-r ${lightColorClasses.borderRight}`}>
+        <div className={`text-5xl font-black ${lightColorClasses.text} leading-none`}>{validScore}%</div>
         <div className="text-[9px] font-black uppercase text-slate-500 mt-2 tracking-widest flex items-center justify-center gap-1.5">
           Indice de Satisfaction Communautaire
           <div 
@@ -82,23 +91,23 @@ export const TrustScore = ({ score, count, commentCount, className = '' }: Trust
             onMouseLeave={() => setShowTooltip(false)}
             onClick={() => setShowTooltip(!showTooltip)}
           >
-            <Info size={12} className="text-slate-400 hover:text-cyan-400 cursor-help transition-colors" />
+            <Info size={12} className="text-slate-500 hover:text-blue-600 cursor-help transition-colors" />
             {showTooltip && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-72 p-4 bg-slate-900 border border-cyan-500/30 rounded-lg text-xs text-slate-200 shadow-xl z-50">
-                <p className="font-bold text-cyan-400 mb-2">Indice de Satisfaction Communautaire</p>
-                <p>Ce score est calculé par l&apos;IA en analysant le rapport entre les avis positifs et négatifs extraits de Reddit sur les 12 derniers mois.</p>
-                <p className="mt-2 text-cyan-300">Analysé sur <strong>{estimatedComments}</strong> commentaires Reddit récents.</p>
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-cyan-500/30"></div>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-72 p-4 glass-card border border-white/60 rounded-lg text-xs text-slate-700 shadow-xl z-50">
+                <p className="font-bold text-blue-600 mb-2">Indice de Satisfaction Communautaire</p>
+                <p className="font-medium">Ce score est calculé par l&apos;IA en analysant le rapport entre les avis positifs et négatifs extraits de Reddit sur les 12 derniers mois.</p>
+                <p className="mt-2 text-blue-600 font-medium">Analysé sur <strong>{estimatedComments}</strong> commentaires Reddit récents.</p>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-white/60"></div>
               </div>
             )}
           </div>
         </div>
       </div>
       <div>
-        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
           {validCount} signaux analysés
         </div>
-        <div className={`flex items-center gap-1 mt-1 ${colorClasses.icon} uppercase text-[8px] font-bold`}>
+        <div className={`flex items-center gap-1 mt-1 ${lightColorClasses.text} uppercase text-[8px] font-bold`}>
           <ShieldCheck size={12} /> Vérifié par Neural Core
         </div>
       </div>
