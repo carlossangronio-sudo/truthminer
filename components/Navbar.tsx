@@ -20,7 +20,7 @@ export default function Navbar() {
     }`}>
       <div className="container mx-auto px-6 flex justify-between items-center">
         <ScannerLogo />
-        <div className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-8">
           <Link
             href="/explore"
             className="text-[10px] font-black text-slate-500 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]"

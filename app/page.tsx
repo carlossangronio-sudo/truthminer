@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import CircularProgress from '@/components/CircularProgress';
 import Navbar from '@/components/Navbar';
@@ -117,8 +118,8 @@ export default function Home() {
           >
             <IABadge text="Vérification en temps réel" />
             
-            <h1 className="font-black mb-8 tracking-tighter italic uppercase text-slate-900" style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', lineHeight: '1.8', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
-              <span className="block" style={{ lineHeight: '1.8', paddingBottom: '2rem', paddingTop: '1rem', overflow: 'visible', display: 'block' }}>
+            <h1 className="font-black mb-2 md:mb-6 tracking-tighter italic uppercase text-slate-900" style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', lineHeight: '1.8', paddingBottom: '1.5rem', paddingTop: '1rem', overflow: 'visible', display: 'block' }}>
+              <span className="block" style={{ lineHeight: '1.8', paddingBottom: '1rem', paddingTop: '0.5rem', overflow: 'visible', display: 'block' }}>
                 Ne vous faites plus <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">avoir</span>
               </span>
             </h1>
@@ -210,9 +211,17 @@ export default function Home() {
       {!isLoadingReports && recentReports.length > 0 && (
         <section className="relative py-16 md:py-24">
           <div className="container mx-auto px-6" style={{ overflow: 'visible' }}>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-12 text-center uppercase italic tracking-tighter" style={{ lineHeight: '2', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
-              Analyses <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500" style={{ display: 'inline-block', paddingBottom: '2rem', paddingTop: '1rem', lineHeight: '2.2', overflow: 'visible' }}>Déjà Minées</span>
-            </h2>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+              <h2 className="text-3xl md:text-4xl font-black text-slate-900 text-center md:text-left uppercase italic tracking-tighter" style={{ lineHeight: '2', paddingBottom: '3rem', paddingTop: '2rem', overflow: 'visible', display: 'block' }}>
+                Dernières <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500" style={{ display: 'inline-block', paddingBottom: '2rem', paddingTop: '1rem', lineHeight: '2.2', overflow: 'visible' }}>analyses minées</span>
+              </h2>
+              <Link
+                href="/explore"
+                className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-blue-600 text-white text-sm font-black uppercase italic tracking-wider transition-colors whitespace-nowrap"
+              >
+                Voir plus
+              </Link>
+            </div>
             <RecentReportsGrid reports={recentReports} />
           </div>
         </section>
